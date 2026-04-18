@@ -170,8 +170,7 @@ func _on_sentence_finished() -> void:
 		_show_continue_hint()
 	else:
 		# 2. 最后一句：不显示 hint，直接解锁输入
-		send_button.disabled = false
-		message_input.editable = true
+		_unlock_input()
 
 # 用户触发"继续"
 func _advance() -> void:
@@ -240,19 +239,25 @@ func _start_thinking_dots() -> void:
 	_schedule_dots()
 
 func _schedule_dots() -> void:
-	_dots_timer = get_tree().create_timer(0.4)
+	_dots_timer = get_tree().create_timer(0.5)
 	_dots_timer.timeout.connect(_tick_dots, CONNECT_ONE_SHOT)
 
 func _tick_dots() -> void:
 	if not _dots_active:
 		return
-	_dots_count = (_dots_count + 1) % 3
-	dialog_text.text = ".".repeat(_dots_count + 1)
+	_dots_count = (_dots_count + 1) % 4
+	dialog_text.text = ".".repeat(_dots_count)
 	_schedule_dots()
 
 func _stop_thinking_dots() -> void:
 	_dots_active = false
 	_dots_timer = null
+
+func _unlock_input() -> void:
+	send_button.disabled = false
+	message_input.editable = true
+	message_input.placeholder_text = "输入消息…
+Enter 发送，Shift+Enter 换行"
 
 # ── 发送消息 ──────────────────────────────────────────────────
 func _on_send_pressed() -> void:
@@ -265,6 +270,8 @@ func _send_message(text: String) -> void:
 	message_input.text = ""
 	send_button.disabled = true
 	message_input.editable = false   # 1. 禁用输入框
+	var char_name: String = AppState.current_character.get("name", "AI")
+	message_input.placeholder_text = char_name + "正在说话..."
 	option_buttons.visible = false
 	_hide_continue_hint()
 	_waiting_for_advance = false
@@ -316,16 +323,14 @@ func _on_stream_done() -> void:
 	if _waiting_for_advance and _sentence_queue.is_empty() and not _is_typing:
 		_waiting_for_advance = false
 		_hide_continue_hint()
-		send_button.disabled = false
-		message_input.editable = true
+		_unlock_input()
 
 func _on_stream_error(message: String) -> void:
 	_is_receiving = false
 	_is_typing = false
 	_waiting_for_advance = false
 	_stop_thinking_dots()
-	send_button.disabled = false
-	message_input.editable = true
+	_unlock_input()
 	_show_text("⚠ " + message)
 
 # ── 呼吸动画 ──────────────────────────────────────────────────
@@ -373,6 +378,7 @@ func _refresh_history() -> void:
 
 # ── 导航 ──────────────────────────────────────────────────────
 func _on_back_pressed() -> void:
+	ApiClient.cancel()
 	ApiClient.stream_chunk.disconnect(_on_stream_chunk)
 	ApiClient.stream_mood.disconnect(_on_stream_mood)
 	ApiClient.stream_done.disconnect(_on_stream_done)

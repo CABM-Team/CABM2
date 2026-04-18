@@ -71,7 +71,6 @@ placeholder_text = "deepseek-ai/DeepSeek-V3.2"
 
 [node name="SectionMemory" type="Label" parent="ScrollContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
 text = "── 记忆 API（没做）──"
 
 [node name="LabelMemoryKey" type="Label" parent="ScrollContainer/VBox"]
@@ -80,6 +79,7 @@ text = "Memory API Key"
 
 [node name="MemoryKeyInput" type="LineEdit" parent="ScrollContainer/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 30
 secret = true
 
 [node name="LabelMemoryUrl" type="Label" parent="ScrollContainer/VBox"]
@@ -88,6 +88,7 @@ text = "Memory API Base URL"
 
 [node name="MemoryUrlInput" type="LineEdit" parent="ScrollContainer/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 30
 
 [node name="LabelEmbedModel" type="Label" parent="ScrollContainer/VBox"]
 layout_mode = 2
@@ -95,6 +96,7 @@ text = "Embedding 模型"
 
 [node name="EmbedModelInput" type="LineEdit" parent="ScrollContainer/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 30
 placeholder_text = "BAAI/bge-large-zh-v1.5"
 
 [node name="SaveButton" type="Button" parent="ScrollContainer/VBox"]

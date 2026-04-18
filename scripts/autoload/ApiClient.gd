@@ -28,6 +28,10 @@ var _path := ""
 var _port := 443
 var _use_ssl := true
 
+# 连接超时（秒）
+const CONNECT_TIMEOUT := 15.0
+var _connect_elapsed := 0.0
+
 func _ready() -> void:
 	pass
 
@@ -112,6 +116,7 @@ func chat_completion(messages: Array[Dictionary]) -> void:
 	_mood_emitted = false
 	_escape_next = false
 	_is_streaming = true
+	_connect_elapsed = 0.0
 
 	# 创建 HTTPClient 并发起请求
 	_http = HTTPClient.new()
@@ -148,6 +153,11 @@ func _poll_step() -> void:
 
 	match status:
 		HTTPClient.STATUS_CONNECTING, HTTPClient.STATUS_RESOLVING:
+			_connect_elapsed += 0.016
+			if _connect_elapsed >= CONNECT_TIMEOUT:
+				_finish_stream()
+				stream_error.emit("连接超时，请检查网络或 API 地址。")
+				return
 			_schedule_poll()
 
 		HTTPClient.STATUS_CONNECTED:
@@ -324,6 +334,10 @@ func _try_extract_content() -> void:
 	_json_buffer = ""  # 已全部处理，等待更多数据
 
 # ── 清理 ──────────────────────────────────────────────────────
+func cancel() -> void:
+	if _is_streaming:
+		_finish_stream()
+
 func _finish_stream() -> void:
 	_is_streaming = false
 	if _http != null:
