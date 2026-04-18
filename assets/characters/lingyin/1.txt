@@ -1,0 +1,39 @@
+from PIL import Image
+import os
+
+def compress_image(input_path, output_size=(660, 660)):
+    """
+    将指定图片压缩并调整为指定尺寸，保存为临时文件后替换原文件。
+    :param input_path: 输入图片路径 (例如 '1.png')
+    :param output_size: 输出图片尺寸 (默认 660x660)
+    """
+    # 检查文件是否存在
+    if not os.path.exists(input_path):
+        print(f"错误：文件 {input_path} 未找到，请确认路径。")
+        return
+
+    try:
+        # 打开图片
+        img = Image.open(input_path)
+        print(f"原图尺寸：{img.size}，模式：{img.mode}")
+
+        # 调整尺寸，使用 Image.Resampling.LANCZOS 保持高质量
+        img_resized = img.resize(output_size, Image.Resampling.LANCZOS)
+        print(f"调整后尺寸：{img_resized.size}")
+
+        # 生成临时文件名（避免直接覆盖导致意外）
+        temp_path = "temp_" + input_path
+
+        # 保存为临时文件，PNG格式默认是无损压缩，但尺寸已变
+        img_resized.save(temp_path, format='PNG')
+        print(f"临时文件已保存：{temp_path}")
+
+        # 替换原文件
+        os.replace(temp_path, input_path)
+        print(f"完成：{input_path} 已压缩为 {output_size[0]}x{output_size[1]}")
+
+    except Exception as e:
+        print(f"处理图片时出错：{e}")
+
+if __name__ == "__main__":
+    compress_image('avatar.png')
