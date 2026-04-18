@@ -24,6 +24,7 @@ export_presets.cfg
 exported/
 builds/
 *.apk
+*.idsig
 *.aab
 *.exe
 *.dll

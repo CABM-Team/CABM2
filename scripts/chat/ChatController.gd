@@ -19,9 +19,6 @@ extends Control
 @onready var close_history_btn: Button     = $HistoryModal/HistoryVBox/HistoryHeader/CloseHistoryButton
 @onready var option_buttons: VBoxContainer = $OptionButtons
 
-# ── 分句标点 ──────────────────────────────────────────────────
-const PAUSE_CHARS := ["。", "！", "？", "!", "?", "…", "♪", "~", "～"]
-
 # ── 输出速度（秒/字），可在运行时调整 ────────────────────────
 var type_speed := 0.03
 
@@ -38,7 +35,7 @@ var _sentence_queue: Array[String] = []
 var _waiting_for_advance := false
 
 # ── 流式接收状态（独立于显示进程）────────────────────────────
-var _stream_buffer := ""         # 未成句的流式碎片
+var _stream_state := SentenceSplitter.StreamState.new()  # 流式分句状态
 var _stream_full_content := ""   # 本轮完整 content（存历史用）
 var _is_receiving := false       # 是否正在接收流
 
@@ -274,7 +271,7 @@ func _send_message(text: String) -> void:
 
 	AppState.add_message("user", text)
 
-	_stream_buffer = ""
+	_stream_state = SentenceSplitter.StreamState.new()
 	_stream_full_content = ""
 	_sentence_queue.clear()
 	_is_receiving = true
@@ -291,25 +288,6 @@ func _on_input_key(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 # ── 流式接收（接收进程，独立于显示进程）──────────────────────
-func _on_stream_chunk(text: String) -> void:
-	_stream_buffer += text
-	_stream_full_content += text
-	_flush_sentences()
-
-func _flush_sentences() -> void:
-	while true:
-		var earliest_pos := -1
-		for ch in PAUSE_CHARS:
-			var pos := _stream_buffer.find(ch)
-			if pos != -1 and (earliest_pos == -1 or pos < earliest_pos):
-				earliest_pos = pos
-		if earliest_pos == -1:
-			break
-		var sentence := _stream_buffer.substr(0, earliest_pos + 1)
-		_stream_buffer = _stream_buffer.substr(earliest_pos + 1)
-		if not sentence.strip_edges().is_empty():
-			_enqueue_sentence(sentence)
-
 func _enqueue_sentence(sentence: String) -> void:
 	# 接收进程：只往队列写，或在显示进程空闲时直接启动显示
 	if not _is_typing and not _waiting_for_advance:
@@ -317,15 +295,20 @@ func _enqueue_sentence(sentence: String) -> void:
 	else:
 		_sentence_queue.append(sentence)
 
+func _on_stream_chunk(text: String) -> void:
+	_stream_full_content += text
+	var sentences := SentenceSplitter.split_stream(_stream_state, text)
+	for s in sentences:
+		_enqueue_sentence(s["text"])
+
 func _on_stream_mood(mood: int) -> void:
 	_switch_mood(mood)
 
 func _on_stream_done() -> void:
 	_is_receiving = false
-	if not _stream_buffer.strip_edges().is_empty():
-		_enqueue_sentence(_stream_buffer)
-		_stream_buffer = ""
-	_flush_sentences()
+	var sentences := SentenceSplitter.split_stream(_stream_state, "", true)
+	for s in sentences:
+		_enqueue_sentence(s["text"])
 	if not _stream_full_content.is_empty():
 		AppState.add_message("assistant", _stream_full_content)
 	# 流结束时，如果显示进程正在等待且队列已空，说明刚才显示的是最后一句
