@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dbiimelhqswsr"
-valid=false
+uid="uid://dar5ryb5g6g33"
+path="res://.godot/imported/avatar.png-5c52f76e12e99765804ce4adc0b5aed8.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/characters/Collei/avatar.png"
+dest_files=["res://.godot/imported/avatar.png-5c52f76e12e99765804ce4adc0b5aed8.ctex"]
 
 [params]
 

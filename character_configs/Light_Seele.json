@@ -2,7 +2,7 @@
   "id": "Light_Seele",
   "name": "希儿·芙乐艾",
   "name_en": "Seele Vollerei",
-  "image": "static/images/Light_Seele",
+  "image": "res://assets/characters/Light_Seele",
   "calib": 10,
   "scale_rate": 80,
   "color": "#0b8bff",

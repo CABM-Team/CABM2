@@ -2,7 +2,7 @@
   "id": "Dark_Seele",
   "name": "希儿·芙乐艾",
   "name_en": "Seele Vollerei",
-  "image": "static/images/Dark_Seele",
+  "image": "res://assets/characters/Dark_Seele",
   "calib": 10,
   "scale_rate": 80,
   "color": "#880000",

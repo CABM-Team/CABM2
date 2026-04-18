@@ -1,22 +1,25 @@
-[gd_scene load_steps=3 format=3 uid="uid://chat"]
+[gd_scene load_steps=4 format=3 uid="uid://chat"]
 
 [ext_resource type="Script" uid="uid://cvhu6ve2u05cx" path="res://scripts/chat/ChatController.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dejv7on4aogy4" path="res://assets/backgrounds/sr-3.png" id="2_r67cr"]
+[ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="3_xe7gi"]
 
 [node name="Chat" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
+texture = ExtResource("2_r67cr")
 expand_mode = 1
 stretch_mode = 6
-texture = ExtResource("2_r67cr")
 
 [node name="BackgroundOverlay" type="ColorRect" parent="."]
 layout_mode = 0
@@ -25,17 +28,10 @@ anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.35)
 
-[node name="CharacterSprite" type="TextureRect" parent="."]
-layout_mode = 0
-anchor_left = 0.0
-anchor_top = 0.05
-anchor_right = 0.55
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 5
+[node name="CharacterSprite" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(880, 1076)
+offset = Vector2(0, -512)
 
 [node name="Header" type="HBoxContainer" parent="."]
 layout_mode = 0
@@ -50,65 +46,73 @@ theme_override_constants/separation = 8
 [node name="BackButton" type="Button" parent="Header"]
 custom_minimum_size = Vector2(80, 36)
 layout_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "← 返回"
 
 [node name="CharacterName" type="Label" parent="Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(1, 1, 1, 0.95)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 30
 horizontal_alignment = 1
 
-[node name="HistoryButtonTop" type="Button" parent="Header"]
-custom_minimum_size = Vector2(60, 36)
-layout_mode = 2
-text = "历史"
-
-[node name="RightPanel" type="VBoxContainer" parent="."]
+[node name="OptionButtons" type="VBoxContainer" parent="."]
+visible = false
 layout_mode = 0
-anchor_left = 0.55
-anchor_top = 0.07
-anchor_right = 1.0
-anchor_bottom = 0.88
-offset_left = -8.0
-offset_right = -12.0
-offset_top = 4.0
-theme_override_constants/separation = 8
+offset_left = 1394.0
+offset_top = 372.0
+offset_right = 1894.0
+offset_bottom = 572.0
+size_flags_vertical = 0
+theme_override_constants/separation = 30
 
-[node name="InputArea" type="HBoxContainer" parent="RightPanel"]
+[node name="Option1" type="Button" parent="OptionButtons"]
 layout_mode = 2
-size_flags_vertical = 3
+text = "选项1"
+
+[node name="Option2" type="Button" parent="OptionButtons"]
+layout_mode = 2
+text = "选项1"
+
+[node name="Option3" type="Button" parent="OptionButtons"]
+layout_mode = 2
+text = "选项1"
+
+[node name="InputArea" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(500, 200)
+layout_mode = 0
+offset_left = 1388.0
+offset_top = 99.0
+offset_right = 1888.0
+offset_bottom = 299.0
+size_flags_horizontal = 4
 theme_override_constants/separation = 8
 
-[node name="MessageInput" type="TextEdit" parent="RightPanel/InputArea"]
+[node name="MessageInput" type="TextEdit" parent="InputArea"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
-placeholder_text = "输入消息…（Enter 发送，Shift+Enter 换行）"
+theme_override_font_sizes/font_size = 24
+placeholder_text = "输入消息…
+Enter 发送，Shift+Enter 换行"
 wrap_mode = 1
+autowrap_mode = 1
 
-[node name="SendButton" type="Button" parent="RightPanel/InputArea"]
-custom_minimum_size = Vector2(72, 0)
+[node name="SendButton" type="Button" parent="InputArea"]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
-size_flags_vertical = 4
+theme = ExtResource("3_xe7gi")
+theme_override_font_sizes/font_size = 28
 text = "发送"
-
-[node name="OptionButtons" type="VBoxContainer" parent="RightPanel"]
-visible = false
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_constants/separation = 6
 
 [node name="DialogArea" type="PanelContainer" parent="."]
 layout_mode = 0
-anchor_top = 0.75
-anchor_right = 1.0
-anchor_bottom = 0.88
-offset_left = 12.0
-offset_right = -12.0
+offset_left = 60.0
+offset_top = 800.0
+offset_right = 1860.0
+offset_bottom = 1050.0
 
 [node name="VBox" type="VBoxContainer" parent="DialogArea"]
 layout_mode = 2
@@ -116,16 +120,17 @@ theme_override_constants/separation = 4
 
 [node name="SpeakerLabel" type="Label" parent="DialogArea/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 38
 text = "系统"
 
 [node name="DialogText" type="RichTextLabel" parent="DialogArea/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 18
+theme_override_font_sizes/normal_font_size = 30
 bbcode_enabled = true
 text = "欢迎使用 CABM2！"
 scroll_active = false
+autowrap_mode = 1
 
 [node name="ContinueHint" type="Label" parent="DialogArea/VBox"]
 visible = false
@@ -134,40 +139,27 @@ theme_override_font_sizes/font_size = 14
 text = "▽"
 horizontal_alignment = 2
 
-[node name="ControlButtons" type="HBoxContainer" parent="."]
-layout_mode = 0
-anchor_top = 0.88
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 12.0
-offset_right = -12.0
-offset_top = 4.0
-offset_bottom = -8.0
+[node name="ControlButtons" type="HBoxContainer" parent="DialogArea/VBox"]
+layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="HistoryButton" type="Button" parent="ControlButtons"]
+[node name="HistoryButton" type="Button" parent="DialogArea/VBox/ControlButtons"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "历史记录"
 
-[node name="BackgroundButton" type="Button" parent="ControlButtons"]
+[node name="BackgroundButton" type="Button" parent="DialogArea/VBox/ControlButtons"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "更换背景"
 
-[node name="TTSButton" type="Button" parent="ControlButtons"]
+[node name="TTSButton" type="Button" parent="DialogArea/VBox/ControlButtons"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "播放语音"
-
-[node name="ContinueButton" type="Button" parent="ControlButtons"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "继续"
 
 [node name="HistoryModal" type="PanelContainer" parent="."]
 visible = false

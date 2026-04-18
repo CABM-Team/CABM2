@@ -2,7 +2,7 @@
   "id": "Rosmontis",
   "name": "迷迭香",
   "name_en": "Rosmontis",
-  "image": "static/images/Rosmontis",
+  "image": "res://assets/characters/Rosmontis",
   "calib": 20,
   "scale_rate": 80,
   "color": "#ffffff",

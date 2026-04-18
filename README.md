@@ -22,7 +22,7 @@ CABM（Code Afflatus & Beyond Matter）的 Godot 4.5 重制版。
 - 语言：GDScript
 - AI 后端：OpenAI 兼容 API（默认 SiliconFlow / DeepSeek-V3）
 - 记忆：FAISS + Embedding API（通过 Python 后端服务）
-- TTS：SiliconFlow API / GPT-SoVITS
+- TTS：SiliconFlow API
 
 ## 项目结构
 
@@ -30,6 +30,7 @@ CABM（Code Afflatus & Beyond Matter）的 Godot 4.5 重制版。
 CABM2/
 ├── project.godot           # Godot 项目配置
 ├── README.md
+├── character_configs/      #角色配置文件
 ├── docs/
 │   └── 功能文档.md          # 原版功能分析文档
 ├── scenes/
@@ -52,11 +53,8 @@ CABM2/
 │   │   └── CharacterLoader.gd
 │   └── ui/
 │       └── DialogBox.gd
-├── resources/
-│   ├── characters/         # 角色配置（.tres 或 .json）
-│   └── themes/             # UI 主题
 └── assets/
-    ├── images/             # 角色立绘
+    ├── characters/         # 角色立绘
     ├── backgrounds/        # 背景图片
     └── audio/              # BGM / 音效
 ```

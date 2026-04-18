@@ -2,7 +2,7 @@
   "id": "Silver_Wolf",
   "name": "银狼",
   "name_en": "Silver_Wolf",
-  "image": "static/images/Silver_Wolf",
+  "image": "res://assets/characters/Silver_Wolf",
   "calib": 30,
   "scale_rate": 100,
   "color": "#9c27b0",

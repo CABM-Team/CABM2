@@ -5,19 +5,19 @@ extends Control
 
 # ── 节点引用 ──────────────────────────────────────────────────
 @onready var background: TextureRect       = $Background
-@onready var character_sprite: TextureRect = $CharacterSprite
+@onready var character_sprite: Sprite2D = $CharacterSprite
 @onready var character_name_label: Label   = $Header/CharacterName
 @onready var speaker_label: Label          = $DialogArea/VBox/SpeakerLabel
 @onready var dialog_text: RichTextLabel    = $DialogArea/VBox/DialogText
 @onready var continue_hint: Label          = $DialogArea/VBox/ContinueHint
-@onready var message_input: TextEdit       = $RightPanel/InputArea/MessageInput
-@onready var send_button: Button           = $RightPanel/InputArea/SendButton
+@onready var message_input: TextEdit       = $InputArea/MessageInput
+@onready var send_button: Button           = $InputArea/SendButton
 @onready var back_button: Button           = $Header/BackButton
-@onready var history_button: Button        = $ControlButtons/HistoryButton
+@onready var history_button: Button        = $DialogArea/VBox/ControlButtons/HistoryButton
 @onready var history_modal: PanelContainer = $HistoryModal
 @onready var history_list: VBoxContainer   = $HistoryModal/HistoryVBox/HistoryScroll/HistoryList
 @onready var close_history_btn: Button     = $HistoryModal/HistoryVBox/HistoryHeader/CloseHistoryButton
-@onready var option_buttons: VBoxContainer = $RightPanel/OptionButtons
+@onready var option_buttons: VBoxContainer = $OptionButtons
 @onready var tween_node: Node              = $CharacterSprite  # 用于呼吸动画
 
 # ── 固定回复池（跳过 AI，用于 UI 调试）────────────────────────
@@ -34,7 +34,8 @@ var _is_typing := false          # 正在逐字显示中
 var _full_text := ""             # 当前句子完整文本
 var _shown_chars := 0            # 已显示字符数
 var _type_timer: SceneTreeTimer  # 逐字计时器
-var _breath_tween: Tween         # 呼吸动画
+var _breath_time := 0.0          # 呼吸动画累计时间
+var _breath_active := false      # 呼吸动画开关
 
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
@@ -45,6 +46,8 @@ func _ready() -> void:
 	message_input.gui_input.connect(_on_input_key)
 	dialog_text.gui_input.connect(_on_dialog_clicked)
 	continue_hint.visible = false
+
+	character_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 
 	_load_character(AppState.current_character)
 	_start_breath_animation()
@@ -156,11 +159,15 @@ func _on_input_key(event: InputEvent) -> void:
 
 # ── 呼吸动画 ──────────────────────────────────────────────────
 func _start_breath_animation() -> void:
-	if _breath_tween:
-		_breath_tween.kill()
-	_breath_tween = create_tween().set_loops()
-	_breath_tween.tween_property(character_sprite, "position:y", 8.0, 2.0).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
-	_breath_tween.tween_property(character_sprite, "position:y", -8.0, 2.0).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_breath_time = 0.0
+	_breath_active = true
+
+func _process(delta: float) -> void:
+	if not _breath_active:
+		return
+	_breath_time += delta
+	character_sprite.scale.y = 1.0 + 0.003 * sin(_breath_time * PI / 2.0)
+	print(character_sprite.scale.y)
 
 # ── 历史记录 ──────────────────────────────────────────────────
 func _toggle_history() -> void:
@@ -199,6 +206,4 @@ func _refresh_history() -> void:
 
 # ── 导航 ──────────────────────────────────────────────────────
 func _on_back_pressed() -> void:
-	if _breath_tween:
-		_breath_tween.kill()
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")

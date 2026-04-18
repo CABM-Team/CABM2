@@ -8,15 +8,17 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
+texture = ExtResource("2_4ervu")
 expand_mode = 1
 stretch_mode = 6
-texture = ExtResource("2_4ervu")
 
 [node name="BackgroundOverlay" type="ColorRect" parent="."]
 layout_mode = 0
@@ -37,11 +39,11 @@ theme_override_constants/separation = 16
 
 [node name="Title" type="Label" parent="VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
 theme_override_colors/font_color = Color(1, 1, 1, 0.95)
 theme_override_colors/font_shadow_color = Color(0.4, 0.2, 0.6, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 48
 text = "✦ 选择角色 ✦"
 horizontal_alignment = 1
 
@@ -52,11 +54,21 @@ size_flags_vertical = 3
 [node name="CharacterGrid" type="GridContainer" parent="VBox/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/h_separation = 35
+theme_override_constants/v_separation = 30
 columns = 3
-theme_override_constants/h_separation = 16
-theme_override_constants/v_separation = 16
 
-[node name="SettingsButton" type="Button" parent="VBox"]
+[node name="BottomBar" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SettingsButton" type="Button" parent="VBox/BottomBar"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
+size_flags_horizontal = 3
 text = "⚙  设置"
+
+[node name="QuitButton" type="Button" parent="VBox/BottomBar"]
+custom_minimum_size = Vector2(120, 44)
+layout_mode = 2
+text = "✕  退出游戏"

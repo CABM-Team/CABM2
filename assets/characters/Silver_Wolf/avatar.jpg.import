@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dcr41w36whf68"
-path="res://.godot/imported/1.png-5b1ebe55639d419bfb2abf06d5fb310f.ctex"
+uid="uid://cvuvwlrb80f1v"
+path="res://.godot/imported/avatar.jpg-95cbd113fc29692897c015ab9144a77b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/Lycurgus/1.png"
-dest_files=["res://.godot/imported/1.png-5b1ebe55639d419bfb2abf06d5fb310f.ctex"]
+source_file="res://assets/characters/Silver_Wolf/avatar.jpg"
+dest_files=["res://.godot/imported/avatar.jpg-95cbd113fc29692897c015ab9144a77b.ctex"]
 
 [params]
 

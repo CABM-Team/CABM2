@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3 uid="uid://uvwhs0g7gk48"]
+
+[ext_resource type="Script" uid="uid://dkcgrjfrq8apo" path="res://scripts/character_select/CharacterCard.gd" id="1"]
+
+[node name="CharacterCard" type="PanelContainer"]
+custom_minimum_size = Vector2(550, 160)
+script = ExtResource("1")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Avatar" type="TextureRect" parent="HBox"]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBox" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="NameLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+
+[node name="DescLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+autowrap_mode = 1
+
+[node name="ClickArea" type="Button" parent="."]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+flat = true

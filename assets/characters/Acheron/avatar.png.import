@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://rwpb8gem3yj7"
-valid=false
+uid="uid://d31xqry5ma6d2"
+path="res://.godot/imported/avatar.png-4a274cb229bb2034955184550cc2addd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://assets/characters/Acheron/avatar.png"
+dest_files=["res://.godot/imported/avatar.png-4a274cb229bb2034955184550cc2addd.ctex"]
 
 [params]
 

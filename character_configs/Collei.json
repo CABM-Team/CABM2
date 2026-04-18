@@ -2,7 +2,7 @@
   "id": "Collei",
   "name": "柯莱",
   "name_en": "Collei",
-  "image": "static/images/Collei",
+  "image": "res://assets/characters/Collei",
   "calib": 30,
   "scale_rate": 70,
   "color": "#00ff00",
