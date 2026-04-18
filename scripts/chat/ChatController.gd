@@ -9,11 +9,11 @@ extends Control
 @onready var character_name_label: Label   = $Header/CharacterName
 @onready var speaker_label: Label          = $DialogArea/VBox/SpeakerLabel
 @onready var dialog_text: RichTextLabel    = $DialogArea/VBox/DialogText
-@onready var continue_hint: Label          = $DialogArea/VBox/ContinueHint
+@onready var continue_hint: Label          = $DialogArea/ContinueHint
 @onready var message_input: TextEdit       = $InputArea/MessageInput
 @onready var send_button: Button           = $InputArea/SendButton
 @onready var back_button: Button           = $Header/BackButton
-@onready var history_button: Button        = $DialogArea/VBox/ControlButtons/HistoryButton
+@onready var history_button: Button        = $ControlButtons/HistoryButton
 @onready var history_modal: PanelContainer = $HistoryModal
 @onready var history_list: VBoxContainer   = $HistoryModal/HistoryVBox/HistoryScroll/HistoryList
 @onready var close_history_btn: Button     = $HistoryModal/HistoryVBox/HistoryHeader/CloseHistoryButton
@@ -36,6 +36,7 @@ var _shown_chars := 0            # 已显示字符数
 var _type_timer: SceneTreeTimer  # 逐字计时器
 var _breath_time := 0.0          # 呼吸动画累计时间
 var _breath_active := false      # 呼吸动画开关
+var _base_scale := 1.0           # 角色初始缩放（来自 scale_rate）
 
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
@@ -67,6 +68,12 @@ func _load_character(char_data: Dictionary) -> void:
 	speaker_label.add_theme_color_override("font_color", Color.from_string(color_str, Color.WHITE))
 
 	_load_sprite(char_data, "")
+
+	# 应用 scale_rate（百分比 → 缩放系数）和 calib（垂直偏移，像素）
+	var scale_rate: float = char_data.get("scale_rate", 100) / 100.0
+	_base_scale = scale_rate
+	character_sprite.scale = Vector2(scale_rate, scale_rate)
+	character_sprite.position.y = 1080+char_data.get("calib", 0)
 
 	var welcome: String = char_data.get("welcome", "你好！")
 	_show_text(welcome)
@@ -166,8 +173,7 @@ func _process(delta: float) -> void:
 	if not _breath_active:
 		return
 	_breath_time += delta
-	character_sprite.scale.y = 1.0 + 0.003 * sin(_breath_time * PI / 2.0)
-	print(character_sprite.scale.y)
+	character_sprite.scale.y = _base_scale + 0.003 * sin(_breath_time * PI / 2.0)
 
 # ── 历史记录 ──────────────────────────────────────────────────
 func _toggle_history() -> void:

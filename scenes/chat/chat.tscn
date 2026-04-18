@@ -84,12 +84,12 @@ text = "选项1"
 [node name="InputArea" type="HBoxContainer" parent="."]
 custom_minimum_size = Vector2(500, 200)
 layout_mode = 0
-offset_left = 1388.0
-offset_top = 99.0
-offset_right = 1888.0
-offset_bottom = 299.0
+offset_left = 1389.0
+offset_top = 102.0
+offset_right = 1889.0
+offset_bottom = 302.0
 size_flags_horizontal = 4
-theme_override_constants/separation = 8
+theme_override_constants/separation = 0
 
 [node name="MessageInput" type="TextEdit" parent="InputArea"]
 layout_mode = 2
@@ -109,10 +109,10 @@ text = "发送"
 
 [node name="DialogArea" type="PanelContainer" parent="."]
 layout_mode = 0
-offset_left = 60.0
-offset_top = 800.0
-offset_right = 1860.0
-offset_bottom = 1050.0
+offset_left = 160.0
+offset_top = 770.0
+offset_right = 1760.0
+offset_bottom = 1020.0
 
 [node name="VBox" type="VBoxContainer" parent="DialogArea"]
 layout_mode = 2
@@ -123,6 +123,10 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 38
 text = "系统"
 
+[node name="Spacer" type="HSeparator" parent="DialogArea/VBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
 [node name="DialogText" type="RichTextLabel" parent="DialogArea/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -132,33 +136,43 @@ text = "欢迎使用 CABM2！"
 scroll_active = false
 autowrap_mode = 1
 
-[node name="ContinueHint" type="Label" parent="DialogArea/VBox"]
-visible = false
+[node name="ContinueHint" type="Label" parent="DialogArea"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+size_flags_horizontal = 8
+size_flags_vertical = 8
+size_flags_stretch_ratio = 0.0
+theme_override_font_sizes/font_size = 48
 text = "▽"
 horizontal_alignment = 2
 
-[node name="ControlButtons" type="HBoxContainer" parent="DialogArea/VBox"]
-layout_mode = 2
+[node name="ControlButtons" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 160.0
+offset_top = 1020.0
+offset_right = 1760.0
+offset_bottom = 1068.0
+size_flags_vertical = 8
 theme_override_constants/separation = 8
 
-[node name="HistoryButton" type="Button" parent="DialogArea/VBox/ControlButtons"]
+[node name="HistoryButton" type="Button" parent="ControlButtons"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
 text = "历史记录"
 
-[node name="BackgroundButton" type="Button" parent="DialogArea/VBox/ControlButtons"]
+[node name="BackgroundButton" type="Button" parent="ControlButtons"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
 text = "更换背景"
 
-[node name="TTSButton" type="Button" parent="DialogArea/VBox/ControlButtons"]
+[node name="TTSButton" type="Button" parent="ControlButtons"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
 text = "播放语音"
 
 [node name="HistoryModal" type="PanelContainer" parent="."]
