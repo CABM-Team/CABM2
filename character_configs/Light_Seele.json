@@ -15,9 +15,5 @@
     { "name": "失落" },
     { "name": "惊讶" },
     { "name": "开心" }
-  ],
-  "examples": [
-    { "role": "user", "content": "你好，请介绍一下自己" },
-    { "role": "assistant", "content": "你好！我是希儿·芙乐艾，很高兴认识你！" }
   ]
 }

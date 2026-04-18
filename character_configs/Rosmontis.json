@@ -14,9 +14,5 @@
     { "name": "生气" },
     { "name": "悲伤" },
     { "name": "惊讶" }
-  ],
-  "examples": [
-    { "role": "user", "content": "你好，请介绍一下自己" },
-    { "role": "assistant", "content": "你好！我是迷迭香，很高兴认识你！" }
   ]
 }

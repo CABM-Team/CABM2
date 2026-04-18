@@ -18,9 +18,5 @@
     { "name": "自信" },
     { "name": "疑惑" },
     { "name": "害羞" }
-  ],
-  "examples": [
-    { "role": "user", "content": "你好，请介绍一下自己" },
-    { "role": "assistant", "content": "你好！我是柯莱，很高兴认识你！" }
   ]
 }

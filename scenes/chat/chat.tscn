@@ -141,6 +141,7 @@ layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 8
 size_flags_stretch_ratio = 0.0
+theme_override_colors/font_color = Color(0.9490196, 0.8745098, 0, 1)
 theme_override_font_sizes/font_size = 48
 text = "▽"
 horizontal_alignment = 2
@@ -166,6 +167,7 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 30
+disabled = true
 text = "更换背景"
 
 [node name="TTSButton" type="Button" parent="ControlButtons"]
@@ -173,6 +175,7 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 30
+disabled = true
 text = "播放语音"
 
 [node name="HistoryModal" type="PanelContainer" parent="."]
@@ -191,12 +194,13 @@ layout_mode = 2
 [node name="HistoryTitle" type="Label" parent="HistoryModal/HistoryVBox/HistoryHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 50
 text = "对话历史"
 
 [node name="CloseHistoryButton" type="Button" parent="HistoryModal/HistoryVBox/HistoryHeader"]
-custom_minimum_size = Vector2(36, 36)
+custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
+theme_override_font_sizes/font_size = 50
 text = "✕"
 
 [node name="HistoryScroll" type="ScrollContainer" parent="HistoryModal/HistoryVBox"]

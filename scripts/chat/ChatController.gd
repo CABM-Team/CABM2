@@ -5,7 +5,7 @@ extends Control
 
 # ── 节点引用 ──────────────────────────────────────────────────
 @onready var background: TextureRect       = $Background
-@onready var character_sprite: Sprite2D = $CharacterSprite
+@onready var character_sprite: Sprite2D    = $CharacterSprite
 @onready var character_name_label: Label   = $Header/CharacterName
 @onready var speaker_label: Label          = $DialogArea/VBox/SpeakerLabel
 @onready var dialog_text: RichTextLabel    = $DialogArea/VBox/DialogText
@@ -18,25 +18,38 @@ extends Control
 @onready var history_list: VBoxContainer   = $HistoryModal/HistoryVBox/HistoryScroll/HistoryList
 @onready var close_history_btn: Button     = $HistoryModal/HistoryVBox/HistoryHeader/CloseHistoryButton
 @onready var option_buttons: VBoxContainer = $OptionButtons
-@onready var tween_node: Node              = $CharacterSprite  # 用于呼吸动画
 
-# ── 固定回复池（跳过 AI，用于 UI 调试）────────────────────────
-const DUMMY_REPLIES := [
-	"嗯……你说的很有意思呢♪",
-	"哈哈，人家才不会告诉你呢～",
-	"这个问题嘛……妖精小姐需要想一想。",
-	"你真的很有趣，人家喜欢和你聊天♪",
-	"唔……这样啊，人家明白了。",
-]
+# ── 分句标点 ──────────────────────────────────────────────────
+const PAUSE_CHARS := ["。", "！", "？", "!", "?", "…", "♪", "~", "～"]
 
-# ── 状态 ──────────────────────────────────────────────────────
-var _is_typing := false          # 正在逐字显示中
+# ── 输出速度（秒/字），可在运行时调整 ────────────────────────
+var type_speed := 0.03
+
+# ── 逐字显示状态 ──────────────────────────────────────────────
+var _is_typing := false          # 正在逐字输出中
 var _full_text := ""             # 当前句子完整文本
 var _shown_chars := 0            # 已显示字符数
 var _type_timer: SceneTreeTimer  # 逐字计时器
-var _breath_time := 0.0          # 呼吸动画累计时间
-var _breath_active := false      # 呼吸动画开关
-var _base_scale := 1.0           # 角色初始缩放（来自 scale_rate）
+
+# 句子队列（显示进程从这里取，接收进程往这里写，两者独立）
+var _sentence_queue: Array[String] = []
+
+# 等待用户确认继续（句子打完后暂停）
+var _waiting_for_advance := false
+
+# ── 流式接收状态（独立于显示进程）────────────────────────────
+var _stream_buffer := ""         # 未成句的流式碎片
+var _stream_full_content := ""   # 本轮完整 content（存历史用）
+var _is_receiving := false       # 是否正在接收流
+
+# ── continue_hint 动画 ────────────────────────────────────────
+var _hint_tween: Tween = null
+var _hint_base_y := 183.0          # continue_hint 初始 Y（相对父节点）
+
+# ── 呼吸动画 ──────────────────────────────────────────────────
+var _breath_time := 0.0
+var _breath_active := false
+var _base_scale := 1.0
 
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
@@ -45,13 +58,29 @@ func _ready() -> void:
 	history_button.pressed.connect(_toggle_history)
 	close_history_btn.pressed.connect(_toggle_history)
 	message_input.gui_input.connect(_on_input_key)
-	dialog_text.gui_input.connect(_on_dialog_clicked)
-	continue_hint.visible = false
+
+	# 连接 ApiClient 信号
+	ApiClient.stream_chunk.connect(_on_stream_chunk)
+	ApiClient.stream_mood.connect(_on_stream_mood)
+	ApiClient.stream_done.connect(_on_stream_done)
+	ApiClient.stream_error.connect(_on_stream_error)
 
 	character_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-
 	_load_character(AppState.current_character)
 	_start_breath_animation()
+
+# ── 全局输入（继续对话：点击/Enter/F/Space）──────────────────
+func _input(event: InputEvent) -> void:
+	if not _waiting_for_advance:
+		return
+	var triggered := false
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		triggered = true
+	elif event is InputEventKey and event.pressed and not event.echo:
+		triggered = event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_F, KEY_SPACE]
+	if triggered:
+		get_viewport().set_input_as_handled()
+		_advance()
 
 # ── 角色加载 ──────────────────────────────────────────────────
 func _load_character(char_data: Dictionary) -> void:
@@ -63,26 +92,22 @@ func _load_character(char_data: Dictionary) -> void:
 	character_name_label.text = name_str
 	speaker_label.text = name_str
 
-	# 角色名颜色
 	var color_str: String = char_data.get("color", "#ffffff")
 	speaker_label.add_theme_color_override("font_color", Color.from_string(color_str, Color.WHITE))
 
 	_load_sprite(char_data, "")
 
-	# 应用 scale_rate（百分比 → 缩放系数）和 calib（垂直偏移，像素）
 	var scale_rate: float = char_data.get("scale_rate", 100) / 100.0
 	_base_scale = scale_rate
 	character_sprite.scale = Vector2(scale_rate, scale_rate)
-	character_sprite.position.y = 1080+char_data.get("calib", 0)
+	character_sprite.position.y = 1080 + char_data.get("calib", 0)
+
+	var prompt: String = char_data.get("prompt", "")
+	if not prompt.is_empty() and AppState.chat_history.is_empty():
+		AppState.add_message("system", prompt)
 
 	var welcome: String = char_data.get("welcome", "你好！")
 	_show_text(welcome)
-
-	# 注入系统提示词
-	var prompt: String = char_data.get("prompt", "")
-	if not prompt.is_empty():
-		AppState.chat_history.clear()
-		AppState.add_message("system", prompt)
 
 func _load_sprite(char_data: Dictionary, mood: String) -> void:
 	var image_dir: String = char_data.get("image", "")
@@ -90,19 +115,32 @@ func _load_sprite(char_data: Dictionary, mood: String) -> void:
 		return
 	var candidates: Array[String] = [
 		image_dir + "/" + mood + ".png",
-		image_dir + "/1.png"
+		image_dir + "/1.png",
 	]
 	for path in candidates:
 		if ResourceLoader.exists(path):
 			character_sprite.texture = load(path)
 			return
 
-# ── 逐字显示 ──────────────────────────────────────────────────
+# ── 情绪立绘切换 ──────────────────────────────────────────────
+func _switch_mood(mood_index: int) -> void:
+	var char_data := AppState.current_character
+	var moods: Array = char_data.get("moods", [])
+	if moods.is_empty():
+		return
+	# mood_index 从 1 开始，转换为数组下标（从 0 开始）
+	var idx := clampi(mood_index - 1, 0, moods.size() - 1)
+	var mood_name := str(moods[idx])
+	_load_sprite(char_data, mood_name)
+
+# ── 逐字显示（显示进程）──────────────────────────────────────
 func _show_text(text: String) -> void:
+	_stop_thinking_dots()   # 第一个字符要输出了，停掉 dots
 	_full_text = text
 	_shown_chars = 0
 	_is_typing = true
-	continue_hint.visible = false
+	_waiting_for_advance = false
+	_hide_continue_hint()
 	dialog_text.text = ""
 	_type_next_char()
 
@@ -110,59 +148,196 @@ func _type_next_char() -> void:
 	if not _is_typing:
 		return
 	if _shown_chars >= _full_text.length():
-		_finish_typing()
+		_on_sentence_finished()
 		return
 	_shown_chars += 1
 	dialog_text.text = _full_text.substr(0, _shown_chars)
-	_type_timer = get_tree().create_timer(0.03)
+	_type_timer = get_tree().create_timer(type_speed)
 	_type_timer.timeout.connect(_type_next_char, CONNECT_ONE_SHOT)
 
-func _finish_typing() -> void:
+func _on_sentence_finished() -> void:
 	_is_typing = false
 	dialog_text.text = _full_text
-	continue_hint.visible = true
-	send_button.disabled = false
 
+	# 是否还有更多内容
+	var has_more := not _sentence_queue.is_empty() or _is_receiving
+	if has_more:
+		# 2. 中间句：显示 hint，等用户点击
+		_waiting_for_advance = true
+		_show_continue_hint()
+	else:
+		# 2. 最后一句：不显示 hint，直接解锁输入
+		send_button.disabled = false
+		message_input.editable = true
+
+# 用户触发"继续"
+func _advance() -> void:
+	_waiting_for_advance = false
+	_hide_continue_hint()
+
+	if not _sentence_queue.is_empty():
+		var next: String = _sentence_queue.pop_front()
+		_show_text(next)
+	elif not _is_receiving:
+		# 队列空且流结束，已在 _on_sentence_finished 里解锁了 send_button
+		pass
+
+# 跳过当前句子的逐字动画（直接显示完整文本，然后触发 finished）
 func _skip_typing() -> void:
 	if _is_typing:
 		_is_typing = false
 		dialog_text.text = _full_text
-		continue_hint.visible = true
-		send_button.disabled = false
+		_on_sentence_finished()
 
-func _on_dialog_clicked(_event: InputEvent) -> void:
-	if _event is InputEventMouseButton and _event.pressed:
-		_skip_typing()
+# ── continue_hint 动画 ────────────────────────────────────────
+func _show_continue_hint() -> void:
+	continue_hint.visible = true
+	continue_hint.modulate.a = 1.0
+	continue_hint.position.y = _hint_base_y
+
+	if _hint_tween:
+		_hint_tween.kill()
+	_hint_tween = create_tween()
+	_hint_tween.set_loops()
+	# 上下浮动 4px，周期 1.2s
+	_hint_tween.tween_property(continue_hint, "position:y", _hint_base_y - 4.0, 0.6)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_hint_tween.tween_property(continue_hint, "position:y", _hint_base_y, 0.6)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	# 闪烁（独立 tween）
+	var blink_tween := create_tween()
+	blink_tween.set_loops()
+	blink_tween.tween_property(continue_hint, "modulate:a", 0.2, 0.5)
+	blink_tween.tween_property(continue_hint, "modulate:a", 1.0, 0.5)
+	# 把闪烁 tween 存起来方便 kill
+	continue_hint.set_meta("blink_tween", blink_tween)
+
+func _hide_continue_hint() -> void:
+	if _hint_tween:
+		_hint_tween.kill()
+		_hint_tween = null
+	if continue_hint.has_meta("blink_tween"):
+		var bt: Tween = continue_hint.get_meta("blink_tween")
+		bt.kill()
+		continue_hint.remove_meta("blink_tween")
+	continue_hint.visible = false
+	continue_hint.modulate.a = 1.0
+	continue_hint.position.y = _hint_base_y
+
+# ── 等待动画（"." ".." "..."）────────────────────────────────
+var _dots_timer: SceneTreeTimer = null
+var _dots_count := 0
+var _dots_active := false
+
+func _start_thinking_dots() -> void:
+	_dots_active = true
+	_dots_count = 0
+	dialog_text.text = "."
+	_schedule_dots()
+
+func _schedule_dots() -> void:
+	_dots_timer = get_tree().create_timer(0.4)
+	_dots_timer.timeout.connect(_tick_dots, CONNECT_ONE_SHOT)
+
+func _tick_dots() -> void:
+	if not _dots_active:
+		return
+	_dots_count = (_dots_count + 1) % 3
+	dialog_text.text = ".".repeat(_dots_count + 1)
+	_schedule_dots()
+
+func _stop_thinking_dots() -> void:
+	_dots_active = false
+	_dots_timer = null
 
 # ── 发送消息 ──────────────────────────────────────────────────
 func _on_send_pressed() -> void:
 	var text := message_input.text.strip_edges()
-	if text.is_empty() or _is_typing:
+	if text.is_empty() or _is_typing or _is_receiving or _waiting_for_advance:
 		return
 	_send_message(text)
 
 func _send_message(text: String) -> void:
 	message_input.text = ""
 	send_button.disabled = true
+	message_input.editable = false   # 1. 禁用输入框
 	option_buttons.visible = false
-	continue_hint.visible = false
+	_hide_continue_hint()
+	_waiting_for_advance = false
 
 	AppState.add_message("user", text)
 
-	# 固定回复（跳过 AI）
-	var reply := _get_dummy_reply()
-	AppState.add_message("assistant", reply)
-	_show_text(reply)
+	_stream_buffer = ""
+	_stream_full_content = ""
+	_sentence_queue.clear()
+	_is_receiving = true
 
-func _get_dummy_reply() -> String:
-	var idx := randi() % DUMMY_REPLIES.size()
-	return DUMMY_REPLIES[idx]
+	# 3. 启动等待动画（"." → ".." → "..."）
+	_start_thinking_dots()
+
+	ApiClient.chat_completion(AppState.get_messages_for_api())
 
 func _on_input_key(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed:
+	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ENTER and not event.shift_pressed:
 			_on_send_pressed()
 			get_viewport().set_input_as_handled()
+
+# ── 流式接收（接收进程，独立于显示进程）──────────────────────
+func _on_stream_chunk(text: String) -> void:
+	_stream_buffer += text
+	_stream_full_content += text
+	_flush_sentences()
+
+func _flush_sentences() -> void:
+	while true:
+		var earliest_pos := -1
+		for ch in PAUSE_CHARS:
+			var pos := _stream_buffer.find(ch)
+			if pos != -1 and (earliest_pos == -1 or pos < earliest_pos):
+				earliest_pos = pos
+		if earliest_pos == -1:
+			break
+		var sentence := _stream_buffer.substr(0, earliest_pos + 1)
+		_stream_buffer = _stream_buffer.substr(earliest_pos + 1)
+		if not sentence.strip_edges().is_empty():
+			_enqueue_sentence(sentence)
+
+func _enqueue_sentence(sentence: String) -> void:
+	# 接收进程：只往队列写，或在显示进程空闲时直接启动显示
+	if not _is_typing and not _waiting_for_advance:
+		_show_text(sentence)
+	else:
+		_sentence_queue.append(sentence)
+
+func _on_stream_mood(mood: int) -> void:
+	_switch_mood(mood)
+
+func _on_stream_done() -> void:
+	_is_receiving = false
+	if not _stream_buffer.strip_edges().is_empty():
+		_enqueue_sentence(_stream_buffer)
+		_stream_buffer = ""
+	_flush_sentences()
+	if not _stream_full_content.is_empty():
+		AppState.add_message("assistant", _stream_full_content)
+	# 流结束时，如果显示进程正在等待且队列已空，说明刚才显示的是最后一句
+	# 但当时 has_more 误判为 true（流还在），现在补救：撤掉 hint，解锁输入
+	if _waiting_for_advance and _sentence_queue.is_empty() and not _is_typing:
+		_waiting_for_advance = false
+		_hide_continue_hint()
+		send_button.disabled = false
+		message_input.editable = true
+
+func _on_stream_error(message: String) -> void:
+	_is_receiving = false
+	_is_typing = false
+	_waiting_for_advance = false
+	_stop_thinking_dots()
+	send_button.disabled = false
+	message_input.editable = true
+	_show_text("⚠ " + message)
 
 # ── 呼吸动画 ──────────────────────────────────────────────────
 func _start_breath_animation() -> void:
@@ -205,11 +380,12 @@ func _refresh_history() -> void:
 			label.text = "[color=%s]%s[/color]：%s" % [color_str, char_name, msg["content"]]
 
 		history_list.add_child(label)
-
-		# 分隔线
-		var sep := HSeparator.new()
-		history_list.add_child(sep)
+		history_list.add_child(HSeparator.new())
 
 # ── 导航 ──────────────────────────────────────────────────────
 func _on_back_pressed() -> void:
+	ApiClient.stream_chunk.disconnect(_on_stream_chunk)
+	ApiClient.stream_mood.disconnect(_on_stream_mood)
+	ApiClient.stream_done.disconnect(_on_stream_done)
+	ApiClient.stream_error.disconnect(_on_stream_error)
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
