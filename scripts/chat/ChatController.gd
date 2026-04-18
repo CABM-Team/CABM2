@@ -128,10 +128,16 @@ func _switch_mood(mood_index: int) -> void:
 	var moods: Array = char_data.get("moods", [])
 	if moods.is_empty():
 		return
-	# mood_index 从 1 开始，转换为数组下标（从 0 开始）
-	var idx := clampi(mood_index - 1, 0, moods.size() - 1)
-	var mood_name := str(moods[idx])
-	_load_sprite(char_data, mood_name)
+	var idx := clampi(mood_index, 1, moods.size())
+	_load_sprite(char_data, str(idx))
+	_play_jump_animation()
+
+func _play_jump_animation() -> void:
+	var base_y := character_sprite.position.y
+	var tween := create_tween()
+	tween.set_trans(Tween.TRANS_SINE)
+	tween.tween_property(character_sprite, "position:y", base_y - 40.0, 0.18).set_ease(Tween.EASE_OUT)
+	tween.tween_property(character_sprite, "position:y", base_y, 0.22).set_ease(Tween.EASE_IN)
 
 # ── 逐字显示（显示进程）──────────────────────────────────────
 func _show_text(text: String) -> void:

@@ -71,9 +71,9 @@ func chat_completion(messages: Array[Dictionary]) -> void:
 	var moods: Array = char_data.get("moods", [])
 	var mood_list := ""
 	for i in moods.size():
-		mood_list += "%d:%s " % [i, moods[i]]
+		mood_list += "%d:%s " % [i + 1, moods[i]]
 
-	var system_prompt_suffix := "\n你必须严格以JSON格式输出，包含以下字段：\n\"mood\": <int> 当前情绪序号，必须是以下之一：%s\n\"content\": <string> 回复内容，1-6句话，禁止换行和markdown\n\"note\": <string> 内心独白（简短）" % mood_list
+	var system_prompt_suffix := "\n你必须严格以JSON格式输出，包含以下字段：\n\"mood\": <int> 当前情绪序号，必须是以下之一：%s\n\"content\": <string> 回复内容，1-6句话，禁止换行和markdown" % mood_list
 
 	# 注入 mood 格式要求到 system 消息
 	var patched_messages: Array[Dictionary] = []
@@ -96,7 +96,7 @@ func chat_completion(messages: Array[Dictionary]) -> void:
 		"response_format": {"type": "json_object"},
 	}
 	var body := JSON.stringify(body_dict)
-
+	print(body)
 	var headers := PackedStringArray([
 		"Content-Type: application/json",
 		"Authorization: Bearer " + api_key,
@@ -235,14 +235,8 @@ func _parse_sse_data(data: String) -> void:
 		return
 
 	_json_buffer += token
-	_extract_from_json_stream()
-
-func _extract_from_json_stream() -> void:
-	# 尝试提取 mood（只需一次）
 	if not _mood_emitted:
 		_try_extract_mood()
-
-	# 实时提取 content 字段的字符
 	_try_extract_content()
 
 func _try_extract_mood() -> void:
@@ -263,10 +257,10 @@ func _try_extract_mood() -> void:
 	if result_str:
 		var mood_name := result_str.get_string(1)
 		var moods: Array = AppState.current_character.get("moods", [])
-		var idx := 0
+		var idx := 1
 		for i in moods.size():
 			if str(moods[i]) == mood_name:
-				idx = i
+				idx = i + 1
 				break
 		_mood_emitted = true
 		stream_mood.emit(idx)

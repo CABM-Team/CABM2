@@ -12,7 +12,7 @@ var _config := ConfigFile.new()
 var defaults := {
 	"chat_api_key": "",
 	"chat_api_base_url": "https://api.siliconflow.cn/v1",
-	"chat_model": "deepseek-ai/DeepSeek-V3",
+	"chat_model": "deepseek-ai/DeepSeek-V3.2",
 	"option_model": "Qwen/Qwen3-8B",
 	"memory_api_key": "",
 	"memory_api_base_url": "",

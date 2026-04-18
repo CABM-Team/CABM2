@@ -1,94 +1,112 @@
 [gd_scene load_steps=2 format=3 uid="uid://settings"]
 
-[ext_resource type="Script" path="res://scripts/settings/SettingsController.gd" id="1"]
+[ext_resource type="Script" uid="uid://bgh3iibcfa8h0" path="res://scripts/settings/SettingsController.gd" id="1"]
 
 [node name="Settings" type="Control"]
+layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1")
 
 [node name="Background" type="ColorRect" parent="."]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.05, 0.05, 0.1, 1)
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 0
 anchor_left = 0.1
-anchor_right = 0.9
 anchor_top = 0.05
+anchor_right = 0.9
 anchor_bottom = 0.95
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
 text = "设置"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 28
 
 [node name="SectionChat" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
 text = "── 对话 API ──"
-theme_override_font_sizes/font_size = 16
 
 [node name="LabelApiKey" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
 text = "API Key *"
 
 [node name="ApiKeyInput" type="LineEdit" parent="ScrollContainer/VBox"]
-name = "ApiKeyInput"
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
 placeholder_text = "sk-..."
 secret = true
 
 [node name="LabelBaseUrl" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
 text = "API Base URL"
 
 [node name="BaseUrlInput" type="LineEdit" parent="ScrollContainer/VBox"]
-name = "BaseUrlInput"
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
 placeholder_text = "https://api.siliconflow.cn/v1"
 
 [node name="LabelModel" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
 text = "模型"
 
 [node name="ModelInput" type="LineEdit" parent="ScrollContainer/VBox"]
-name = "ModelInput"
-placeholder_text = "deepseek-ai/DeepSeek-V3"
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+placeholder_text = "deepseek-ai/DeepSeek-V3.2"
 
 [node name="SectionMemory" type="Label" parent="ScrollContainer/VBox"]
-text = "── 记忆 API（可选）──"
+layout_mode = 2
 theme_override_font_sizes/font_size = 16
+text = "── 记忆 API（没做）──"
 
 [node name="LabelMemoryKey" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
 text = "Memory API Key"
 
 [node name="MemoryKeyInput" type="LineEdit" parent="ScrollContainer/VBox"]
-name = "MemoryKeyInput"
+layout_mode = 2
 secret = true
 
 [node name="LabelMemoryUrl" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
 text = "Memory API Base URL"
 
 [node name="MemoryUrlInput" type="LineEdit" parent="ScrollContainer/VBox"]
-name = "MemoryUrlInput"
+layout_mode = 2
 
 [node name="LabelEmbedModel" type="Label" parent="ScrollContainer/VBox"]
+layout_mode = 2
 text = "Embedding 模型"
 
 [node name="EmbedModelInput" type="LineEdit" parent="ScrollContainer/VBox"]
-name = "EmbedModelInput"
+layout_mode = 2
 placeholder_text = "BAAI/bge-large-zh-v1.5"
 
 [node name="SaveButton" type="Button" parent="ScrollContainer/VBox"]
-name = "SaveButton"
-text = "保存"
 custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "保存"
 
 [node name="BackButton" type="Button" parent="ScrollContainer/VBox"]
-name = "BackButton"
-text = "返回"
 custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "返回"
 
 [node name="StatusLabel" type="Label" parent="ScrollContainer/VBox"]
-name = "StatusLabel"
+layout_mode = 2
 horizontal_alignment = 1
