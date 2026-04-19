@@ -5,6 +5,7 @@ extends Control
 
 const CharacterCardScene := preload("res://scenes/character_select/character_card.tscn")
 const GroupCardScene     := preload("res://scenes/character_select/group_card.tscn")
+const CharacterImporterScript := preload("res://scripts/character/CharacterImporter.gd")
 
 # 排序字段常量
 const SORT_ID    := 0
@@ -17,12 +18,15 @@ const SORT_TIME  := 2
 @onready var group_grid: GridContainer      = $VBox/GroupPanel/GroupScrollContainer/GroupGrid
 @onready var single_tab_btn: Button         = $VBox/TabBar/SingleTabButton
 @onready var group_tab_btn: Button          = $VBox/TabBar/GroupTabButton
-@onready var new_group_btn: Button          = $VBox/GroupPanel/NewGroupButton
 @onready var settings_button: Button        = $VBox/BottomBar/SettingsButton
 @onready var quit_button: Button            = $VBox/BottomBar/QuitButton
 @onready var group_create_dialog: Control   = $GroupCreateDialog
 @onready var sort_field_btn: Button         = $VBox/SortBar/SortFieldButton
 @onready var sort_order_btn: Button         = $VBox/SortBar/SortOrderButton
+@onready var new_char_btn: Button           = $VBox/SortBar/NewCharButton
+@onready var import_char_btn: Button        = $VBox/SortBar/ImportCharButton
+@onready var new_group_btn: Button          = $VBox/SortBar/NewGroupButton
+@onready var import_result_dialog: Control  = $ImportResultDialog
 
 var _all_characters: Array[Dictionary] = []
 
@@ -31,10 +35,13 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit_pressed)
 	single_tab_btn.pressed.connect(func(): _switch_tab(false))
 	group_tab_btn.pressed.connect(func(): _switch_tab(true))
+	new_char_btn.pressed.connect(_on_new_char_pressed)
 	new_group_btn.pressed.connect(_on_new_group_pressed)
 	group_create_dialog.group_created.connect(_on_group_created)
 	sort_field_btn.pressed.connect(_on_sort_field_pressed)
 	sort_order_btn.pressed.connect(_on_sort_order_pressed)
+	import_char_btn.pressed.connect(_on_import_char_pressed)
+	import_result_dialog.closed.connect(_on_import_dialog_closed)
 
 	_all_characters = CharacterLoader.load_all()
 	_update_sort_buttons()
@@ -49,6 +56,10 @@ func _switch_tab(is_group: bool) -> void:
 	group_panel.visible = is_group
 	single_tab_btn.disabled = not is_group
 	group_tab_btn.disabled = is_group
+	# SortBar 按钮按 tab 显隐
+	new_char_btn.visible = not is_group
+	import_char_btn.visible = not is_group
+	new_group_btn.visible = is_group
 
 # ── 排序 ──────────────────────────────────────────────
 
@@ -158,6 +169,9 @@ func _on_group_selected(group_data: Dictionary) -> void:
 func _on_new_group_pressed() -> void:
 	group_create_dialog.open(_all_characters)
 
+func _on_new_char_pressed() -> void:
+	pass  # TODO: 新建角色功能
+
 func _on_group_created(_group_data: Dictionary) -> void:
 	_populate_groups()
 
@@ -166,3 +180,34 @@ func _on_settings_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+# ── 导入角色 ──────────────────────────────────────────
+
+func _on_import_char_pressed() -> void:
+	AndroidPermissions.request_for_file_pick(func(granted: bool) -> void:
+		if not granted:
+			import_result_dialog.show_results([{
+				"id": "权限", "ok": false, "message": "未获得存储读取权限，无法选择文件"
+			}])
+			return
+		var dialog := FileDialog.new()
+		dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+		dialog.access = FileDialog.ACCESS_FILESYSTEM
+		dialog.filters = PackedStringArray(["*.zip ; ZIP 压缩包"])
+		dialog.title = "选择角色压缩包"
+		dialog.use_native_dialog = true
+		add_child(dialog)
+		dialog.file_selected.connect(_on_zip_selected.bind(dialog))
+		dialog.canceled.connect(dialog.queue_free)
+		dialog.popup_centered_ratio(0.6)
+	)
+
+func _on_zip_selected(zip_path: String, dialog: FileDialog) -> void:
+	dialog.queue_free()
+	var results: Array[Dictionary] = CharacterImporterScript.import_from_zip(zip_path)
+	import_result_dialog.show_results(results)
+
+func _on_import_dialog_closed() -> void:
+	# 重新加载角色列表（可能有新角色导入成功）
+	_all_characters = CharacterLoader.load_all()
+	_populate_characters()

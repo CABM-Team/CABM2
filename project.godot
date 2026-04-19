@@ -26,6 +26,7 @@ ApiClient="*res://scripts/autoload/ApiClient.gd"
 EasyAI="*res://scripts/autoload/EasyAI.gd"
 HistoryManager="*res://scripts/autoload/HistoryManager.gd"
 GroupManager="*res://scripts/autoload/GroupManager.gd"
+AndroidPermissions="*res://scripts/autoload/AndroidPermissions.gd"
 UIStateManager="*res://scripts/autoload/UIStateManager.gd"
 
 [display]

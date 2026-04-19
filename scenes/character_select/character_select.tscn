@@ -1,9 +1,11 @@
-[gd_scene load_steps=5 format=3 uid="uid://dcvroj6lom1y4"]
+[gd_scene load_steps=7 format=3 uid="uid://dcvroj6lom1y4"]
 
 [ext_resource type="Script" uid="uid://dnmh1q3t3axjy" path="res://scripts/character_select/CharacterSelectController.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://c1sq3exfquy7k" path="res://assets/backgrounds/sr-7.png" id="2_4ervu"]
 [ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="3_7awtc"]
 [ext_resource type="PackedScene" uid="uid://cpuujkd8al054" path="res://scenes/character_select/group_create_dialog.tscn" id="3_grpd"]
+[ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4_yd6k2"]
+[ext_resource type="PackedScene" path="res://scenes/character_select/import_result_dialog.tscn" id="5_imprt"]
 
 [node name="CharacterSelect" type="Control"]
 layout_mode = 3
@@ -79,6 +81,7 @@ size_flags_horizontal = 3
 text = "群聊"
 
 [node name="SortBar" type="HBoxContainer" parent="VBox"]
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_constants/separation = 8
 
@@ -86,13 +89,43 @@ theme_override_constants/separation = 8
 custom_minimum_size = Vector2(180, 40)
 layout_mode = 2
 size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 35
 text = "排序：时间"
 
 [node name="SortOrderButton" type="Button" parent="VBox/SortBar"]
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 35
 text = "↓ 降序"
+
+[node name="Spacer" type="Control" parent="VBox/SortBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NewCharButton" type="Button" parent="VBox/SortBar"]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 0
+theme = ExtResource("3_7awtc")
+theme_override_font_sizes/font_size = 35
+text = "✏ 新建角色"
+
+[node name="ImportCharButton" type="Button" parent="VBox/SortBar"]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 0
+theme = ExtResource("4_yd6k2")
+theme_override_font_sizes/font_size = 35
+text = "📦 导入角色"
+
+[node name="NewGroupButton" type="Button" parent="VBox/SortBar"]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 0
+theme = ExtResource("3_7awtc")
+theme_override_font_sizes/font_size = 35
+text = "💬 新建群聊"
 
 [node name="HSeparator" type="HSeparator" parent="VBox"]
 layout_mode = 2
@@ -113,13 +146,6 @@ visible = false
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 16
-
-[node name="NewGroupButton" type="Button" parent="VBox/GroupPanel"]
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 2
-theme = ExtResource("3_7awtc")
-theme_override_font_sizes/font_size = 35
-text = "+ 新建群聊"
 
 [node name="GroupScrollContainer" type="ScrollContainer" parent="VBox/GroupPanel"]
 layout_mode = 2
@@ -151,3 +177,9 @@ text = "✕  退出游戏"
 [node name="GroupCreateDialog" parent="." instance=ExtResource("3_grpd")]
 visible = false
 layout_mode = 1
+
+[node name="ImportResultDialog" parent="." instance=ExtResource("5_imprt")]
+visible = false
+layout_mode = 1
+grow_horizontal = 2
+grow_vertical = 2
