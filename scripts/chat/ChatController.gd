@@ -564,7 +564,9 @@ func _ask_ai_next_speaker() -> void:
 	var id_list: Array[String] = ["user"]
 	for c in chars:
 		var cid: String = c.get("id", "")
-		if cid != _group_waiting_char_id:
+		if cid == _group_waiting_char_id:
+			id_list.append(cid+"（不允许再次选择）")
+		else:
 			id_list.append(cid)
 
 	# 构建最近上下文（最多取最后8条），用 id 标注发言者
@@ -769,6 +771,11 @@ func _refresh_history() -> void:
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.text = history_text
 	history_list.add_child(label)
+
+	# 等布局更新后滚动到底部
+	var scroll: ScrollContainer = $HistoryModal/HistoryVBox/HistoryScroll
+	await get_tree().process_frame
+	scroll.scroll_vertical = scroll.get_v_scroll_bar().max_value
 
 func _extract_msg_from_json(json_str: String) -> String:
 	var json := JSON.new()
