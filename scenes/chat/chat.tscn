@@ -1,12 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://chat"]
-
-[ext_resource type="PackedScene" path="res://scenes/common/confirm_dialog.tscn" id="6_confirm"]
+[gd_scene load_steps=6 format=3 uid="uid://chat"]
 
 [ext_resource type="Script" uid="uid://cvhu6ve2u05cx" path="res://scripts/chat/ChatController.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dejv7on4aogy4" path="res://assets/backgrounds/sr-3.png" id="2_r67cr"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="3_xe7gi"]
 [ext_resource type="Theme" uid="uid://nbt4udvni8b5" path="res://assets/theme/red_button.tres" id="4_6xy15"]
-[ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="5_8owhw"]
+[ext_resource type="PackedScene" path="res://scenes/common/confirm_dialog.tscn" id="6_confirm"]
 
 [node name="Chat" type="Control"]
 layout_mode = 3
@@ -262,7 +260,7 @@ grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MoreOptionsOverlay/MoreOptionsMenu"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 20
 
 [node name="Label" type="Label" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer"]
 custom_minimum_size = Vector2(0, 60)
@@ -277,9 +275,17 @@ layout_mode = 2
 [node name="MenuGrid" type="GridContainer" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/h_separation = 20
-theme_override_constants/v_separation = 20
+theme_override_constants/h_separation = 30
+theme_override_constants/v_separation = 30
 columns = 2
+
+[node name="EditButton" type="Button" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid"]
+custom_minimum_size = Vector2(400, 80)
+layout_mode = 2
+theme = ExtResource("3_xe7gi")
+theme_override_font_sizes/font_size = 40
+disabled = true
+text = "✏编辑角色"
 
 [node name="ClearHistoryButton" type="Button" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid"]
 custom_minimum_size = Vector2(400, 80)
@@ -288,26 +294,20 @@ theme = ExtResource("4_6xy15")
 theme_override_font_sizes/font_size = 40
 text = "🗑清空历史"
 
-[node name="Button2" type="Button" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid"]
-custom_minimum_size = Vector2(400, 80)
-layout_mode = 2
-theme_override_font_sizes/font_size = 40
-disabled = true
-text = "📍一个按钮"
-
-[node name="Button3" type="Button" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid"]
-custom_minimum_size = Vector2(400, 80)
-layout_mode = 2
-theme_override_font_sizes/font_size = 40
-disabled = true
-text = "📍一个按钮"
-
 [node name="Button4" type="Button" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid"]
 custom_minimum_size = Vector2(400, 80)
 layout_mode = 2
 theme_override_font_sizes/font_size = 40
 disabled = true
 text = "📍一个按钮"
+
+[node name="DeleteButton" type="Button" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid"]
+custom_minimum_size = Vector2(400, 80)
+layout_mode = 2
+theme = ExtResource("4_6xy15")
+theme_override_font_sizes/font_size = 40
+disabled = true
+text = "❌删除角色"
 
 [node name="Label2" type="Label" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer"]
 layout_mode = 2
@@ -319,8 +319,3 @@ text = "点击空白处关闭"
 [node name="ConfirmDialog" parent="." instance=ExtResource("6_confirm")]
 visible = false
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2

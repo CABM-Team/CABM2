@@ -62,6 +62,9 @@ var _current_speaker_id := ""
 var _group_reply_queue: Array[Dictionary] = []
 # 正在等待某个角色的 API 响应
 var _group_waiting_char_id := ""
+# 本轮群聊已发言轮数（每次用户发送后重置）
+var _group_turn_count := 0
+const GROUP_MAX_TURNS := 5
 
 # ── 表情状态 ──────────────────────────────────────────────────
 # 单角色：当前表情索引（0 = 默认）
@@ -439,30 +442,31 @@ func _hide_continue_hint() -> void:
 	continue_hint.position.y = _hint_base_y
 
 # ── 等待动画 ──────────────────────────────────────────────────
-var _dots_timer: SceneTreeTimer = null
 var _dots_count := 0
 var _dots_active := false
+var _dots_gen := 0  # 版本号，防止旧循环残留
 
 func _start_thinking_dots() -> void:
+	_dots_gen += 1
 	_dots_active = true
 	_dots_count = 0
 	dialog_text.text = ""
-	_schedule_dots()
+	_schedule_dots(_dots_gen)
 
-func _schedule_dots() -> void:
-	_dots_timer = get_tree().create_timer(0.5)
-	_dots_timer.timeout.connect(_tick_dots, CONNECT_ONE_SHOT)
+func _schedule_dots(gen: int) -> void:
+	var t := get_tree().create_timer(0.5)
+	t.timeout.connect(func(): _tick_dots(gen), CONNECT_ONE_SHOT)
 
-func _tick_dots() -> void:
-	if not _dots_active:
+func _tick_dots(gen: int) -> void:
+	if not _dots_active or gen != _dots_gen:
 		return
 	_dots_count = (_dots_count + 1) % 4
 	dialog_text.text = "·".repeat(_dots_count)
-	_schedule_dots()
+	_schedule_dots(gen)
 
 func _stop_thinking_dots() -> void:
 	_dots_active = false
-	_dots_timer = null
+	_dots_gen += 1  # 使所有旧循环失效
 
 func _unlock_input() -> void:
 	send_button.disabled = false
@@ -510,28 +514,82 @@ func _on_input_key(event: InputEvent) -> void:
 			_on_send_pressed()
 			get_viewport().set_input_as_handled()
 
-# ── 群聊多角色轮流发言 ────────────────────────────────────────
-## 开始群聊回复：为每个角色依次请求 API
+# ── 群聊 AI 决定发言顺序 ──────────────────────────────────────
+## 开始群聊回复：由 AI 决定第一个发言者
 func _start_group_replies() -> void:
 	_group_reply_queue.clear()
 	_group_waiting_char_id = ""
-	# 按顺序请求每个角色
-	_request_next_group_char(0)
+	_group_turn_count = 0
+	_ask_ai_next_speaker()
 
-func _request_next_group_char(index: int) -> void:
-	var chars := AppState.group_characters
-	if index >= chars.size():
-		# 所有角色都请求完毕，等待最后一个流结束
+## 请求 AI 决定下一个发言的角色，然后发起该角色的对话请求
+func _ask_ai_next_speaker() -> void:
+	if _group_turn_count >= GROUP_MAX_TURNS:
+		# 达到最大轮数，结束
+		if not _is_typing and not _waiting_for_advance and _sentence_queue.is_empty():
+			_unlock_input()
 		return
 
-	var char_data := chars[index]
+	# 锁定输入，等待 AI 决策
+	send_button.disabled = true
+	message_input.editable = false
+	print("【AI决策】排除："+_group_waiting_char_id)
+	var chars := AppState.group_characters
+	# 构建参与者 ID 列表（包含"user"，排除上一个发言者）
+	var id_list: Array[String] = ["user"]
+	for c in chars:
+		var cid: String = c.get("id", "")
+		if cid != _group_waiting_char_id:
+			id_list.append(cid)
+
+	# 构建最近上下文（最多取最后8条），用 id 标注发言者
+	var recent: Array[Dictionary] = AppState.chat_history
+	var start_idx := maxi(0, recent.size() - 8)
+	var context_lines: Array[String] = []
+	for i in range(start_idx, recent.size()):
+		var msg := recent[i]
+		var role: String = msg.get("role", "")
+		if role == "system":
+			continue
+		var text := PromptBuilder._extract_msg(msg.get("content", ""))
+		context_lines.append(role + "：" + text)
+
+	var system_p := "你是一个专业的导演，根据对话上下文决定下一个最合适发言的人。\n参与者ID列表：%s\n只需回复一个ID，不要有任何其他内容。" % "、".join(id_list)
+	var user_p := "最近的对话：\n%s\n\n下一个应该由谁发言？" % "\n".join(context_lines)
+
+	EasyAI.ask(system_p, user_p, func(reply: String):
+		var chosen_char := _match_char_by_id(reply)
+		if chosen_char.is_empty():
+			# AI 返回无效或选了"user"，结束本轮
+			if not _is_typing and not _waiting_for_advance and _sentence_queue.is_empty():
+				_unlock_input()
+			return
+		_group_turn_count += 1
+		_request_group_char(chosen_char)
+	)
+
+## 根据 ID 匹配角色数据（返回空 dict 表示是"user"或未匹配）
+func _match_char_by_id(char_id: String) -> Dictionary:
+	var trimmed := char_id.strip_edges()
+	for c in AppState.group_characters:
+		if c.get("id", "") == trimmed:
+			return c
+	return {}
+
+## 请求指定角色发言
+func _request_group_char(char_data: Dictionary) -> void:
 	var char_id: String = char_data.get("id", "")
 	_group_waiting_char_id = char_id
 
-	# 确保该角色在屏幕上
 	_ensure_char_on_screen(char_data)
 	_set_active_speaker(char_id)
 	_set_speaker_by_id(char_id)
+
+	_stream_state = SentenceSplitter.StreamState.new()
+	_stream_full_content = ""
+	_stream_display_content = ""
+	_is_receiving = true
+	_start_thinking_dots()
 
 	var messages := PromptBuilder.build_group_messages(
 		char_data,
@@ -539,11 +597,7 @@ func _request_next_group_char(index: int) -> void:
 		AppState.chat_history,
 		AppState.current_group
 	)
-	# 存储当前请求对应的角色索引，流结束后继续下一个
-	_group_current_index = index
 	ApiClient.chat_completion(messages)
-
-var _group_current_index := 0
 
 # ── 流式接收 ──────────────────────────────────────────────────
 func _enqueue_sentence(sentence: String) -> void:
@@ -577,11 +631,8 @@ func _on_stream_done() -> void:
 		if AppState.is_group_mode():
 			AppState.add_message(_group_waiting_char_id, _stream_full_content)
 			_save_history()
-			var next_index := _group_current_index + 1
-			if next_index < AppState.group_characters.size():
-				_group_reply_queue.append({"index": next_index})
-			else:
-				_group_waiting_char_id = ""
+			# 把"继续下一轮"放入队列，等当前文字显示完再触发
+			_group_reply_queue.append({"ask_next": true})
 		else:
 			AppState.add_message("assistant", _stream_full_content)
 			_save_history()
@@ -599,13 +650,8 @@ func _on_stream_done() -> void:
 func _dispatch_next_group_char() -> void:
 	if _group_reply_queue.is_empty():
 		return
-	var next: Dictionary = _group_reply_queue.pop_front()
-	_stream_state = SentenceSplitter.StreamState.new()
-	_stream_full_content = ""
-	_stream_display_content = ""
-	_is_receiving = true
-	_start_thinking_dots()
-	_request_next_group_char(next["index"])
+	_group_reply_queue.pop_front()
+	_ask_ai_next_speaker()
 
 func _on_stream_error(message: String) -> void:
 	_is_receiving = false

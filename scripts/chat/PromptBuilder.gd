@@ -92,6 +92,10 @@ static func build_group_messages(
 	if not pending_user_lines.is_empty():
 		result.append({"role": "user", "content": "\n".join(pending_user_lines)})
 
+	# 确保最后一条是 user（API 要求）
+	if not result.is_empty() and result.back().get("role", "") == "assistant":
+		result.append({"role": "user", "content": "请继续。"})
+
 	return result
 
 ## 从 JSON 字符串中提取 msg 字段，失败则返回原文

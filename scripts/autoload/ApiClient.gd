@@ -79,8 +79,9 @@ func chat_completion(messages: Array[Dictionary]) -> void:
 	var body_dict := {
 		"model": model,
 		"messages": messages,
-		"max_tokens": 512,
+		"max_tokens": 4096,
 		"temperature": 0.9,
+		"enable_thinking": false,
 		"stream": true,
 		"response_format": {"type": "json_object"},
 	}
