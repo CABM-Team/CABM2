@@ -4,6 +4,46 @@
 class_name PromptBuilder
 extends RefCounted
 
+const MAX_CONTEXT_CHARS := 2000
+
+## 对消息数组进行字符数截断，保留 system 消息，从最旧的非 system 消息开始丢弃
+## 直到总字符数 <= MAX_CONTEXT_CHARS
+static func _trim_to_limit(messages: Array[Dictionary]) -> Array[Dictionary]:
+	var total := 0
+	for msg in messages:
+		total += (msg.get("content", "") as String).length()
+	if total <= MAX_CONTEXT_CHARS:
+		return messages
+
+	# 分离 system 和非 system
+	var system_msgs: Array[Dictionary] = []
+	var other_msgs: Array[Dictionary] = []
+	for msg in messages:
+		if msg.get("role", "") == "system":
+			system_msgs.append(msg)
+		else:
+			other_msgs.append(msg)
+
+	# 计算 system 占用
+	var system_chars := 0
+	for msg in system_msgs:
+		system_chars += (msg.get("content", "") as String).length()
+
+	# 从最旧的非 system 消息开始丢弃
+	var budget := MAX_CONTEXT_CHARS - system_chars
+	var trimmed: Array[Dictionary] = []
+	for i in range(other_msgs.size() - 1, -1, -1):
+		var msg_len := (other_msgs[i].get("content", "") as String).length()
+		if budget >= msg_len:
+			trimmed.insert(0, other_msgs[i])
+			budget -= msg_len
+		# 预算不足则跳过（丢弃旧消息）
+
+	var result: Array[Dictionary] = []
+	result.append_array(system_msgs)
+	result.append_array(trimmed)
+	return result
+
 ## 构建带有情绪格式要求的消息数组（单角色模式）
 static func build_messages(messages: Array[Dictionary], character_data: Dictionary) -> Array[Dictionary]:
 	var moods: Array = character_data.get("moods", [])
@@ -25,7 +65,7 @@ static func build_messages(messages: Array[Dictionary], character_data: Dictiona
 	if not has_system:
 		patched_messages.insert(0, {"role": "system", "content": system_prompt_suffix})
 
-	return patched_messages
+	return _trim_to_limit(patched_messages)
 
 ## 构建群聊模式下某个角色的请求消息数组
 ## speaking_char: 本次发言的角色数据
@@ -96,7 +136,7 @@ static func build_group_messages(
 	if not result.is_empty() and result.back().get("role", "") == "assistant":
 		result.append({"role": "user", "content": "系统：请继续对话。"})
 
-	return result
+	return _trim_to_limit(result)
 
 ## 从 JSON 字符串中提取 msg 字段，失败则返回原文
 static func _extract_msg(json_str: String) -> String:

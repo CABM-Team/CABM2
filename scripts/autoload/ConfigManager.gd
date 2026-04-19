@@ -23,7 +23,7 @@ var defaults := {
 	"tts_api_base_url": "https://api.siliconflow.cn/v1",
 	"tts_model": "FunAudioLLM/CosyVoice2-0.5B",
 	# 功能开关
-	"max_history_length": 20,
+	"max_history_length": 100,
 	"enable_option_generation": true,
 	"enable_tts": false,
 }
