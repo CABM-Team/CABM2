@@ -394,7 +394,7 @@ func _refresh_history() -> void:
 	var label := RichTextLabel.new()
 	label.bbcode_enabled = true
 	label.fit_content = true
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.text = history_text
 	

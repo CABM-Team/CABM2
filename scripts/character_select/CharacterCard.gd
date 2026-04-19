@@ -8,6 +8,7 @@ signal selected(char_data: Dictionary)
 @onready var avatar: TextureRect = $HBox/Avatar
 @onready var name_label: Label   = $HBox/VBox/NameLabel
 @onready var desc_label: Label   = $HBox/VBox/DescLabel
+@onready var last_message_label: Label = $HBox/VBox/LastMessageLabel
 @onready var click_area: Button  = $ClickArea
 
 var _char_data: Dictionary = {}
@@ -48,3 +49,45 @@ func setup(char_data: Dictionary) -> void:
 
 	# 简介
 	desc_label.text = char_data.get("description", "")
+
+	# 加载最近一次对话
+	_load_last_message(char_data)
+
+## 加载并显示最近一次对话
+func _load_last_message(char_data: Dictionary) -> void:
+	var character_id: String = char_data.get("id", char_data.get("name", ""))
+	if character_id.is_empty():
+		last_message_label.text = "暂无对话记录"
+		return
+	
+	var history := HistoryManager.load_history(character_id)
+	if history.is_empty():
+		last_message_label.text = "暂无对话记录"
+		return
+	
+	# 找到最后一条消息（优先显示 assistant 的回复）
+	var last_msg := ""
+	var last_role := ""
+	
+	for i in range(history.size() - 1, -1, -1):
+		var msg: Dictionary = history[i]
+		var role: String = msg.get("role", "")
+		var content: String = msg.get("content", "")
+		
+		if role == "assistant":
+			last_msg = content
+			last_role = "assistant"
+			break
+		elif role == "user" and last_msg.is_empty():
+			last_msg = content
+			last_role = "user"
+	
+	if last_msg.is_empty():
+		last_message_label.text = "暂无对话记录"
+	else:
+		var prefix := "" #"你: " if last_role == "user" else "TA: "
+		# 限制显示长度，避免过长
+		var display_text := last_msg
+		# if display_text.length() > 60:
+		# 	display_text = display_text.substr(0, 60) + "..."
+		last_message_label.text = prefix + display_text
