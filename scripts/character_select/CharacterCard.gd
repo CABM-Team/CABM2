@@ -65,7 +65,7 @@ func _load_last_message(char_data: Dictionary) -> void:
 		last_message_label.text = "暂无对话记录"
 		return
 	
-	var history := HistoryManager.load_history(character_id)
+	var history: Array = HistoryManager.load_history(character_id).get("history", [])
 	if history.is_empty():
 		last_message_label.text = "暂无对话记录"
 		return

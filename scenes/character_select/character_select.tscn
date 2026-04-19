@@ -35,21 +35,32 @@ anchor_left = 0.05
 anchor_top = 0.04
 anchor_right = 0.95
 anchor_bottom = 0.97
-offset_top = 6.799999
-offset_bottom = 6.7999268
+offset_top = -23.2
+offset_bottom = 12.400024
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 16
 
 [node name="Title" type="Label" parent="VBox"]
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.95)
 theme_override_colors/font_shadow_color = Color(0.4, 0.2, 0.6, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 58
 text = "✦ CABM ✦"
 horizontal_alignment = 1
+
+[node name="Label" type="Label" parent="VBox/Title"]
+layout_mode = 0
+offset_top = 70.0
+offset_right = 1728.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 24
+text = "Code Afflatus & Beyond Matter"
+horizontal_alignment = 1
+vertical_alignment = 2
 
 [node name="TabBar" type="HBoxContainer" parent="VBox"]
 custom_minimum_size = Vector2(0, 60)
@@ -93,7 +104,7 @@ size_flags_vertical = 3
 [node name="CharacterGrid" type="GridContainer" parent="VBox/SinglePanel"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 36
+theme_override_constants/h_separation = 32
 theme_override_constants/v_separation = 30
 columns = 3
 
@@ -117,7 +128,7 @@ size_flags_vertical = 3
 [node name="GroupGrid" type="GridContainer" parent="VBox/GroupPanel/GroupScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 36
+theme_override_constants/h_separation = 32
 theme_override_constants/v_separation = 30
 columns = 3
 

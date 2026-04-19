@@ -65,6 +65,12 @@ var _group_reply_queue: Array[Dictionary] = []
 # 正在等待某个角色的 API 响应
 var _group_waiting_char_id := ""
 
+# ── 表情状态 ──────────────────────────────────────────────────
+# 单角色：当前表情索引（0 = 默认）
+var _current_mood := 0
+# 群聊：各角色最后表情 { char_id: mood_index }
+var _group_moods: Dictionary = {}
+
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
 	send_button.pressed.connect(_on_send_pressed)
@@ -129,7 +135,8 @@ func _load_character(char_data: Dictionary) -> void:
 	character_sprite2.visible = false
 
 	var character_id: String = char_data.get("id", name_str)
-	var loaded_history := HistoryManager.load_history(character_id)
+	var save_data := HistoryManager.load_history(character_id)
+	var loaded_history: Array[Dictionary] = save_data["history"]
 
 	AppState.chat_history.clear()
 	var prompt: String = char_data.get("prompt", "")
@@ -137,6 +144,11 @@ func _load_character(char_data: Dictionary) -> void:
 		AppState.add_message("system", prompt)
 	for msg in loaded_history:
 		AppState.chat_history.append(msg)
+
+	# 恢复最后表情
+	_current_mood = int(save_data.get("last_mood", 0))
+	if _current_mood > 0:
+		_load_sprite(character_sprite, char_data, str(_current_mood))
 
 	var welcome: String = char_data.get("welcome", "你好！")
 	if loaded_history.is_empty():
@@ -155,16 +167,42 @@ func _init_group_mode() -> void:
 
 	# 加载历史
 	var group_id: String = group_data.get("id", "")
-	var loaded_history := HistoryManager.load_group_history(group_id)
+	var save_data := HistoryManager.load_group_history(group_id)
+	var loaded_history: Array[Dictionary] = save_data["history"]
 	AppState.chat_history.clear()
 	for msg in loaded_history:
 		AppState.chat_history.append(msg)
 
-	# 初始显示前两个角色
+	# 恢复表情状态
+	var saved_moods = save_data.get("last_moods", {})
+	_group_moods = saved_moods if saved_moods is Dictionary else {}
+
+	# 恢复上次的屏幕布局，否则默认前两个
 	_displayed_chars.clear()
-	for i in min(2, chars.size()):
-		_displayed_chars.append(chars[i])
+	var saved_ids: Array = save_data.get("displayed_char_ids", [])
+	if not saved_ids.is_empty():
+		for sid in saved_ids:
+			var cd := _get_char_data_by_id(sid)
+			if not cd.is_empty():
+				_displayed_chars.append(cd)
+	if _displayed_chars.is_empty():
+		for i in min(2, chars.size()):
+			_displayed_chars.append(chars[i])
 	_refresh_sprites()
+
+	# 恢复各角色表情
+	for cd in _displayed_chars:
+		var cid: String = cd.get("id", "")
+		var mood: int = int(_group_moods.get(cid, 0))
+		if mood > 0:
+			var sp := _get_sprite_for(cid)
+			if sp:
+				_load_sprite(sp, cd, str(mood))
+
+	# 恢复高亮发言角色
+	var saved_speaker: String = save_data.get("active_speaker_id", "")
+	if not saved_speaker.is_empty():
+		_set_active_speaker(saved_speaker)
 
 	if loaded_history.is_empty():
 		_show_text("已创建群聊")
@@ -272,6 +310,7 @@ func _switch_mood_for(char_id: String, mood_index: int) -> void:
 	if moods.is_empty():
 		return
 	var idx := clampi(mood_index, 1, moods.size())
+	_group_moods[char_id] = idx
 	var sprite := _get_sprite_for(char_id)
 	if sprite:
 		_load_sprite(sprite, char_data, str(idx))
@@ -310,6 +349,7 @@ func _switch_mood(mood_index: int) -> void:
 	if moods.is_empty():
 		return
 	var idx := clampi(mood_index, 1, moods.size())
+	_current_mood = idx
 	_load_sprite(character_sprite, char_data, str(idx))
 	_play_jump_animation(character_sprite)
 
@@ -652,17 +692,29 @@ func _save_history() -> void:
 	if AppState.is_group_mode():
 		var group_id: String = AppState.current_group.get("id", "")
 		if not group_id.is_empty():
-			HistoryManager.save_group_history(group_id, AppState.chat_history)
+			var displayed_ids: Array = []
+			for c in _displayed_chars:
+				displayed_ids.append(c.get("id", ""))
+			HistoryManager.save_group_history(group_id, AppState.chat_history,
+				displayed_ids, _current_speaker_id, _group_moods)
 	else:
 		var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
 		if not character_id.is_empty():
-			HistoryManager.save_history(character_id, AppState.chat_history)
+			HistoryManager.save_history(character_id, AppState.chat_history, _current_mood)
 
 func delete_current_history() -> void:
 	if AppState.is_group_mode():
 		var group_id: String = AppState.current_group.get("id", "")
 		HistoryManager.clear_group_history(group_id)
 		AppState.chat_history.clear()
+		# 重置群聊状态
+		_group_moods.clear()
+		_current_speaker_id = ""
+		_displayed_chars.clear()
+		var chars := AppState.group_characters
+		for i in min(2, chars.size()):
+			_displayed_chars.append(chars[i])
+		_refresh_sprites()
 	else:
 		var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
 		if HistoryManager.delete_history(character_id):
@@ -670,6 +722,9 @@ func delete_current_history() -> void:
 			var prompt: String = AppState.current_character.get("prompt", "")
 			if not prompt.is_empty():
 				AppState.add_message("system", prompt)
+		# 重置单角色表情
+		_current_mood = 0
+		_load_sprite(character_sprite, AppState.current_character, "")
 	AppState.history_updated.emit()
 	_refresh_history()
 	if AppState.is_group_mode():
