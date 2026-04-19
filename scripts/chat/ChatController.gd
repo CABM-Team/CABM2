@@ -1,12 +1,12 @@
 ## ChatController.gd
-## 对话主循环控制器
-## 负责：消息输入输出、角色立绘切换、逐字显示、用户交互
+## 对话主循环控制器，支持单角色和群聊模式
 
 extends Control
 
 # ── 节点引用 ──────────────────────────────────────────────────
 @onready var background: TextureRect       = $Background
 @onready var character_sprite: Sprite2D    = $CharacterSprite
+@onready var character_sprite2: Sprite2D   = $CharacterSprite2
 @onready var character_name_label: Label   = $Header/CharacterName
 @onready var speaker_label: Label          = $DialogArea/VBox/SpeakerLabel
 @onready var dialog_text: RichTextLabel    = $DialogArea/VBox/DialogText
@@ -28,35 +28,42 @@ extends Control
 @onready var confirm_btn: Button           = $ConfirmDialog/VBox/ButtonBox/ConfirmButton
 @onready var cancel_btn: Button            = $ConfirmDialog/VBox/ButtonBox/CancelButton
 
-# ── 输出速度（秒/字），可在运行时调整 ────────────────────────
+# ── 输出速度 ──────────────────────────────────────────────────
 var type_speed := 0.03
 
 # ── 逐字显示状态 ──────────────────────────────────────────────
-var _is_typing := false          # 正在逐字输出中
-var _full_text := ""             # 当前句子完整文本
-var _shown_chars := 0            # 已显示字符数
-var _type_timer: SceneTreeTimer  # 逐字计时器
-
-# 句子队列（显示进程从这里取，接收进程往这里写，两者独立）
+var _is_typing := false
+var _full_text := ""
+var _shown_chars := 0
+var _type_timer: SceneTreeTimer
 var _sentence_queue: Array[String] = []
-
-# 等待用户确认继续（句子打完后暂停）
 var _waiting_for_advance := false
 
-# ── 流式接收状态（独立于显示进程）────────────────────────────
-var _stream_state := SentenceSplitter.StreamState.new()  # 流式分句状态
-var _stream_full_content := ""   # 本轮完整 JSON 响应（存历史用）
-var _stream_display_content := "" # 本轮显示内容（仅 msg 字段）
-var _is_receiving := false       # 是否正在接收流
+# ── 流式接收状态 ──────────────────────────────────────────────
+var _stream_state := SentenceSplitter.StreamState.new()
+var _stream_full_content := ""
+var _stream_display_content := ""
+var _is_receiving := false
 
 # ── continue_hint 动画 ────────────────────────────────────────
 var _hint_tween: Tween = null
-var _hint_base_y := 183.0          # continue_hint 初始 Y（相对父节点）
+var _hint_base_y := 183.0
 
 # ── 呼吸动画 ──────────────────────────────────────────────────
 var _breath_time := 0.0
 var _breath_active := false
 var _base_scale := 1.0
+var _base_scale2 := 1.0
+
+# ── 群聊状态 ──────────────────────────────────────────────────
+# 当前屏幕上显示的角色（最多2个），每项为角色数据 Dictionary
+var _displayed_chars: Array[Dictionary] = []
+# 当前正在发言的角色 ID
+var _current_speaker_id := ""
+# 群聊待处理的发言队列：[{char_data, full_json}]
+var _group_reply_queue: Array[Dictionary] = []
+# 正在等待某个角色的 API 响应
+var _group_waiting_char_id := ""
 
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
@@ -71,7 +78,6 @@ func _ready() -> void:
 	confirm_btn.pressed.connect(_on_clear_history_confirmed)
 	cancel_btn.pressed.connect(_hide_confirm_dialog)
 
-	# 连接 ApiClient 信号
 	ApiClient.stream_chunk.connect(_on_stream_chunk)
 	ApiClient.stream_mood.connect(_on_stream_mood)
 	ApiClient.stream_full_json.connect(_on_stream_full_json)
@@ -79,10 +85,16 @@ func _ready() -> void:
 	ApiClient.stream_error.connect(_on_stream_error)
 
 	character_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	_load_character(AppState.current_character)
+	character_sprite2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	character_sprite2.visible = false
+
+	if AppState.is_group_mode():
+		_init_group_mode()
+	else:
+		_load_character(AppState.current_character)
 	_start_breath_animation()
 
-# ── 全局输入（继续对话：点击/Enter/F/Space）──────────────────
+# ── 全局输入 ──────────────────────────────────────────────────
 func _input(event: InputEvent) -> void:
 	if not _waiting_for_advance:
 		return
@@ -95,7 +107,7 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_advance()
 
-# ── 角色加载 ──────────────────────────────────────────────────
+# ── 单角色模式：角色加载 ──────────────────────────────────────
 func _load_character(char_data: Dictionary) -> void:
 	if char_data.is_empty():
 		_show_text("请先选择一个角色。")
@@ -108,38 +120,65 @@ func _load_character(char_data: Dictionary) -> void:
 	var color_str: String = char_data.get("color", "#ffffff")
 	speaker_label.add_theme_color_override("font_color", Color.from_string(color_str, Color.WHITE))
 
-	_load_sprite(char_data, "")
+	_load_sprite(character_sprite, char_data, "")
 
 	var scale_rate: float = char_data.get("scale_rate", 100) / 100.0
 	_base_scale = scale_rate
 	character_sprite.scale = Vector2(scale_rate, scale_rate)
 	character_sprite.position.y = 1080 + char_data.get("calib", 0)
+	character_sprite2.visible = false
 
-	# 加载历史记录
 	var character_id: String = char_data.get("id", name_str)
 	var loaded_history := HistoryManager.load_history(character_id)
-	
-	# 完全清空后，按顺序重建：system → 历史
+
 	AppState.chat_history.clear()
 	var prompt: String = char_data.get("prompt", "")
 	if not prompt.is_empty():
 		AppState.add_message("system", prompt)
 	for msg in loaded_history:
 		AppState.chat_history.append(msg)
-	
-	# 显示欢迎语或最后一条消息
+
 	var welcome: String = char_data.get("welcome", "你好！")
 	if loaded_history.is_empty():
 		_show_text(welcome)
 	else:
-		# 如果有历史记录，显示最后一条 AI 消息
 		for i in range(loaded_history.size() - 1, -1, -1):
 			if loaded_history[i]["role"] == "assistant":
-				var display_content := _extract_msg_from_json(loaded_history[i]["content"])
-				_show_text(display_content)
+				_show_text(_extract_msg_from_json(loaded_history[i]["content"]))
 				break
 
-func _load_sprite(char_data: Dictionary, mood: String) -> void:
+# ── 群聊模式：初始化 ──────────────────────────────────────────
+func _init_group_mode() -> void:
+	var group_data := AppState.current_group
+	var chars := AppState.group_characters
+	character_name_label.text = group_data.get("name", "群聊")
+
+	# 加载历史
+	var group_id: String = group_data.get("id", "")
+	var loaded_history := HistoryManager.load_group_history(group_id)
+	AppState.chat_history.clear()
+	for msg in loaded_history:
+		AppState.chat_history.append(msg)
+
+	# 初始显示前两个角色
+	_displayed_chars.clear()
+	for i in min(2, chars.size()):
+		_displayed_chars.append(chars[i])
+	_refresh_sprites()
+
+	if loaded_history.is_empty():
+		_show_text("已创建群聊")
+	else:
+		# 显示最后一条非 user/system 消息
+		for i in range(loaded_history.size() - 1, -1, -1):
+			var r: String = loaded_history[i].get("role", "")
+			if r != "user" and r != "system":
+				_set_speaker_by_id(r)
+				_show_text(_extract_msg_from_json(loaded_history[i]["content"]))
+				break
+
+# ── 立绘管理 ──────────────────────────────────────────────────
+func _load_sprite(sprite: Sprite2D, char_data: Dictionary, mood: String) -> void:
 	var image_dir: String = char_data.get("image", "")
 	if image_dir.is_empty():
 		return
@@ -149,28 +188,129 @@ func _load_sprite(char_data: Dictionary, mood: String) -> void:
 	]
 	for path in candidates:
 		if ResourceLoader.exists(path):
-			character_sprite.texture = load(path)
+			sprite.texture = load(path)
 			return
 
-# ── 情绪立绘切换 ──────────────────────────────────────────────
+## 刷新双立绘显示（群聊模式）
+func _refresh_sprites() -> void:
+	var chars := _displayed_chars
+	if chars.size() == 0:
+		character_sprite.visible = false
+		character_sprite2.visible = false
+		return
+
+	# 第一个角色：左侧
+	var c0 := chars[0]
+	character_sprite.visible = true
+	_load_sprite(character_sprite, c0, "")
+	var s0: float = c0.get("scale_rate", 100) / 100.0
+	_base_scale = s0
+	character_sprite.scale = Vector2(s0, s0)
+	character_sprite.position = Vector2(600, 1080 + c0.get("calib", 0))
+
+	if chars.size() >= 2:
+		var c1 := chars[1]
+		character_sprite2.visible = true
+		_load_sprite(character_sprite2, c1, "")
+		var s1: float = c1.get("scale_rate", 100) / 100.0
+		_base_scale2 = s1
+		character_sprite2.scale = Vector2(s1, s1)
+		character_sprite2.position = Vector2(1320, 1080 + c1.get("calib", 0))
+	else:
+		character_sprite2.visible = false
+
+	# 默认两个都灰色，等发言时高亮
+	_set_active_speaker("")
+
+## 设置高亮发言角色（其余变灰）
+func _set_active_speaker(speaker_id: String) -> void:
+	_current_speaker_id = speaker_id
+	if not AppState.is_group_mode():
+		return
+	var gray := Color(0.45, 0.45, 0.45, 1.0)
+	var normal := Color(1, 1, 1, 1)
+	var chars := _displayed_chars
+
+	if speaker_id.is_empty():
+		character_sprite.modulate = normal
+		character_sprite2.modulate = normal
+		return
+
+	if chars.size() >= 1:
+		character_sprite.modulate = normal if chars[0].get("id", "") == speaker_id else gray
+	if chars.size() >= 2:
+		character_sprite2.modulate = normal if chars[1].get("id", "") == speaker_id else gray
+
+## 确保某个角色在屏幕上，如果不在则随机替换一个
+func _ensure_char_on_screen(char_data: Dictionary) -> void:
+	var cid: String = char_data.get("id", "")
+	for c in _displayed_chars:
+		if c.get("id", "") == cid:
+			return  # 已在屏幕上
+
+	# 随机替换一个（0 或 1）
+	var replace_idx := randi() % _displayed_chars.size()
+	_displayed_chars[replace_idx] = char_data
+	_refresh_sprites()
+
+## 切换发言角色的立绘 mood
+func _switch_mood_for(char_id: String, mood_index: int) -> void:
+	var char_data := _get_char_data_by_id(char_id)
+	if char_data.is_empty():
+		return
+	var moods: Array = char_data.get("moods", [])
+	if moods.is_empty():
+		return
+	var idx := clampi(mood_index, 1, moods.size())
+	var sprite := _get_sprite_for(char_id)
+	if sprite:
+		_load_sprite(sprite, char_data, str(idx))
+		_play_jump_animation(sprite)
+
+func _get_sprite_for(char_id: String) -> Sprite2D:
+	if _displayed_chars.size() >= 1 and _displayed_chars[0].get("id", "") == char_id:
+		return character_sprite
+	if _displayed_chars.size() >= 2 and _displayed_chars[1].get("id", "") == char_id:
+		return character_sprite2
+	return null
+
+func _get_char_data_by_id(char_id: String) -> Dictionary:
+	if AppState.is_group_mode():
+		for c in AppState.group_characters:
+			if c.get("id", "") == char_id:
+				return c
+	else:
+		if AppState.current_character.get("id", "") == char_id:
+			return AppState.current_character
+	return {}
+
+## 设置 speaker label 为某个角色 ID
+func _set_speaker_by_id(char_id: String) -> void:
+	var char_data := _get_char_data_by_id(char_id)
+	if char_data.is_empty():
+		return
+	speaker_label.text = char_data.get("name", char_id)
+	var color_str: String = char_data.get("color", "#ffffff")
+	speaker_label.add_theme_color_override("font_color", Color.from_string(color_str, Color.WHITE))
+
+# ── 单角色情绪切换 ────────────────────────────────────────────
 func _switch_mood(mood_index: int) -> void:
 	var char_data := AppState.current_character
 	var moods: Array = char_data.get("moods", [])
 	if moods.is_empty():
 		return
 	var idx := clampi(mood_index, 1, moods.size())
-	_load_sprite(char_data, str(idx))
-	_play_jump_animation()
+	_load_sprite(character_sprite, char_data, str(idx))
+	_play_jump_animation(character_sprite)
 
-func _play_jump_animation() -> void:
-	var base_y := character_sprite.position.y
+func _play_jump_animation(sprite: Sprite2D) -> void:
+	var base_y := sprite.position.y
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_SINE)
-	tween.tween_property(character_sprite, "position:y", base_y - 40.0, 0.18).set_ease(Tween.EASE_OUT)
-	tween.tween_property(character_sprite, "position:y", base_y, 0.22).set_ease(Tween.EASE_IN)
+	tween.tween_property(sprite, "position:y", base_y - 40.0, 0.18).set_ease(Tween.EASE_OUT)
+	tween.tween_property(sprite, "position:y", base_y, 0.22).set_ease(Tween.EASE_IN)
 
-# ── 逐字显示（显示进程）──────────────────────────────────────
-## 开始逐字显示文本
+# ── 逐字显示 ──────────────────────────────────────────────────
 func _show_text(text: String) -> void:
 	_stop_thinking_dots()
 	_full_text = text
@@ -181,7 +321,6 @@ func _show_text(text: String) -> void:
 	dialog_text.text = ""
 	_type_next_char()
 
-## 逐字显示下一个字符
 func _type_next_char() -> void:
 	if not _is_typing:
 		return
@@ -193,30 +332,24 @@ func _type_next_char() -> void:
 	_type_timer = get_tree().create_timer(type_speed)
 	_type_timer.timeout.connect(_type_next_char, CONNECT_ONE_SHOT)
 
-## 当前句子显示完成
 func _on_sentence_finished() -> void:
 	_is_typing = false
 	dialog_text.text = _full_text
 
 	var has_more := not _sentence_queue.is_empty() or _is_receiving
 	if has_more:
-		# 中间句：显示 hint，等用户点击
 		_waiting_for_advance = true
 		_show_continue_hint()
 	else:
-		# 最后一句：直接解锁输入
 		_unlock_input()
 
-## 用户触发"继续"
 func _advance() -> void:
 	_waiting_for_advance = false
 	_hide_continue_hint()
-
 	if not _sentence_queue.is_empty():
 		var next: String = _sentence_queue.pop_front()
 		_show_text(next)
 
-## 跳过当前句子的逐字动画
 func _skip_typing() -> void:
 	if _is_typing:
 		_is_typing = false
@@ -228,18 +361,12 @@ func _show_continue_hint() -> void:
 	continue_hint.visible = true
 	continue_hint.modulate.a = 1.0
 	continue_hint.position.y = _hint_base_y
-
 	if _hint_tween:
 		_hint_tween.kill()
 	_hint_tween = create_tween()
 	_hint_tween.set_loops()
-	# 上下浮动
-	_hint_tween.tween_property(continue_hint, "position:y", _hint_base_y - 4.0, 0.6)\
-		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_hint_tween.tween_property(continue_hint, "position:y", _hint_base_y, 0.6)\
-		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-
-	# 闪烁动画
+	_hint_tween.tween_property(continue_hint, "position:y", _hint_base_y - 4.0, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_hint_tween.tween_property(continue_hint, "position:y", _hint_base_y, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	var blink_tween := create_tween()
 	blink_tween.set_loops()
 	blink_tween.tween_property(continue_hint, "modulate:a", 0.2, 0.5)
@@ -258,24 +385,21 @@ func _hide_continue_hint() -> void:
 	continue_hint.modulate.a = 1.0
 	continue_hint.position.y = _hint_base_y
 
-# ── 等待动画（"." ".." "..."）────────────────────────────────
+# ── 等待动画 ──────────────────────────────────────────────────
 var _dots_timer: SceneTreeTimer = null
 var _dots_count := 0
 var _dots_active := false
 
-## 启动思考动画
 func _start_thinking_dots() -> void:
 	_dots_active = true
 	_dots_count = 0
 	dialog_text.text = "."
 	_schedule_dots()
 
-## 调度下一次动画更新
 func _schedule_dots() -> void:
 	_dots_timer = get_tree().create_timer(0.5)
 	_dots_timer.timeout.connect(_tick_dots, CONNECT_ONE_SHOT)
 
-## 更新动画帧
 func _tick_dots() -> void:
 	if not _dots_active:
 		return
@@ -283,17 +407,17 @@ func _tick_dots() -> void:
 	dialog_text.text = ".".repeat(_dots_count)
 	_schedule_dots()
 
-## 停止思考动画
 func _stop_thinking_dots() -> void:
 	_dots_active = false
 	_dots_timer = null
 
-## 解锁输入框
 func _unlock_input() -> void:
 	send_button.disabled = false
 	message_input.editable = true
-	message_input.placeholder_text = "输入消息…
-Enter 发送，Shift+Enter 换行"
+	message_input.placeholder_text = "输入消息…\nEnter 发送，Shift+Enter 换行"
+	# 群聊模式：如果还有待发请求，继续派发
+	if AppState.is_group_mode() and not _group_reply_queue.is_empty():
+		_try_dispatch_next_group_request()
 
 # ── 发送消息 ──────────────────────────────────────────────────
 func _on_send_pressed() -> void:
@@ -306,8 +430,7 @@ func _send_message(text: String) -> void:
 	message_input.text = ""
 	send_button.disabled = true
 	message_input.editable = false
-	var char_name: String = AppState.current_character.get("name", "AI")
-	message_input.placeholder_text = char_name + "正在说话..."
+	message_input.placeholder_text = "AI 正在回复..."
 	option_buttons.visible = false
 	_hide_continue_hint()
 	_waiting_for_advance = false
@@ -320,15 +443,16 @@ func _send_message(text: String) -> void:
 	_sentence_queue.clear()
 	_is_receiving = true
 
-	# 启动等待动画
 	_start_thinking_dots()
 
-	# 使用 PromptBuilder 构建消息
-	var messages := PromptBuilder.build_messages(
-		AppState.get_messages_for_api(),
-		AppState.current_character
-	)
-	ApiClient.chat_completion(messages)
+	if AppState.is_group_mode():
+		_start_group_replies()
+	else:
+		var messages := PromptBuilder.build_messages(
+			AppState.get_messages_for_api(),
+			AppState.current_character
+		)
+		ApiClient.chat_completion(messages)
 
 func _on_input_key(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -336,49 +460,116 @@ func _on_input_key(event: InputEvent) -> void:
 			_on_send_pressed()
 			get_viewport().set_input_as_handled()
 
-# ── 流式接收（接收进程，独立于显示进程）──────────────────────
-## 将接收到的句子加入队列或直接显示
+# ── 群聊多角色轮流发言 ────────────────────────────────────────
+## 开始群聊回复：为每个角色依次请求 API
+func _start_group_replies() -> void:
+	_group_reply_queue.clear()
+	_group_waiting_char_id = ""
+	# 按顺序请求每个角色
+	_request_next_group_char(0)
+
+func _request_next_group_char(index: int) -> void:
+	var chars := AppState.group_characters
+	if index >= chars.size():
+		# 所有角色都请求完毕，等待最后一个流结束
+		return
+
+	var char_data := chars[index]
+	var char_id: String = char_data.get("id", "")
+	_group_waiting_char_id = char_id
+
+	# 确保该角色在屏幕上
+	_ensure_char_on_screen(char_data)
+	_set_active_speaker(char_id)
+	_set_speaker_by_id(char_id)
+
+	var messages := PromptBuilder.build_group_messages(
+		char_data,
+		AppState.group_characters,
+		AppState.chat_history
+	)
+	# 存储当前请求对应的角色索引，流结束后继续下一个
+	_group_current_index = index
+	ApiClient.chat_completion(messages)
+
+var _group_current_index := 0
+
+# ── 流式接收 ──────────────────────────────────────────────────
 func _enqueue_sentence(sentence: String) -> void:
 	if not _is_typing and not _waiting_for_advance:
 		_show_text(sentence)
 	else:
 		_sentence_queue.append(sentence)
 
-## 处理流式数据块（使用 SentenceSplitter 分句）
 func _on_stream_chunk(text: String) -> void:
 	_stream_display_content += text
 	var sentences := SentenceSplitter.split_stream(_stream_state, text)
 	for s in sentences:
 		_enqueue_sentence(s["text"])
 
-## 处理情绪变化
 func _on_stream_mood(mood: int) -> void:
-	_switch_mood(mood)
+	if AppState.is_group_mode():
+		_switch_mood_for(_group_waiting_char_id, mood)
+	else:
+		_switch_mood(mood)
 
-## 接收完整的 JSON 响应
 func _on_stream_full_json(json_str: String) -> void:
 	_stream_full_content = json_str
 
-## 处理流结束
 func _on_stream_done() -> void:
 	_is_receiving = false
 	var sentences := SentenceSplitter.split_stream(_stream_state, "", true)
 	for s in sentences:
 		_enqueue_sentence(s["text"])
+
 	if not _stream_full_content.is_empty():
-		AppState.add_message("assistant", _stream_full_content)
-		_save_history()
-	# 流结束时，如果显示进程正在等待且队列已空，解锁输入
+		if AppState.is_group_mode():
+			# 保存该角色的发言（role = character_id）
+			AppState.add_message(_group_waiting_char_id, _stream_full_content)
+			_save_history()
+			# 继续请求下一个角色
+			var next_index := _group_current_index + 1
+			if next_index < AppState.group_characters.size():
+				# 等当前显示队列清空后再请求下一个
+				_group_reply_queue.append({"index": next_index})
+				_try_dispatch_next_group_request()
+			else:
+				_group_waiting_char_id = ""
+		else:
+			AppState.add_message("assistant", _stream_full_content)
+			_save_history()
+
 	if _waiting_for_advance and _sentence_queue.is_empty() and not _is_typing:
 		_waiting_for_advance = false
 		_hide_continue_hint()
 		_unlock_input()
 
-## 处理流错误
+## 尝试派发下一个群聊角色请求（等显示队列空闲时）
+func _try_dispatch_next_group_request() -> void:
+	if _group_reply_queue.is_empty():
+		return
+	if _is_receiving:
+		return
+	# 等待当前显示完成后再发下一个请求
+	if _is_typing or _waiting_for_advance or not _sentence_queue.is_empty():
+		# 延迟检查
+		get_tree().create_timer(0.3).timeout.connect(_try_dispatch_next_group_request, CONNECT_ONE_SHOT)
+		return
+
+	var next: Dictionary = _group_reply_queue.pop_front()
+	_stream_state = SentenceSplitter.StreamState.new()
+	_stream_full_content = ""
+	_stream_display_content = ""
+	_is_receiving = true
+	_start_thinking_dots()
+	_request_next_group_char(next["index"])
+
 func _on_stream_error(message: String) -> void:
 	_is_receiving = false
 	_is_typing = false
 	_waiting_for_advance = false
+	_group_reply_queue.clear()
+	_group_waiting_char_id = ""
 	_stop_thinking_dots()
 	_unlock_input()
 	_show_text("⚠ " + message)
@@ -393,6 +584,8 @@ func _process(delta: float) -> void:
 		return
 	_breath_time += delta
 	character_sprite.scale.y = _base_scale + 0.003 * sin(_breath_time * PI / 2.0)
+	if character_sprite2.visible:
+		character_sprite2.scale.y = _base_scale2 + 0.003 * sin(_breath_time * PI / 2.0 + 0.5)
 
 # ── 历史记录 ──────────────────────────────────────────────────
 func _toggle_history() -> void:
@@ -404,36 +597,39 @@ func _refresh_history() -> void:
 	for child in history_list.get_children():
 		child.queue_free()
 
-	var char_name: String = AppState.current_character.get("name", "AI")
-	var color_str: String = AppState.current_character.get("color", "#aaaaff")
-
-	# 优化：使用单个 RichTextLabel 显示所有历史，避免大量节点导致卡顿
 	var history_text := ""
 	for msg in AppState.chat_history:
 		var role: String = msg["role"]
 		if role == "system":
 			continue
-
 		if role == "user":
 			history_text += "[color=cyan]你[/color]：" + msg["content"] + "\n\n"
 		else:
-			# assistant 消息：从 JSON 中提取 msg 字段
+			# role 可能是 "assistant" 或 character_id
+			var display_name := role
+			var color_str := "#aaaaff"
+			if AppState.is_group_mode():
+				var cd := _get_char_data_by_id(role)
+				if not cd.is_empty():
+					display_name = cd.get("name", role)
+					color_str = cd.get("color", "#aaaaff")
+			else:
+				display_name = AppState.current_character.get("name", "AI")
+				color_str = AppState.current_character.get("color", "#aaaaff")
 			var display_content := _extract_msg_from_json(msg["content"])
-			history_text += "[color=%s]%s[/color]：%s\n\n" % [color_str, char_name, display_content]
+			history_text += "[color=%s]%s[/color]：%s\n\n" % [color_str, display_name, display_content]
 
 	if history_text.is_empty():
 		history_text = "[color=gray]暂无历史记录[/color]"
-	
+
 	var label := RichTextLabel.new()
 	label.bbcode_enabled = true
 	label.fit_content = true
 	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.text = history_text
-	
 	history_list.add_child(label)
 
-## 从 JSON 字符串中提取 msg 字段
 func _extract_msg_from_json(json_str: String) -> String:
 	var json := JSON.new()
 	if json.parse(json_str) == OK:
@@ -441,56 +637,52 @@ func _extract_msg_from_json(json_str: String) -> String:
 		return data.get("msg", json_str)
 	return json_str
 
-## 保存当前对话历史到磁盘
 func _save_history() -> void:
-	var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
-	if character_id.is_empty():
-		push_warning("ChatController: 无法保存历史，角色 ID 为空")
-		return
-	HistoryManager.save_history(character_id, AppState.chat_history)
+	if AppState.is_group_mode():
+		var group_id: String = AppState.current_group.get("id", "")
+		if not group_id.is_empty():
+			HistoryManager.save_group_history(group_id, AppState.chat_history)
+	else:
+		var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
+		if not character_id.is_empty():
+			HistoryManager.save_history(character_id, AppState.chat_history)
 
-## 删除当前角色的历史记录（公开接口）
 func delete_current_history() -> void:
-	var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
-	if character_id.is_empty():
-		push_warning("ChatController: 无法删除历史，角色 ID 为空")
-		return
-	if HistoryManager.delete_history(character_id):
-		# 完全清空后重建 system prompt
+	if AppState.is_group_mode():
+		var group_id: String = AppState.current_group.get("id", "")
+		HistoryManager.delete_history(group_id)
 		AppState.chat_history.clear()
-		var prompt: String = AppState.current_character.get("prompt", "")
-		if not prompt.is_empty():
-			AppState.add_message("system", prompt)
-		AppState.history_updated.emit()
-		
-		_refresh_history()
-		
-		# 显示角色的欢迎语
-		var welcome: String = AppState.current_character.get("welcome", "你好！")
-		_show_text(welcome)
+	else:
+		var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
+		if HistoryManager.delete_history(character_id):
+			AppState.chat_history.clear()
+			var prompt: String = AppState.current_character.get("prompt", "")
+			if not prompt.is_empty():
+				AppState.add_message("system", prompt)
+	AppState.history_updated.emit()
+	_refresh_history()
+	if AppState.is_group_mode():
+		_show_text("群聊历史已清空。")
+	else:
+		_show_text(AppState.current_character.get("welcome", "你好！"))
 
-## 切换更多选项菜单
+# ── 更多选项 ──────────────────────────────────────────────────
 func _toggle_more_options() -> void:
 	more_options_overlay.visible = not more_options_overlay.visible
 	if more_options_overlay.visible:
-		# 关闭其他弹窗
 		history_modal.visible = false
 
-## 点击更多选项菜单的空白区域关闭
 func _on_more_options_overlay_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		more_options_overlay.visible = false
 
-## 显示清空历史确认对话框
 func _show_clear_history_confirm() -> void:
 	more_options_overlay.visible = false
 	confirm_dialog.visible = true
 
-## 隐藏确认对话框
 func _hide_confirm_dialog() -> void:
 	confirm_dialog.visible = false
 
-## 确认清空历史
 func _on_clear_history_confirmed() -> void:
 	confirm_dialog.visible = false
 	delete_current_history()

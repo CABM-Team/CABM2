@@ -63,9 +63,16 @@ func _on_character_selected(char_data: Dictionary) -> void:
 	AppState.current_group = {}
 	get_tree().change_scene_to_file("res://scenes/chat/chat.tscn")
 
-func _on_group_selected(_group_data: Dictionary) -> void:
-	# 群聊模式留到下一次任务实现
-	pass
+func _on_group_selected(group_data: Dictionary) -> void:
+	var ids: Array = group_data.get("character_ids", [])
+	var chars: Array[Dictionary] = []
+	for cid in ids:
+		for c in _all_characters:
+			if c.get("id", "") == cid:
+				chars.append(c)
+				break
+	AppState.set_group(group_data, chars)
+	get_tree().change_scene_to_file("res://scenes/chat/chat.tscn")
 
 func _on_new_group_pressed() -> void:
 	group_create_dialog.open(_all_characters)

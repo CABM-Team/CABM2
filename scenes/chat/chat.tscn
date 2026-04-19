@@ -35,6 +35,11 @@ texture_filter = 1
 position = Vector2(880, 1076)
 offset = Vector2(0, -512)
 
+[node name="CharacterSprite2" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(1200, 1076)
+offset = Vector2(0, -512)
+
 [node name="Header" type="HBoxContainer" parent="."]
 layout_mode = 0
 anchor_right = 1.0

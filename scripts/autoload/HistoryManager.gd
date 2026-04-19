@@ -6,6 +6,14 @@ extends Node
 
 const HISTORY_DIR := "user://history/"
 
+## 保存群聊历史（group_id 作为文件名）
+func save_group_history(group_id: String, messages: Array[Dictionary]) -> void:
+	save_history(group_id, messages)
+
+## 加载群聊历史
+func load_group_history(group_id: String) -> Array[Dictionary]:
+	return load_history(group_id)
+
 ## 保存指定角色的对话历史到磁盘
 ## @param character_id: 角色唯一标识（通常使用角色名称）
 ## @param messages: 消息数组 [{role: String, content: String}, ...]
