@@ -1,4 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://chat"]
+[gd_scene load_steps=7 format=3 uid="uid://chat"]
+
+[ext_resource type="PackedScene" path="res://scenes/common/confirm_dialog.tscn" id="6_confirm"]
 
 [ext_resource type="Script" uid="uid://cvhu6ve2u05cx" path="res://scripts/chat/ChatController.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dejv7on4aogy4" path="res://assets/backgrounds/sr-3.png" id="2_r67cr"]
@@ -314,49 +316,11 @@ theme_override_colors/font_color = Color(0.74558026, 0.7455802, 0.7455802, 1)
 theme_override_font_sizes/font_size = 24
 text = "点击空白处关闭"
 
-[node name="ConfirmDialog" type="PanelContainer" parent="."]
+[node name="ConfirmDialog" parent="." instance=ExtResource("6_confirm")]
 visible = false
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -250.0
-offset_top = -100.0
-offset_right = 250.0
-offset_bottom = 100.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="ClickArea" type="ColorRect" parent="ConfirmDialog"]
-layout_mode = 2
-color = Color(0, 0, 0, 0.3)
-
-[node name="VBox" type="VBoxContainer" parent="ConfirmDialog"]
-layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="ConfirmLabel" type="Label" parent="ConfirmDialog/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 40
-text = "⚠
-确定要清空历史记录吗？"
-horizontal_alignment = 1
-
-[node name="ButtonBox" type="HBoxContainer" parent="ConfirmDialog/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 50
-alignment = 1
-
-[node name="CancelButton" type="Button" parent="ConfirmDialog/VBox/ButtonBox"]
-custom_minimum_size = Vector2(150, 50)
-layout_mode = 2
-theme = ExtResource("5_8owhw")
-text = "取消"
-
-[node name="ConfirmButton" type="Button" parent="ConfirmDialog/VBox/ButtonBox"]
-custom_minimum_size = Vector2(150, 50)
-layout_mode = 2
-theme = ExtResource("4_6xy15")
-text = "确定"

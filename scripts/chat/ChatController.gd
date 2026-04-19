@@ -24,9 +24,7 @@ extends Control
 @onready var more_options_menu: PanelContainer = $MoreOptionsOverlay/MoreOptionsMenu
 @onready var more_options_click_area: ColorRect = $MoreOptionsOverlay/ClickArea
 @onready var clear_history_btn: Button     = $MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/ClearHistoryButton
-@onready var confirm_dialog: PanelContainer = $ConfirmDialog
-@onready var confirm_btn: Button           = $ConfirmDialog/VBox/ButtonBox/ConfirmButton
-@onready var cancel_btn: Button            = $ConfirmDialog/VBox/ButtonBox/CancelButton
+@onready var confirm_dialog = $ConfirmDialog
 
 # ── 输出速度 ──────────────────────────────────────────────────
 var type_speed := 0.03
@@ -81,8 +79,8 @@ func _ready() -> void:
 	more_option_button.pressed.connect(_toggle_more_options)
 	more_options_click_area.gui_input.connect(_on_more_options_overlay_input)
 	clear_history_btn.pressed.connect(_show_clear_history_confirm)
-	confirm_btn.pressed.connect(_on_clear_history_confirmed)
-	cancel_btn.pressed.connect(_hide_confirm_dialog)
+	confirm_dialog.confirmed.connect(_on_clear_history_confirmed)
+	confirm_dialog.cancelled.connect(_hide_confirm_dialog)
 
 	ApiClient.stream_chunk.connect(_on_stream_chunk)
 	ApiClient.stream_mood.connect(_on_stream_mood)
@@ -738,13 +736,12 @@ func _on_more_options_overlay_input(event: InputEvent) -> void:
 
 func _show_clear_history_confirm() -> void:
 	more_options_overlay.visible = false
-	confirm_dialog.visible = true
+	confirm_dialog.show_dialog("⚠\n确定要清空历史记录吗？")
 
 func _hide_confirm_dialog() -> void:
-	confirm_dialog.visible = false
+	confirm_dialog.hide_dialog()
 
 func _on_clear_history_confirmed() -> void:
-	confirm_dialog.visible = false
 	delete_current_history()
 
 # ── 导航 ──────────────────────────────────────────────────────

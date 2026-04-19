@@ -1,0 +1,67 @@
+[gd_scene load_steps=3 format=3 uid="uid://confirm_dialog"]
+
+[ext_resource type="Script" path="res://scripts/common/ConfirmDialog.gd" id="1"]
+[ext_resource type="Theme" uid="uid://nbt4udvni8b5" path="res://assets/theme/red_button.tres" id="2"]
+[ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="3"]
+
+[node name="ConfirmDialog" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1")
+
+[node name="Overlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.6)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -100.0
+offset_right = 250.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="ConfirmLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "确定吗？"
+horizontal_alignment = 1
+
+[node name="ButtonBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 50
+alignment = 1
+
+[node name="CancelButton" type="Button" parent="Panel/VBox/ButtonBox"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 2
+theme = ExtResource("3")
+text = "取消"
+
+[node name="ConfirmButton" type="Button" parent="Panel/VBox/ButtonBox"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 2
+theme = ExtResource("2")
+text = "确定"
