@@ -30,9 +30,10 @@ func _ready() -> void:
 	_all_characters = CharacterLoader.load_all()
 	_populate_characters()
 	_populate_groups()
-	_switch_tab(false)
+	_switch_tab(AppState.last_tab_is_group)
 
 func _switch_tab(is_group: bool) -> void:
+	AppState.last_tab_is_group = is_group
 	single_panel.visible = not is_group
 	group_panel.visible = is_group
 	single_tab_btn.disabled = not is_group

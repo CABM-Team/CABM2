@@ -24,6 +24,9 @@ var chat_history: Array[Dictionary] = []
 # 当前场景标识
 var current_scene: String = ""
 
+# 角色选择页面上次选中的标签（false=单角色, true=群聊）
+var last_tab_is_group: bool = false
+
 ## 是否处于群聊模式
 func is_group_mode() -> bool:
 	return not current_group.is_empty()
