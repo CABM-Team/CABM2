@@ -25,6 +25,7 @@ ConfigManager="*res://scripts/autoload/ConfigManager.gd"
 ApiClient="*res://scripts/autoload/ApiClient.gd"
 HistoryManager="*res://scripts/autoload/HistoryManager.gd"
 GroupManager="*res://scripts/autoload/GroupManager.gd"
+UIStateManager="*res://scripts/autoload/UIStateManager.gd"
 
 [display]
 

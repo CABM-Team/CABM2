@@ -67,6 +67,22 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "群聊"
 
+[node name="SortBar" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SortFieldButton" type="Button" parent="VBox/SortBar"]
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "排序：时间"
+
+[node name="SortOrderButton" type="Button" parent="VBox/SortBar"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "↓ 降序"
+
 [node name="HSeparator" type="HSeparator" parent="VBox"]
 layout_mode = 2
 
