@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://xiod8r5tj118" path="res://scripts/character_select/GroupCard.gd" id="1"]
 
 [node name="GroupCard" type="PanelContainer"]
-custom_minimum_size = Vector2(550, 120)
+custom_minimum_size = Vector2(550, 180)
 mouse_filter = 1
 script = ExtResource("1")
 
@@ -11,10 +11,9 @@ script = ExtResource("1")
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="AvatarRow" type="HBoxContainer" parent="HBox"]
-custom_minimum_size = Vector2(80, 80)
+[node name="AvatarRow" type="Control" parent="HBox"]
+custom_minimum_size = Vector2(150, 150)
 layout_mode = 2
-theme_override_constants/separation = 4
 
 [node name="VBox" type="VBoxContainer" parent="HBox"]
 layout_mode = 2
