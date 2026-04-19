@@ -23,6 +23,7 @@ config/icon="res://assets/icon.jpg"
 AppState="*res://scripts/autoload/AppState.gd"
 ConfigManager="*res://scripts/autoload/ConfigManager.gd"
 ApiClient="*res://scripts/autoload/ApiClient.gd"
+HistoryManager="*res://scripts/autoload/HistoryManager.gd"
 
 [display]
 

@@ -99,12 +99,29 @@ func _load_character(char_data: Dictionary) -> void:
 	character_sprite.scale = Vector2(scale_rate, scale_rate)
 	character_sprite.position.y = 1080 + char_data.get("calib", 0)
 
+	# 加载历史记录
+	var character_id: String = char_data.get("id", name_str)
+	var loaded_history := HistoryManager.load_history(character_id)
+	
+	# 添加 system prompt
 	var prompt: String = char_data.get("prompt", "")
-	if not prompt.is_empty() and AppState.chat_history.is_empty():
+	if not prompt.is_empty():
 		AppState.add_message("system", prompt)
-
+	
+	# 恢复历史消息到 AppState
+	for msg in loaded_history:
+		AppState.chat_history.append(msg)
+	
+	# 显示欢迎语或最后一条消息
 	var welcome: String = char_data.get("welcome", "你好！")
-	_show_text(welcome)
+	if loaded_history.is_empty():
+		_show_text(welcome)
+	else:
+		# 如果有历史记录，显示最后一条 AI 消息
+		for i in range(loaded_history.size() - 1, -1, -1):
+			if loaded_history[i]["role"] == "assistant":
+				_show_text(loaded_history[i]["content"])
+				break
 
 func _load_sprite(char_data: Dictionary, mood: String) -> void:
 	var image_dir: String = char_data.get("image", "")
@@ -318,6 +335,8 @@ func _on_stream_done() -> void:
 		_enqueue_sentence(s["text"])
 	if not _stream_full_content.is_empty():
 		AppState.add_message("assistant", _stream_full_content)
+		# AI 回复结束，保存历史记录
+		_save_history()
 	# 流结束时，如果显示进程正在等待且队列已空，说明刚才显示的是最后一句
 	# 但当时 has_more 误判为 true（流还在），现在补救：撤掉 hint，解锁输入
 	if _waiting_for_advance and _sentence_queue.is_empty() and not _is_typing:
@@ -357,24 +376,52 @@ func _refresh_history() -> void:
 	var char_name: String = AppState.current_character.get("name", "AI")
 	var color_str: String = AppState.current_character.get("color", "#aaaaff")
 
+	# 优化：使用单个 RichTextLabel 显示所有历史，避免大量节点导致卡顿
+	var history_text := ""
 	for msg in AppState.chat_history:
 		var role: String = msg["role"]
 		if role == "system":
 			continue
 
-		var label := RichTextLabel.new()
-		label.bbcode_enabled = true
-		label.fit_content = true
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
 		if role == "user":
-			label.text = "[color=cyan]你[/color]：" + msg["content"]
+			history_text += "[color=cyan]你[/color]：" + msg["content"] + "\n\n"
 		else:
-			label.text = "[color=%s]%s[/color]：%s" % [color_str, char_name, msg["content"]]
+			history_text += "[color=%s]%s[/color]：%s\n\n" % [color_str, char_name, msg["content"]]
 
-		history_list.add_child(label)
-		history_list.add_child(HSeparator.new())
+	if history_text.is_empty():
+		history_text = "[color=gray]暂无历史记录[/color]"
+	
+	var label := RichTextLabel.new()
+	label.bbcode_enabled = true
+	label.fit_content = true
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.text = history_text
+	
+	history_list.add_child(label)
+
+## 保存当前对话历史到磁盘
+func _save_history() -> void:
+	var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
+	if character_id.is_empty():
+		push_warning("ChatController: 无法保存历史，角色 ID 为空")
+		return
+	HistoryManager.save_history(character_id, AppState.chat_history)
+
+## 删除当前角色的历史记录（公开接口）
+func delete_current_history() -> void:
+	var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
+	if character_id.is_empty():
+		push_warning("ChatController: 无法删除历史，角色 ID 为空")
+		return
+	if HistoryManager.delete_history(character_id):
+		AppState.clear_history()
+		_refresh_history()
+		_show_text("历史记录已清空。")
+
+## 清空历史按钮回调
+func _on_clear_history_pressed() -> void:
+	delete_current_history()
 
 # ── 导航 ──────────────────────────────────────────────────────
 func _on_back_pressed() -> void:

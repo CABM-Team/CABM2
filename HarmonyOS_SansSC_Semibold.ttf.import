@@ -2,7 +2,7 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://cei44ok2kicig"
+uid="uid://bgs1yfa1228cv"
 path="res://.godot/imported/HarmonyOS_SansSC_Semibold.ttf-3a889a92327689f1fcd1d9659cb16cdb.fontdata"
 
 [deps]
@@ -16,7 +16,7 @@ Rendering=null
 antialiasing=1
 generate_mipmaps=false
 disable_embedded_bitmaps=true
-multichannel_signed_distance_field=false
+multichannel_signed_distance_field=true
 msdf_pixel_range=8
 msdf_size=48
 allow_system_fallback=true
@@ -27,9 +27,9 @@ subpixel_positioning=4
 keep_rounding_remainders=true
 oversampling=0.0
 Fallbacks=null
-fallbacks=[]
+fallbacks=[Resource("uid://86k368iw3o4j", "res://seguiemj.ttf")]
 Compress=null
-compress=true
+compress=false
 preload=[]
 language_support={}
 script_support={}
