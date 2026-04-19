@@ -8,6 +8,7 @@ const GROUPS_DIR := "user://groups/"
 
 ## 保存群聊配置
 ## group_data: { id, name, character_ids: [] }
+## 注意：保留文件中已有的 history 和 last_play_time 字段
 func save_group(group_data: Dictionary) -> void:
 	_ensure_dir()
 	var id: String = group_data.get("id", "")
@@ -15,11 +16,15 @@ func save_group(group_data: Dictionary) -> void:
 		push_warning("GroupManager: group id 为空")
 		return
 	var path := GROUPS_DIR + id + ".json"
+	# 读取现有文件，保留 history / last_play_time
+	var existing := _load_file(path)
+	for key in group_data:
+		existing[key] = group_data[key]
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		push_error("GroupManager: 无法写入 %s" % path)
 		return
-	file.store_string(JSON.stringify(group_data))
+	file.store_string(JSON.stringify(existing))
 	file.close()
 
 ## 加载所有群聊

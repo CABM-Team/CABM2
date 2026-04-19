@@ -403,7 +403,7 @@ var _dots_active := false
 func _start_thinking_dots() -> void:
 	_dots_active = true
 	_dots_count = 0
-	dialog_text.text = "."
+	dialog_text.text = ""
 	_schedule_dots()
 
 func _schedule_dots() -> void:
@@ -414,7 +414,7 @@ func _tick_dots() -> void:
 	if not _dots_active:
 		return
 	_dots_count = (_dots_count + 1) % 4
-	dialog_text.text = ".".repeat(_dots_count)
+	dialog_text.text = "·".repeat(_dots_count)
 	_schedule_dots()
 
 func _stop_thinking_dots() -> void:
@@ -661,7 +661,7 @@ func _save_history() -> void:
 func delete_current_history() -> void:
 	if AppState.is_group_mode():
 		var group_id: String = AppState.current_group.get("id", "")
-		HistoryManager.delete_history(group_id)
+		HistoryManager.clear_group_history(group_id)
 		AppState.chat_history.clear()
 	else:
 		var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
