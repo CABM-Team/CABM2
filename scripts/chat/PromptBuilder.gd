@@ -55,7 +55,7 @@ static func build_group_messages(
 		system_content += "\n你正在和%s等人一起对话。" % "、".join(other_names)
 	var group_des: String = group_data.get("des", "")
 	if not group_des.is_empty():
-		system_content += "\n群聊描述：%s" % group_des
+		system_content += "\n对话背景：%s" % group_des
 	system_content += "\n你必须严格以JSON格式输出，包含以下字段：\n\"mood\": <int> 当前情绪序号，必须是以下之一：%s\n\"msg\": <string> 回复内容，1-6句话，禁止换行和markdown" % mood_list
 
 	var result: Array[Dictionary] = [{"role": "system", "content": system_content}]

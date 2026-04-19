@@ -1,6 +1,22 @@
-[gd_scene load_steps=2 format=3 uid="uid://settings"]
+[gd_scene load_steps=6 format=3 uid="uid://settings"]
 
 [ext_resource type="Script" uid="uid://bgh3iibcfa8h0" path="res://scripts/settings/SettingsController.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://biblym0268v4b" path="res://assets/backgrounds/sr-6.png" id="2_vu5fi"]
+[ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="3_tt6xx"]
+[ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4_1slea"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vu5fi"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(0, 0.83137256, 0.8509804, 0.6862745)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 6
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
 
 [node name="Settings" type="Control"]
 layout_mode = 3
@@ -11,104 +27,196 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.05, 0.05, 0.1, 1)
+texture = ExtResource("2_vu5fi")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="."]
-layout_mode = 0
-anchor_left = 0.1
-anchor_top = 0.05
-anchor_right = 0.9
-anchor_bottom = 0.95
+[node name="MainLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -800.0
+offset_top = -500.0
+offset_right = 800.0
+offset_bottom = 500.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 0
 
-[node name="VBox" type="VBoxContainer" parent="ScrollContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_vu5fi")
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="Title" type="Label" parent="ScrollContainer/VBox"]
+[node name="Title" type="Label" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "设置"
+theme_override_font_sizes/font_size = 50
+text = "API设置"
 horizontal_alignment = 1
 
-[node name="SectionChat" type="Label" parent="ScrollContainer/VBox"]
+[node name="FirstRunSection" type="VBoxContainer" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-text = "── 对话 API ──"
+theme_override_constants/separation = 8
 
-[node name="LabelApiKey" type="Label" parent="ScrollContainer/VBox"]
+[node name="SectionFirstRun" type="Label" parent="MainLayout/ScrollContainer/VBox/FirstRunSection"]
 layout_mode = 2
-text = "API Key *"
+text = "── 快速填充密钥 ──"
 
-[node name="ApiKeyInput" type="LineEdit" parent="ScrollContainer/VBox"]
+[node name="LabelMasterKey" type="Label" parent="MainLayout/ScrollContainer/VBox/FirstRunSection"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+text = "密钥（填入后点击右侧按钮可一键填充所有 API Key）"
+
+[node name="MasterKeyRow" type="HBoxContainer" parent="MainLayout/ScrollContainer/VBox/FirstRunSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MasterKeyInput" type="LineEdit" parent="MainLayout/ScrollContainer/VBox/FirstRunSection/MasterKeyRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
 secret = true
 
-[node name="LabelBaseUrl" type="Label" parent="ScrollContainer/VBox"]
+[node name="FillAllButton" type="Button" parent="MainLayout/ScrollContainer/VBox/FirstRunSection/MasterKeyRow"]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-text = "API Base URL"
+text = "✒全部填充"
 
-[node name="BaseUrlInput" type="LineEdit" parent="ScrollContainer/VBox"]
+[node name="SectionChat" type="Label" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
-placeholder_text = "https://api.siliconflow.cn/v1"
+text = "── 对话模型 ──"
 
-[node name="LabelModel" type="Label" parent="ScrollContainer/VBox"]
+[node name="LabelChatKey" type="Label" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-text = "模型"
+text = "API密钥"
 
-[node name="ModelInput" type="LineEdit" parent="ScrollContainer/VBox"]
+[node name="ChatKeyInput" type="LineEdit" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
-placeholder_text = "deepseek-ai/DeepSeek-V3.2"
-
-[node name="SectionMemory" type="Label" parent="ScrollContainer/VBox"]
-layout_mode = 2
-text = "── 记忆 API（没做）──"
-
-[node name="LabelMemoryKey" type="Label" parent="ScrollContainer/VBox"]
-layout_mode = 2
-text = "Memory API Key"
-
-[node name="MemoryKeyInput" type="LineEdit" parent="ScrollContainer/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 28
+placeholder_text = "sk-..."
 secret = true
 
-[node name="LabelMemoryUrl" type="Label" parent="ScrollContainer/VBox"]
+[node name="LabelChatUrl" type="Label" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-text = "Memory API Base URL"
+text = "BaseURL"
 
-[node name="MemoryUrlInput" type="LineEdit" parent="ScrollContainer/VBox"]
+[node name="ChatUrlInput" type="LineEdit" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 28
+placeholder_text = "https://api.siliconflow.cn/v1"
 
-[node name="LabelEmbedModel" type="Label" parent="ScrollContainer/VBox"]
+[node name="LabelChatModel" type="Label" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-text = "Embedding 模型"
+text = "模型名"
 
-[node name="EmbedModelInput" type="LineEdit" parent="ScrollContainer/VBox"]
+[node name="ChatModelInput" type="LineEdit" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
-placeholder_text = "BAAI/bge-large-zh-v1.5"
+theme_override_font_sizes/font_size = 28
+placeholder_text = "deepseek-ai/DeepSeek-V3.2"
 
-[node name="SaveButton" type="Button" parent="ScrollContainer/VBox"]
-custom_minimum_size = Vector2(0, 44)
+[node name="SectionOption" type="Label" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-text = "保存"
+text = "── 决策模型 ──"
 
-[node name="BackButton" type="Button" parent="ScrollContainer/VBox"]
-custom_minimum_size = Vector2(0, 44)
+[node name="LabelOptKey" type="Label" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-text = "返回"
+text = "API密钥"
 
-[node name="StatusLabel" type="Label" parent="ScrollContainer/VBox"]
+[node name="OptKeyInput" type="LineEdit" parent="MainLayout/ScrollContainer/VBox"]
 layout_mode = 2
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+placeholder_text = "sk-..."
+secret = true
+
+[node name="LabelOptUrl" type="Label" parent="MainLayout/ScrollContainer/VBox"]
+layout_mode = 2
+text = "BaseURL"
+
+[node name="OptUrlInput" type="LineEdit" parent="MainLayout/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "https://api.siliconflow.cn/v1"
+
+[node name="LabelOptModel" type="Label" parent="MainLayout/ScrollContainer/VBox"]
+layout_mode = 2
+text = "模型名"
+
+[node name="OptModelInput" type="LineEdit" parent="MainLayout/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "Qwen/Qwen3-8B"
+
+[node name="SectionTts" type="Label" parent="MainLayout/ScrollContainer/VBox"]
+layout_mode = 2
+text = "── 语音模型 ──"
+
+[node name="LabelTtsKey" type="Label" parent="MainLayout/ScrollContainer/VBox"]
+layout_mode = 2
+text = "API密钥"
+
+[node name="TtsKeyInput" type="LineEdit" parent="MainLayout/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "sk-..."
+secret = true
+
+[node name="LabelTtsUrl" type="Label" parent="MainLayout/ScrollContainer/VBox"]
+layout_mode = 2
+text = "BaseURL"
+
+[node name="TtsUrlInput" type="LineEdit" parent="MainLayout/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "https://api.siliconflow.cn/v1"
+
+[node name="LabelTtsModel" type="Label" parent="MainLayout/ScrollContainer/VBox"]
+layout_mode = 2
+text = "模型名"
+
+[node name="TtsModelInput" type="LineEdit" parent="MainLayout/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "FunAudioLLM/CosyVoice2-0.5B"
+
+[node name="BottomBar" type="HBoxContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 24
+
+[node name="StatusLabel" type="Label" parent="MainLayout/BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+vertical_alignment = 1
+
+[node name="SkipButton" type="Button" parent="MainLayout/BottomBar"]
+visible = false
+custom_minimum_size = Vector2(200, 70)
+layout_mode = 2
+theme = ExtResource("4_1slea")
+theme_override_font_sizes/font_size = 45
+text = "➡跳过"
+
+[node name="SaveButton" type="Button" parent="MainLayout/BottomBar"]
+custom_minimum_size = Vector2(200, 70)
+layout_mode = 2
+theme = ExtResource("3_tt6xx")
+theme_override_font_sizes/font_size = 45
+text = "💾保存"
+
+[node name="BackButton" type="Button" parent="MainLayout/BottomBar"]
+custom_minimum_size = Vector2(200, 70)
+layout_mode = 2
+theme = ExtResource("4_1slea")
+theme_override_font_sizes/font_size = 45
+text = "↩返回"

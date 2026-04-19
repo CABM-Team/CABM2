@@ -10,18 +10,21 @@ var _config := ConfigFile.new()
 
 # 默认配置
 var defaults := {
+	# 对话模型
 	"chat_api_key": "",
 	"chat_api_base_url": "https://api.siliconflow.cn/v1",
 	"chat_model": "deepseek-ai/DeepSeek-V3.2",
+	# 决策模型
+	"option_api_key": "",
+	"option_api_base_url": "https://api.siliconflow.cn/v1",
 	"option_model": "Qwen/Qwen3-8B",
-	"memory_api_key": "不用填",
-	"memory_api_base_url": "https://api.siliconflow.cn/v1",
-	"embedding_model": "不用填",
-	"reranker_model": "",
+	# 语音（TTS）模型
 	"tts_api_key": "",
+	"tts_api_base_url": "https://api.siliconflow.cn/v1",
+	"tts_model": "FunAudioLLM/CosyVoice2-0.5B",
+	# 功能开关
 	"max_history_length": 20,
 	"enable_option_generation": true,
-	"enable_memory": false,
 	"enable_tts": false,
 }
 
@@ -29,10 +32,7 @@ func _ready() -> void:
 	_load()
 
 func _load() -> void:
-	var err := _config.load(CONFIG_PATH)
-	if err != OK:
-		# 首次运行，写入默认值
-		_save()
+	_config.load(CONFIG_PATH)  # 首次运行时文件不存在，不写入默认值，保持空白
 
 func _save() -> void:
 	for key in defaults:
@@ -49,3 +49,7 @@ func set_value(key: String, value: Variant) -> void:
 
 func is_configured() -> bool:
 	return get_value("chat_api_key") != ""
+
+## 是否首次运行（从未保存过 chat_api_key）
+func is_first_run() -> bool:
+	return not _config.has_section_key("app", "chat_api_key")

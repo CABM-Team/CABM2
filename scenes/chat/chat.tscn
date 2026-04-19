@@ -329,6 +329,10 @@ offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="ClickArea" type="ColorRect" parent="ConfirmDialog"]
+layout_mode = 2
+color = Color(0, 0, 0, 0.3)
+
 [node name="VBox" type="VBoxContainer" parent="ConfirmDialog"]
 layout_mode = 2
 theme_override_constants/separation = 20

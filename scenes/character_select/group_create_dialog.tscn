@@ -81,7 +81,7 @@ layout_mode = 2
 [node name="RightPanel" type="VBoxContainer" parent="Panel/VBox/HSplit"]
 custom_minimum_size = Vector2(420, 0)
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 20
 
 [node name="TitleLabel" type="Label" parent="Panel/VBox/HSplit/RightPanel"]
 layout_mode = 2
@@ -89,16 +89,19 @@ theme_override_font_sizes/font_size = 46
 text = "✦ 新建群聊 ✦"
 horizontal_alignment = 1
 
+[node name="HSeparator" type="HSeparator" parent="Panel/VBox/HSplit/RightPanel"]
+layout_mode = 2
+
 [node name="NameHint" type="Label" parent="Panel/VBox/HSplit/RightPanel"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "群聊名称"
+text = "群聊名称*"
 
 [node name="NameInput" type="LineEdit" parent="Panel/VBox/HSplit/RightPanel"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 36
-placeholder_text = "输入群聊名称…"
+placeholder_text = "输入群聊名称..."
 
 [node name="DescHint" type="Label" parent="Panel/VBox/HSplit/RightPanel"]
 layout_mode = 2
@@ -109,7 +112,8 @@ custom_minimum_size = Vector2(0, 160)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 28
-placeholder_text = "描述这个群聊的背景、场景…"
+placeholder_text = "描述这个群聊的背景、场景...
+这会发送给AI"
 wrap_mode = 1
 
 [node name="ErrorLabel" type="Label" parent="Panel/VBox/HSplit/RightPanel"]

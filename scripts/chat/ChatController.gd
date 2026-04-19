@@ -254,7 +254,7 @@ func _refresh_sprites() -> void:
 	var s0: float = c0.get("scale_rate", 100) / 100.0
 	_base_scale = s0
 	character_sprite.scale = Vector2(s0, s0)
-	character_sprite.position = Vector2(600, 1080 + c0.get("calib", 0))
+	character_sprite.position = Vector2(550, 1080 + c0.get("calib", 0))
 
 	if chars.size() >= 2:
 		var c1 := chars[1]
@@ -263,7 +263,7 @@ func _refresh_sprites() -> void:
 		var s1: float = c1.get("scale_rate", 100) / 100.0
 		_base_scale2 = s1
 		character_sprite2.scale = Vector2(s1, s1)
-		character_sprite2.position = Vector2(1320, 1080 + c1.get("calib", 0))
+		character_sprite2.position = Vector2(1150, 1080 + c1.get("calib", 0))
 	else:
 		character_sprite2.visible = false
 
@@ -386,8 +386,10 @@ func _on_sentence_finished() -> void:
 	_is_typing = false
 	dialog_text.text = _full_text
 
-	var has_more := not _sentence_queue.is_empty() or _is_receiving
-	if has_more:
+	var has_more_sentences := not _sentence_queue.is_empty() or _is_receiving
+	var has_next_char := not _group_reply_queue.is_empty()
+
+	if has_more_sentences or has_next_char:
 		_waiting_for_advance = true
 		_show_continue_hint()
 	else:
@@ -399,6 +401,9 @@ func _advance() -> void:
 	if not _sentence_queue.is_empty():
 		var next: String = _sentence_queue.pop_front()
 		_show_text(next)
+	elif not _is_receiving and not _group_reply_queue.is_empty():
+		# 当前角色说完，且没有更多句子，触发下一个角色请求
+		_dispatch_next_group_char()
 
 func _skip_typing() -> void:
 	if _is_typing:
@@ -465,9 +470,6 @@ func _unlock_input() -> void:
 	send_button.disabled = false
 	message_input.editable = true
 	message_input.placeholder_text = "输入消息…\nEnter 发送，Shift+Enter 换行"
-	# 群聊模式：如果还有待发请求，继续派发
-	if AppState.is_group_mode() and not _group_reply_queue.is_empty():
-		_try_dispatch_next_group_request()
 
 # ── 发送消息 ──────────────────────────────────────────────────
 func _on_send_pressed() -> void:
@@ -480,7 +482,7 @@ func _send_message(text: String) -> void:
 	message_input.text = ""
 	send_button.disabled = true
 	message_input.editable = false
-	message_input.placeholder_text = "AI 正在回复..."
+	message_input.placeholder_text = "角色正在回复..."
 	option_buttons.visible = false
 	_hide_continue_hint()
 	_waiting_for_advance = false
@@ -575,38 +577,30 @@ func _on_stream_done() -> void:
 
 	if not _stream_full_content.is_empty():
 		if AppState.is_group_mode():
-			# 保存该角色的发言（role = character_id）
 			AppState.add_message(_group_waiting_char_id, _stream_full_content)
 			_save_history()
-			# 继续请求下一个角色
 			var next_index := _group_current_index + 1
 			if next_index < AppState.group_characters.size():
-				# 等当前显示队列清空后再请求下一个
 				_group_reply_queue.append({"index": next_index})
-				_try_dispatch_next_group_request()
 			else:
 				_group_waiting_char_id = ""
 		else:
 			AppState.add_message("assistant", _stream_full_content)
 			_save_history()
 
-	if _waiting_for_advance and _sentence_queue.is_empty() and not _is_typing:
-		_waiting_for_advance = false
-		_hide_continue_hint()
-		_unlock_input()
+	# 如果当前没有在打字也没有在等待，手动触发 sentence_finished 逻辑
+	if not _is_typing and not _waiting_for_advance and _sentence_queue.is_empty():
+		var has_next_char := not _group_reply_queue.is_empty()
+		if has_next_char:
+			_waiting_for_advance = true
+			_show_continue_hint()
+		else:
+			_unlock_input()
 
-## 尝试派发下一个群聊角色请求（等显示队列空闲时）
-func _try_dispatch_next_group_request() -> void:
+## 派发下一个群聊角色请求（由用户点击触发）
+func _dispatch_next_group_char() -> void:
 	if _group_reply_queue.is_empty():
 		return
-	if _is_receiving:
-		return
-	# 等待当前显示完成后再发下一个请求
-	if _is_typing or _waiting_for_advance or not _sentence_queue.is_empty():
-		# 延迟检查
-		get_tree().create_timer(0.3).timeout.connect(_try_dispatch_next_group_request, CONNECT_ONE_SHOT)
-		return
-
 	var next: Dictionary = _group_reply_queue.pop_front()
 	_stream_state = SentenceSplitter.StreamState.new()
 	_stream_full_content = ""
