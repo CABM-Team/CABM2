@@ -1,30 +1,35 @@
 ## CharacterLoader.gd
 ## 从 JSON 文件加载角色配置数据
+## 扫描 res://characters/<id>/<id>.json 和 user://characters/<id>/<id>.json
 
 class_name CharacterLoader
 
-const CHARACTERS_DIR := "res://character_configs/"
-
 static func load_all() -> Array[Dictionary]:
 	var characters: Array[Dictionary] = []
-	var dir := DirAccess.open(CHARACTERS_DIR)
-	if dir == null:
-		push_warning("CharacterLoader: 角色目录不存在 " + CHARACTERS_DIR)
-		return characters
+	# 用 id 做去重，user:// 优先覆盖 res://
+	var seen: Dictionary = {}
 
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if file_name.ends_with(".json"):
-			var data := load_from_file(CHARACTERS_DIR + file_name)
-			if not data.is_empty():
-				characters.append(data)
-		file_name = dir.get_next()
+	for base in ["res://characters/", "user://characters/"]:
+		var dir := DirAccess.open(base)
+		if dir == null:
+			continue
+		dir.list_dir_begin()
+		var entry := dir.get_next()
+		while entry != "":
+			if dir.current_is_dir() and not entry.begins_with("."):
+				var json_path: String = base + entry + "/" + entry + ".json"
+				var data := load_from_file(json_path)
+				if not data.is_empty():
+					var cid: String = data.get("id", entry)
+					seen[cid] = data
+			entry = dir.get_next()
+
+	for cid in seen:
+		characters.append(seen[cid])
 	return characters
 
 static func load_from_file(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
-		push_warning("CharacterLoader: 文件不存在 " + path)
 		return {}
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:

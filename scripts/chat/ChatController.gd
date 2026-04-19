@@ -178,16 +178,26 @@ func _init_group_mode() -> void:
 				break
 
 # ── 立绘管理 ──────────────────────────────────────────────────
+## 按优先级查找图片：先 user://characters/<id>/，再 res://characters/<id>/
+## mood 为空字符串时只找 1.png 回退
+func _resolve_image_path(char_id: String, filename: String) -> String:
+	for base in ["user://characters/", "res://characters/"]:
+		var p: String = base + char_id + "/" + filename
+		if ResourceLoader.exists(p):
+			return p
+	return ""
+
 func _load_sprite(sprite: Sprite2D, char_data: Dictionary, mood: String) -> void:
-	var image_dir: String = char_data.get("image", "")
-	if image_dir.is_empty():
+	var char_id: String = char_data.get("id", "")
+	if char_id.is_empty():
 		return
-	var candidates: Array[String] = [
-		image_dir + "/" + mood + ".png",
-		image_dir + "/1.png",
-	]
-	for path in candidates:
-		if ResourceLoader.exists(path):
+	var candidates: Array[String] = []
+	if not mood.is_empty():
+		candidates.append(mood + ".png")
+	candidates.append("1.png")
+	for filename in candidates:
+		var path := _resolve_image_path(char_id, filename)
+		if not path.is_empty():
 			sprite.texture = load(path)
 			return
 

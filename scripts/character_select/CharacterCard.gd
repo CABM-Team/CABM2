@@ -34,14 +34,19 @@ func setup(char_data: Dictionary) -> void:
 	style.content_margin_bottom = 10
 	add_theme_stylebox_override("panel", style)
 
-	# 头像
-	var image_dir: String = char_data.get("image", "")
+	# 头像：按 ID 查找，先 user:// 后 res://
+	var char_id: String = char_data.get("id", "")
 	var extensions = ["png", "jpg", "jpeg", "webp"]
-	for ext in extensions:
-		var avatar_path = image_dir + "/avatar." + ext
-		if ResourceLoader.exists(avatar_path):
-			avatar.texture = load(avatar_path)
+	var avatar_loaded := false
+	for base in ["user://characters/", "res://characters/"]:
+		if avatar_loaded:
 			break
+		for ext in extensions:
+			var avatar_path: String = base + char_id + "/avatar." + ext
+			if ResourceLoader.exists(avatar_path):
+				avatar.texture = load(avatar_path)
+				avatar_loaded = true
+				break
 
 	# 名字
 	name_label.text = char_data.get("name", char_data.get("id", "???"))
