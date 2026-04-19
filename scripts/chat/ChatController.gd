@@ -66,6 +66,14 @@ var _group_waiting_char_id := ""
 var _group_turn_count := 0
 const GROUP_MAX_TURNS := 5
 
+# ── 活跃度机制 ────────────────────────────────────────────────
+# 各角色自上次发言以来经过的"用户消息轮数"{ char_id: int }
+var _idle_rounds: Dictionary = {}
+# 超过此轮数后开始有概率被强制选中
+const IDLE_FORCE_THRESHOLD := 3
+# 每超出一轮额外增加的强制概率（0.0~1.0）
+const IDLE_FORCE_PROB_PER_ROUND := 0.35
+
 # ── 表情状态 ──────────────────────────────────────────────────
 # 单角色：当前表情索引（0 = 默认）
 var _current_mood := 0
@@ -177,6 +185,10 @@ func _init_group_mode() -> void:
 	# 恢复表情状态
 	var saved_moods = save_data.get("last_moods", {})
 	_group_moods = saved_moods if saved_moods is Dictionary else {}
+
+	# 恢复活跃度计数
+	var saved_idle = save_data.get("idle_rounds", {})
+	_idle_rounds = saved_idle if saved_idle is Dictionary else {}
 
 	# 恢复上次的屏幕布局，否则默认前两个
 	_displayed_chars.clear()
@@ -520,6 +532,10 @@ func _start_group_replies() -> void:
 	_group_reply_queue.clear()
 	_group_waiting_char_id = ""
 	_group_turn_count = 0
+	# 每轮用户消息，所有角色 idle 计数 +1
+	for c in AppState.group_characters:
+		var cid: String = c.get("id", "")
+		_idle_rounds[cid] = int(_idle_rounds.get(cid, 0)) + 1
 	_ask_ai_next_speaker()
 
 ## 请求 AI 决定下一个发言的角色，然后发起该角色的对话请求
@@ -533,6 +549,15 @@ func _ask_ai_next_speaker() -> void:
 	# 锁定输入，等待 AI 决策
 	send_button.disabled = true
 	message_input.editable = false
+
+	# ── 活跃度检查：优先强制选出长期未发言的角色 ──────────────
+	var forced_char := _try_force_inactive_speaker()
+	if not forced_char.is_empty():
+		print("【活跃度】强制选中：" + forced_char.get("id", ""))
+		_group_turn_count += 1
+		_request_group_char(forced_char)
+		return
+
 	print("【AI决策】排除："+_group_waiting_char_id)
 	var chars := AppState.group_characters
 	# 构建参与者 ID 列表（包含"user"，排除上一个发言者）
@@ -568,6 +593,30 @@ func _ask_ai_next_speaker() -> void:
 		_request_group_char(chosen_char)
 	)
 
+## 检查是否有角色需要被强制选中（活跃度机制）
+## 返回被强制选中的角色数据，若无则返回空 dict
+func _try_force_inactive_speaker() -> Dictionary:
+	var candidates: Array[Dictionary] = []
+	for c in AppState.group_characters:
+		var cid: String = c.get("id", "")
+		# 排除上一个刚发言的角色
+		if cid == _group_waiting_char_id:
+			continue
+		var idle: int = int(_idle_rounds.get(cid, 0))
+		if idle <= IDLE_FORCE_THRESHOLD:
+			continue
+		var prob := minf((idle - IDLE_FORCE_THRESHOLD) * IDLE_FORCE_PROB_PER_ROUND, 1.0)
+		if randf() < prob:
+			candidates.append(c)
+
+	if candidates.is_empty():
+		return {}
+	# 多个候选时选 idle 最高的
+	candidates.sort_custom(func(a, b):
+		return int(_idle_rounds.get(a.get("id",""), 0)) > int(_idle_rounds.get(b.get("id",""), 0))
+	)
+	return candidates[0]
+
 ## 根据 ID 匹配角色数据（返回空 dict 表示是"user"或未匹配）
 func _match_char_by_id(char_id: String) -> Dictionary:
 	var trimmed := char_id.strip_edges()
@@ -580,6 +629,8 @@ func _match_char_by_id(char_id: String) -> Dictionary:
 func _request_group_char(char_data: Dictionary) -> void:
 	var char_id: String = char_data.get("id", "")
 	_group_waiting_char_id = char_id
+	# 该角色发言，重置其 idle 计数
+	_idle_rounds[char_id] = 0
 
 	_ensure_char_on_screen(char_data)
 	_set_active_speaker(char_id)
@@ -734,7 +785,7 @@ func _save_history() -> void:
 			for c in _displayed_chars:
 				displayed_ids.append(c.get("id", ""))
 			HistoryManager.save_group_history(group_id, AppState.chat_history,
-				displayed_ids, _current_speaker_id, _group_moods)
+				displayed_ids, _current_speaker_id, _group_moods, _idle_rounds)
 	else:
 		var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
 		if not character_id.is_empty():

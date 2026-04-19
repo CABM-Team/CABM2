@@ -94,7 +94,7 @@ static func build_group_messages(
 
 	# 确保最后一条是 user（API 要求）
 	if not result.is_empty() and result.back().get("role", "") == "assistant":
-		result.append({"role": "user", "content": "请继续。"})
+		result.append({"role": "user", "content": "系统：请继续对话。"})
 
 	return result
 

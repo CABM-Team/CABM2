@@ -16,7 +16,7 @@ const GROUPS_DIR := "user://groups/"
 ## last_moods: { char_id: mood_index } 各角色最后表情
 func save_group_history(group_id: String, messages: Array[Dictionary],
 		displayed_char_ids: Array = [], active_speaker_id: String = "",
-		last_moods: Dictionary = {}) -> void:
+		last_moods: Dictionary = {}, idle_rounds: Dictionary = {}) -> void:
 	if group_id.is_empty():
 		push_warning("HistoryManager: group_id 为空，无法保存群聊历史")
 		return
@@ -35,6 +35,7 @@ func save_group_history(group_id: String, messages: Array[Dictionary],
 	existing["displayed_char_ids"] = displayed_char_ids
 	existing["active_speaker_id"] = active_speaker_id
 	existing["last_moods"] = last_moods
+	existing["idle_rounds"] = idle_rounds
 	_write_json_file(path, existing)
 
 ## 加载群聊历史，返回 { "history": [...], "displayed_char_ids": [...], "active_speaker_id": "", "last_moods": {} }
@@ -55,7 +56,8 @@ func load_group_history(group_id: String) -> Dictionary:
 		"history": messages,
 		"displayed_char_ids": data.get("displayed_char_ids", []),
 		"active_speaker_id": data.get("active_speaker_id", ""),
-		"last_moods": moods
+		"last_moods": moods,
+		"idle_rounds": data.get("idle_rounds", {})
 	}
 
 ## 清空群聊历史（仅清空 history/状态字段，保留其他字段）
@@ -69,6 +71,7 @@ func clear_group_history(group_id: String) -> void:
 	existing["displayed_char_ids"] = []
 	existing["active_speaker_id"] = ""
 	existing["last_moods"] = {}
+	existing["idle_rounds"] = {}
 	_write_json_file(path, existing)
 
 ## 获取群聊最后游玩时间
