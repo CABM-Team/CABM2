@@ -1,13 +1,15 @@
 ## ApiClient.gd
-## 封装流式 HTTP 请求，支持 OpenAI 兼容 SSE 流式 API
+## 负责发送流式 HTTP 请求，提取字段（content、mood）
+## 支持 OpenAI 兼容 SSE 流式 API
 ## AutoLoad 单例
 
 extends Node
 
-signal stream_chunk(text: String)   # 解析出的 content 片段
+signal stream_chunk(text: String)   # 解析出的 msg 片段（用于显示）
 signal stream_mood(mood: int)       # 解析出的 mood 值（流中首次出现时 emit）
 signal stream_done                  # 流结束
 signal stream_error(message: String)
+signal stream_full_json(json_str: String)  # 完整的 JSON 响应（用于保存历史）
 
 # ── 内部状态 ──────────────────────────────────────────────────
 var _http: HTTPClient = null
@@ -16,8 +18,9 @@ var _is_streaming := false
 # 流式 JSON 解析状态
 var _raw_buffer := ""          # 原始 SSE 数据缓冲
 var _json_buffer := ""         # 累积的 JSON 字符串
-var _in_content := false       # 是否正在读取 content 字段值
-var _content_started := false  # content 值的引号是否已开始
+var _full_json_response := ""  # 完整的 JSON 响应（用于保存历史）
+var _in_content := false       # 是否正在读取 msg 字段值
+var _content_started := false  # msg 值的引号是否已开始
 var _mood_emitted := false     # mood 是否已 emit
 var _escape_next := false      # 上一个字符是否是反斜杠
 
@@ -36,6 +39,8 @@ func _ready() -> void:
 	pass
 
 # ── 公共接口 ──────────────────────────────────────────────────
+## 发送聊天请求
+## messages: 已构建好的消息数组（由 PromptBuilder 处理）
 func chat_completion(messages: Array[Dictionary]) -> void:
 	var api_key: String = ConfigManager.get_value("chat_api_key")
 	var base_url: String = ConfigManager.get_value("chat_api_base_url")
@@ -70,30 +75,10 @@ func chat_completion(messages: Array[Dictionary]) -> void:
 		_host = parts[0]
 		_port = int(parts[1])
 
-	# 构建请求体（JSON 格式要求 AI 返回 JSON）
-	var char_data := AppState.current_character
-	var moods: Array = char_data.get("moods", [])
-	var mood_list := ""
-	for i in moods.size():
-		mood_list += "%d:%s " % [i + 1, moods[i]]
-
-	var system_prompt_suffix := "\n你必须严格以JSON格式输出，包含以下字段：\n\"mood\": <int> 当前情绪序号，必须是以下之一：%s\n\"content\": <string> 回复内容，1-6句话，禁止换行和markdown" % mood_list
-
-	# 注入 mood 格式要求到 system 消息
-	var patched_messages: Array[Dictionary] = []
-	var has_system := false
-	for msg in messages:
-		if msg["role"] == "system":
-			patched_messages.append({"role": "system", "content": msg["content"] + system_prompt_suffix})
-			has_system = true
-		else:
-			patched_messages.append(msg)
-	if not has_system:
-		patched_messages.insert(0, {"role": "system", "content": system_prompt_suffix})
-
+	# 构建请求体
 	var body_dict := {
 		"model": model,
-		"messages": patched_messages,
+		"messages": messages,
 		"max_tokens": 512,
 		"temperature": 0.9,
 		"stream": true,
@@ -111,6 +96,7 @@ func chat_completion(messages: Array[Dictionary]) -> void:
 	# 重置解析状态
 	_raw_buffer = ""
 	_json_buffer = ""
+	_full_json_response = ""
 	_in_content = false
 	_content_started = false
 	_mood_emitted = false
@@ -184,6 +170,9 @@ func _poll_step() -> void:
 		HTTPClient.STATUS_DISCONNECTED:
 			# 连接断开，处理剩余缓冲
 			_process_raw_buffer()
+			# 发送完整的 JSON 响应
+			if not _full_json_response.is_empty():
+				stream_full_json.emit(_full_json_response)
 			_finish_stream()
 			stream_done.emit()
 
@@ -210,6 +199,9 @@ func _read_body_chunk() -> void:
 		_schedule_poll()
 	else:
 		_process_raw_buffer()
+		# 发送完整的 JSON 响应
+		if not _full_json_response.is_empty():
+			stream_full_json.emit(_full_json_response)
 		_finish_stream()
 		stream_done.emit()
 
@@ -244,15 +236,16 @@ func _parse_sse_data(data: String) -> void:
 	if token.is_empty():
 		return
 
+	# 累积完整的 JSON 响应
+	_full_json_response += token
+	
 	_json_buffer += token
 	if not _mood_emitted:
 		_try_extract_mood()
 	_try_extract_content()
 
 func _try_extract_mood() -> void:
-	# 支持两种格式：
-	# "mood": 2          → 直接用下标
-	# "mood": "害羞"     → 在 moods 数组中查找对应下标
+	# 提取 mood 字段（整数格式）
 	var pattern_int := RegEx.new()
 	pattern_int.compile('"mood"\\s*:\\s*(\\d+)')
 	var result_int := pattern_int.search(_json_buffer)
@@ -261,6 +254,7 @@ func _try_extract_mood() -> void:
 		stream_mood.emit(int(result_int.get_string(1)))
 		return
 
+	# 提取 mood 字段（字符串格式，需要在角色 moods 数组中查找）
 	var pattern_str := RegEx.new()
 	pattern_str.compile('"mood"\\s*:\\s*"([^"]+)"')
 	var result_str := pattern_str.search(_json_buffer)
@@ -276,13 +270,13 @@ func _try_extract_mood() -> void:
 		stream_mood.emit(idx)
 
 func _try_extract_content() -> void:
-	# 状态机：找到 "content": " 后开始逐字 emit，直到遇到未转义的 "
+	# 状态机：找到 "msg": " 后开始逐字 emit，直到遇到未转义的 "
 	var i := 0
 	var buf := _json_buffer
 
 	if not _in_content:
-		# 寻找 "content": " 的起始位置
-		var marker := '"content"'
+		# 寻找 "msg": " 的起始位置
+		var marker := '"msg"'
 		var marker_pos := buf.find(marker)
 		if marker_pos == -1:
 			return
@@ -293,15 +287,15 @@ func _try_extract_content() -> void:
 		var quote_pos := buf.find('"', colon_pos + 1)
 		if quote_pos == -1:
 			return
-		# content 值从 quote_pos+1 开始
+		# msg 值从 quote_pos+1 开始
 		_in_content = true
 		_content_started = true
 		i = quote_pos + 1
-		# 截断已处理部分，只保留 content 值之后的内容
+		# 截断已处理部分，只保留 msg 值之后的内容
 		_json_buffer = buf.substr(quote_pos + 1)
 		buf = _json_buffer
 		i = 0
-	# 已在 content 值内，逐字符 emit 直到遇到未转义的结束引号
+	# 已在 msg 值内，逐字符 emit 直到遇到未转义的结束引号
 	var emit_str := ""
 	while i < buf.length():
 		var c := buf[i]
@@ -320,7 +314,7 @@ func _try_extract_content() -> void:
 			i += 1
 			continue
 		if c == '"':
-			# content 字段结束
+			# msg 字段结束
 			if not emit_str.is_empty():
 				stream_chunk.emit(emit_str)
 			_json_buffer = buf.substr(i + 1)

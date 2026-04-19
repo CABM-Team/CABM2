@@ -86,8 +86,19 @@ func _load_last_message(char_data: Dictionary) -> void:
 		last_message_label.text = "暂无对话记录"
 	else:
 		var prefix := "" #"你: " if last_role == "user" else "TA: "
-		# 限制显示长度，避免过长
+		# 如果是 assistant 消息，从 JSON 中提取 msg 字段
 		var display_text := last_msg
+		if last_role == "assistant":
+			display_text = _extract_msg_from_json(last_msg)
+		# 限制显示长度，避免过长
 		# if display_text.length() > 60:
 		# 	display_text = display_text.substr(0, 60) + "..."
 		last_message_label.text = prefix + display_text
+
+## 从 JSON 字符串中提取 msg 字段
+func _extract_msg_from_json(json_str: String) -> String:
+	var json := JSON.new()
+	if json.parse(json_str) == OK:
+		var data: Dictionary = json.get_data()
+		return data.get("msg", json_str)
+	return json_str

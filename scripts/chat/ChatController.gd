@@ -1,5 +1,6 @@
 ## ChatController.gd
-## 对话页面主控制器
+## 对话主循环控制器
+## 负责：消息输入输出、角色立绘切换、逐字显示、用户交互
 
 extends Control
 
@@ -44,7 +45,8 @@ var _waiting_for_advance := false
 
 # ── 流式接收状态（独立于显示进程）────────────────────────────
 var _stream_state := SentenceSplitter.StreamState.new()  # 流式分句状态
-var _stream_full_content := ""   # 本轮完整 content（存历史用）
+var _stream_full_content := ""   # 本轮完整 JSON 响应（存历史用）
+var _stream_display_content := "" # 本轮显示内容（仅 msg 字段）
 var _is_receiving := false       # 是否正在接收流
 
 # ── continue_hint 动画 ────────────────────────────────────────
@@ -72,6 +74,7 @@ func _ready() -> void:
 	# 连接 ApiClient 信号
 	ApiClient.stream_chunk.connect(_on_stream_chunk)
 	ApiClient.stream_mood.connect(_on_stream_mood)
+	ApiClient.stream_full_json.connect(_on_stream_full_json)
 	ApiClient.stream_done.connect(_on_stream_done)
 	ApiClient.stream_error.connect(_on_stream_error)
 
@@ -116,12 +119,11 @@ func _load_character(char_data: Dictionary) -> void:
 	var character_id: String = char_data.get("id", name_str)
 	var loaded_history := HistoryManager.load_history(character_id)
 	
-	# 添加 system prompt
+	# 完全清空后，按顺序重建：system → 历史
+	AppState.chat_history.clear()
 	var prompt: String = char_data.get("prompt", "")
 	if not prompt.is_empty():
 		AppState.add_message("system", prompt)
-	
-	# 恢复历史消息到 AppState
 	for msg in loaded_history:
 		AppState.chat_history.append(msg)
 	
@@ -133,7 +135,8 @@ func _load_character(char_data: Dictionary) -> void:
 		# 如果有历史记录，显示最后一条 AI 消息
 		for i in range(loaded_history.size() - 1, -1, -1):
 			if loaded_history[i]["role"] == "assistant":
-				_show_text(loaded_history[i]["content"])
+				var display_content := _extract_msg_from_json(loaded_history[i]["content"])
+				_show_text(display_content)
 				break
 
 func _load_sprite(char_data: Dictionary, mood: String) -> void:
@@ -167,8 +170,9 @@ func _play_jump_animation() -> void:
 	tween.tween_property(character_sprite, "position:y", base_y, 0.22).set_ease(Tween.EASE_IN)
 
 # ── 逐字显示（显示进程）──────────────────────────────────────
+## 开始逐字显示文本
 func _show_text(text: String) -> void:
-	_stop_thinking_dots()   # 第一个字符要输出了，停掉 dots
+	_stop_thinking_dots()
 	_full_text = text
 	_shown_chars = 0
 	_is_typing = true
@@ -177,6 +181,7 @@ func _show_text(text: String) -> void:
 	dialog_text.text = ""
 	_type_next_char()
 
+## 逐字显示下一个字符
 func _type_next_char() -> void:
 	if not _is_typing:
 		return
@@ -188,21 +193,21 @@ func _type_next_char() -> void:
 	_type_timer = get_tree().create_timer(type_speed)
 	_type_timer.timeout.connect(_type_next_char, CONNECT_ONE_SHOT)
 
+## 当前句子显示完成
 func _on_sentence_finished() -> void:
 	_is_typing = false
 	dialog_text.text = _full_text
 
-	# 是否还有更多内容
 	var has_more := not _sentence_queue.is_empty() or _is_receiving
 	if has_more:
-		# 2. 中间句：显示 hint，等用户点击
+		# 中间句：显示 hint，等用户点击
 		_waiting_for_advance = true
 		_show_continue_hint()
 	else:
-		# 2. 最后一句：不显示 hint，直接解锁输入
+		# 最后一句：直接解锁输入
 		_unlock_input()
 
-# 用户触发"继续"
+## 用户触发"继续"
 func _advance() -> void:
 	_waiting_for_advance = false
 	_hide_continue_hint()
@@ -210,11 +215,8 @@ func _advance() -> void:
 	if not _sentence_queue.is_empty():
 		var next: String = _sentence_queue.pop_front()
 		_show_text(next)
-	elif not _is_receiving:
-		# 队列空且流结束，已在 _on_sentence_finished 里解锁了 send_button
-		pass
 
-# 跳过当前句子的逐字动画（直接显示完整文本，然后触发 finished）
+## 跳过当前句子的逐字动画
 func _skip_typing() -> void:
 	if _is_typing:
 		_is_typing = false
@@ -231,18 +233,17 @@ func _show_continue_hint() -> void:
 		_hint_tween.kill()
 	_hint_tween = create_tween()
 	_hint_tween.set_loops()
-	# 上下浮动 4px，周期 1.2s
+	# 上下浮动
 	_hint_tween.tween_property(continue_hint, "position:y", _hint_base_y - 4.0, 0.6)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_hint_tween.tween_property(continue_hint, "position:y", _hint_base_y, 0.6)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
-	# 闪烁（独立 tween）
+	# 闪烁动画
 	var blink_tween := create_tween()
 	blink_tween.set_loops()
 	blink_tween.tween_property(continue_hint, "modulate:a", 0.2, 0.5)
 	blink_tween.tween_property(continue_hint, "modulate:a", 1.0, 0.5)
-	# 把闪烁 tween 存起来方便 kill
 	continue_hint.set_meta("blink_tween", blink_tween)
 
 func _hide_continue_hint() -> void:
@@ -262,16 +263,19 @@ var _dots_timer: SceneTreeTimer = null
 var _dots_count := 0
 var _dots_active := false
 
+## 启动思考动画
 func _start_thinking_dots() -> void:
 	_dots_active = true
 	_dots_count = 0
 	dialog_text.text = "."
 	_schedule_dots()
 
+## 调度下一次动画更新
 func _schedule_dots() -> void:
 	_dots_timer = get_tree().create_timer(0.5)
 	_dots_timer.timeout.connect(_tick_dots, CONNECT_ONE_SHOT)
 
+## 更新动画帧
 func _tick_dots() -> void:
 	if not _dots_active:
 		return
@@ -279,10 +283,12 @@ func _tick_dots() -> void:
 	dialog_text.text = ".".repeat(_dots_count)
 	_schedule_dots()
 
+## 停止思考动画
 func _stop_thinking_dots() -> void:
 	_dots_active = false
 	_dots_timer = null
 
+## 解锁输入框
 func _unlock_input() -> void:
 	send_button.disabled = false
 	message_input.editable = true
@@ -299,7 +305,7 @@ func _on_send_pressed() -> void:
 func _send_message(text: String) -> void:
 	message_input.text = ""
 	send_button.disabled = true
-	message_input.editable = false   # 1. 禁用输入框
+	message_input.editable = false
 	var char_name: String = AppState.current_character.get("name", "AI")
 	message_input.placeholder_text = char_name + "正在说话..."
 	option_buttons.visible = false
@@ -310,13 +316,19 @@ func _send_message(text: String) -> void:
 
 	_stream_state = SentenceSplitter.StreamState.new()
 	_stream_full_content = ""
+	_stream_display_content = ""
 	_sentence_queue.clear()
 	_is_receiving = true
 
-	# 3. 启动等待动画（"." → ".." → "..."）
+	# 启动等待动画
 	_start_thinking_dots()
 
-	ApiClient.chat_completion(AppState.get_messages_for_api())
+	# 使用 PromptBuilder 构建消息
+	var messages := PromptBuilder.build_messages(
+		AppState.get_messages_for_api(),
+		AppState.current_character
+	)
+	ApiClient.chat_completion(messages)
 
 func _on_input_key(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -325,22 +337,29 @@ func _on_input_key(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 # ── 流式接收（接收进程，独立于显示进程）──────────────────────
+## 将接收到的句子加入队列或直接显示
 func _enqueue_sentence(sentence: String) -> void:
-	# 接收进程：只往队列写，或在显示进程空闲时直接启动显示
 	if not _is_typing and not _waiting_for_advance:
 		_show_text(sentence)
 	else:
 		_sentence_queue.append(sentence)
 
+## 处理流式数据块（使用 SentenceSplitter 分句）
 func _on_stream_chunk(text: String) -> void:
-	_stream_full_content += text
+	_stream_display_content += text
 	var sentences := SentenceSplitter.split_stream(_stream_state, text)
 	for s in sentences:
 		_enqueue_sentence(s["text"])
 
+## 处理情绪变化
 func _on_stream_mood(mood: int) -> void:
 	_switch_mood(mood)
 
+## 接收完整的 JSON 响应
+func _on_stream_full_json(json_str: String) -> void:
+	_stream_full_content = json_str
+
+## 处理流结束
 func _on_stream_done() -> void:
 	_is_receiving = false
 	var sentences := SentenceSplitter.split_stream(_stream_state, "", true)
@@ -348,15 +367,14 @@ func _on_stream_done() -> void:
 		_enqueue_sentence(s["text"])
 	if not _stream_full_content.is_empty():
 		AppState.add_message("assistant", _stream_full_content)
-		# AI 回复结束，保存历史记录
 		_save_history()
-	# 流结束时，如果显示进程正在等待且队列已空，说明刚才显示的是最后一句
-	# 但当时 has_more 误判为 true（流还在），现在补救：撤掉 hint，解锁输入
+	# 流结束时，如果显示进程正在等待且队列已空，解锁输入
 	if _waiting_for_advance and _sentence_queue.is_empty() and not _is_typing:
 		_waiting_for_advance = false
 		_hide_continue_hint()
 		_unlock_input()
 
+## 处理流错误
 func _on_stream_error(message: String) -> void:
 	_is_receiving = false
 	_is_typing = false
@@ -399,7 +417,9 @@ func _refresh_history() -> void:
 		if role == "user":
 			history_text += "[color=cyan]你[/color]：" + msg["content"] + "\n\n"
 		else:
-			history_text += "[color=%s]%s[/color]：%s\n\n" % [color_str, char_name, msg["content"]]
+			# assistant 消息：从 JSON 中提取 msg 字段
+			var display_content := _extract_msg_from_json(msg["content"])
+			history_text += "[color=%s]%s[/color]：%s\n\n" % [color_str, char_name, display_content]
 
 	if history_text.is_empty():
 		history_text = "[color=gray]暂无历史记录[/color]"
@@ -412,6 +432,14 @@ func _refresh_history() -> void:
 	label.text = history_text
 	
 	history_list.add_child(label)
+
+## 从 JSON 字符串中提取 msg 字段
+func _extract_msg_from_json(json_str: String) -> String:
+	var json := JSON.new()
+	if json.parse(json_str) == OK:
+		var data: Dictionary = json.get_data()
+		return data.get("msg", json_str)
+	return json_str
 
 ## 保存当前对话历史到磁盘
 func _save_history() -> void:
@@ -428,12 +456,12 @@ func delete_current_history() -> void:
 		push_warning("ChatController: 无法删除历史，角色 ID 为空")
 		return
 	if HistoryManager.delete_history(character_id):
-		AppState.clear_history()
-		
-		# 重新添加 system prompt
+		# 完全清空后重建 system prompt
+		AppState.chat_history.clear()
 		var prompt: String = AppState.current_character.get("prompt", "")
 		if not prompt.is_empty():
 			AppState.add_message("system", prompt)
+		AppState.history_updated.emit()
 		
 		_refresh_history()
 		
@@ -472,6 +500,7 @@ func _on_back_pressed() -> void:
 	ApiClient.cancel()
 	ApiClient.stream_chunk.disconnect(_on_stream_chunk)
 	ApiClient.stream_mood.disconnect(_on_stream_mood)
+	ApiClient.stream_full_json.disconnect(_on_stream_full_json)
 	ApiClient.stream_done.disconnect(_on_stream_done)
 	ApiClient.stream_error.disconnect(_on_stream_error)
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")

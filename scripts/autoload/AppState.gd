@@ -16,11 +16,13 @@ var chat_history: Array[Dictionary] = []
 # 当前场景标识
 var current_scene: String = ""
 
+## 设置当前角色
 func set_character(data: Dictionary) -> void:
 	current_character = data
 	chat_history.clear()
 	character_changed.emit(data)
 
+## 添加消息到历史记录
 func add_message(role: String, content: String) -> void:
 	chat_history.append({"role": role, "content": content})
 	var max_len: int = ConfigManager.get_value("max_history_length")
@@ -37,6 +39,7 @@ func add_message(role: String, content: String) -> void:
 	chat_history = system_msgs + other_msgs
 	history_updated.emit()
 
+## 清空历史记录（保留 system 消息）
 func clear_history() -> void:
 	var kept: Array[Dictionary] = []
 	for m in chat_history:
@@ -45,5 +48,6 @@ func clear_history() -> void:
 	chat_history = kept
 	history_updated.emit()
 
+## 获取用于 API 请求的消息数组
 func get_messages_for_api() -> Array[Dictionary]:
 	return chat_history
