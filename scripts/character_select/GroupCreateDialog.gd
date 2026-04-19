@@ -1,5 +1,5 @@
 ## GroupCreateDialog.gd
-## 新建群聊对话框：选择 2+ 角色，输入群名，保存
+## 新建群聊对话框：左侧选择角色，右侧填群名和描述
 
 extends Control
 
@@ -7,12 +7,13 @@ signal group_created(group_data: Dictionary)
 
 const CharacterCardScene := preload("res://scenes/character_select/character_card.tscn")
 
-@onready var name_input: LineEdit     = $Panel/VBox/NameRow/NameInput
-@onready var char_grid: GridContainer = $Panel/VBox/ScrollContainer/CharGrid
-@onready var confirm_btn: Button      = $Panel/VBox/ButtonRow/ConfirmButton
-@onready var cancel_btn: Button       = $Panel/VBox/ButtonRow/CancelButton
-@onready var error_label: Label       = $Panel/VBox/ErrorLabel
-@onready var selected_label: Label    = $Panel/VBox/SelectedLabel
+@onready var name_input: LineEdit     = $Panel/VBox/HSplit/RightPanel/NameInput
+@onready var desc_input: TextEdit     = $Panel/VBox/HSplit/RightPanel/DescInput
+@onready var char_grid: GridContainer = $Panel/VBox/HSplit/LeftPanel/ScrollContainer/CharGrid
+@onready var confirm_btn: Button      = $Panel/VBox/HSplit/RightPanel/ButtonRow/ConfirmButton
+@onready var cancel_btn: Button       = $Panel/VBox/HSplit/RightPanel/ButtonRow/CancelButton
+@onready var error_label: Label       = $Panel/VBox/HSplit/RightPanel/ErrorLabel
+@onready var selected_label: Label    = $Panel/VBox/HSplit/LeftPanel/SelectedLabel
 
 var _selected_ids: Array[String] = []
 var _all_characters: Array[Dictionary] = []
@@ -25,6 +26,7 @@ func open(all_characters: Array[Dictionary]) -> void:
 	_all_characters = all_characters
 	_selected_ids.clear()
 	name_input.text = ""
+	desc_input.text = ""
 	error_label.text = ""
 	_populate_chars()
 	_refresh_selected_label()
@@ -40,8 +42,7 @@ func _populate_chars() -> void:
 		char_grid.add_child(card)
 		card.setup(char_data)
 		card.get_node("HBox/VBox/LastMessageLabel").visible = false
-		
-		# 断开 CharacterCard._ready() 里连接的原始信号，换成选中切换
+
 		var click_area: Button = card.get_node("ClickArea")
 		click_area.pressed.disconnect(click_area.pressed.get_connections()[0]["callable"])
 		click_area.pressed.connect(func(): _toggle_select(cid, card))
@@ -52,7 +53,7 @@ func _toggle_select(char_id: String, card: PanelContainer) -> void:
 		card.modulate = Color.WHITE
 	else:
 		_selected_ids.append(char_id)
-		card.modulate = Color(0.5, 0.5, 0.5,0.6)
+		card.modulate = Color(0.5, 0.5, 0.5, 0.6)
 	error_label.text = ""
 	_refresh_selected_label()
 
@@ -80,6 +81,7 @@ func _on_confirm() -> void:
 	var group_data := {
 		"id": GroupManager.generate_id(),
 		"name": gname,
+		"des": desc_input.text.strip_edges(),
 		"character_ids": _selected_ids.duplicate()
 	}
 	GroupManager.save_group(group_data)

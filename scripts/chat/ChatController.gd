@@ -496,7 +496,8 @@ func _request_next_group_char(index: int) -> void:
 	var messages := PromptBuilder.build_group_messages(
 		char_data,
 		AppState.group_characters,
-		AppState.chat_history
+		AppState.chat_history,
+		AppState.current_group
 	)
 	# 存储当前请求对应的角色索引，流结束后继续下一个
 	_group_current_index = index

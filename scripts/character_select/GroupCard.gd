@@ -14,6 +14,7 @@ signal selected(group_data: Dictionary)
 
 @onready var name_label: Label    = $HBox/VBox/NameLabel
 @onready var members_label: Label = $HBox/VBox/MembersLabel
+@onready var desc_label: Label    = $HBox/VBox/DescLabel
 @onready var avatar_row: Control  = $HBox/AvatarRow
 @onready var click_area: Button   = $ClickArea
 
@@ -31,6 +32,10 @@ func setup(group_data: Dictionary, all_characters: Array[Dictionary]) -> void:
 
 	var ids: Array = group_data.get("character_ids", [])
 	members_label.text = "成员：%d 人" % ids.size()
+
+	var des: String = group_data.get("des", "")
+	desc_label.text = des
+	desc_label.visible = not des.is_empty()
 
 	# 清空旧头像
 	for c in avatar_row.get_children():

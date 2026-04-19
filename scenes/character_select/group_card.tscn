@@ -31,6 +31,13 @@ theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 18
 text = "成员：0 人"
 
+[node name="DescLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 1)
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 1
+max_lines_visible = 5
+
 [node name="ClickArea" type="Button" parent="."]
 layout_mode = 2
 flat = true

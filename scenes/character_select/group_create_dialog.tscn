@@ -27,86 +27,116 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -600.0
-offset_top = -450.0
-offset_right = 600.0
-offset_bottom = 450.0
+offset_left = -800.0
+offset_top = -460.0
+offset_right = 800.0
+offset_bottom = 460.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 
-[node name="TitleLabel" type="Label" parent="Panel/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 50
-text = "✦ 新建群聊 ✦"
-horizontal_alignment = 1
-
-[node name="NameRow" type="HBoxContainer" parent="Panel/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="NameHint" type="Label" parent="Panel/VBox/NameRow"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 40
-text = "群聊名称："
-
-[node name="NameInput" type="LineEdit" parent="Panel/VBox/NameRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 40
-placeholder_text = "输入群聊名称…"
-
-[node name="HintLabel" type="Label" parent="Panel/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 30
-text = "选择 2 个及以上角色加入群聊"
-horizontal_alignment = 1
-
-[node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBox"]
+[node name="HSplit" type="HBoxContainer" parent="Panel/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="CharGrid" type="GridContainer" parent="Panel/VBox/ScrollContainer"]
+[node name="LeftPanel" type="VBoxContainer" parent="Panel/VBox/HSplit"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="HintLabel" type="Label" parent="Panel/VBox/HSplit/LeftPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 28
+text = "选择 2 个及以上角色"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBox/HSplit/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CharGrid" type="GridContainer" parent="Panel/VBox/HSplit/LeftPanel/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 2
-theme_override_constants/h_separation = 40
-theme_override_constants/v_separation = 20
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 12
 columns = 2
 
-[node name="ErrorLabel" type="Label" parent="Panel/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
-theme_override_font_sizes/font_size = 32
-horizontal_alignment = 1
-
-[node name="SelectedLabel" type="Label" parent="Panel/VBox"]
+[node name="SelectedLabel" type="Label" parent="Panel/VBox/HSplit/LeftPanel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
-theme_override_font_sizes/font_size = 35
+theme_override_font_sizes/font_size = 28
 text = "已选择：（无）"
+autowrap_mode = 3
 
-[node name="ButtonRow" type="HBoxContainer" parent="Panel/VBox"]
+[node name="Divider" type="VSeparator" parent="Panel/VBox/HSplit"]
+layout_mode = 2
+
+[node name="RightPanel" type="VBoxContainer" parent="Panel/VBox/HSplit"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox/HSplit/RightPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 46
+text = "✦ 新建群聊 ✦"
+horizontal_alignment = 1
+
+[node name="NameHint" type="Label" parent="Panel/VBox/HSplit/RightPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "群聊名称"
+
+[node name="NameInput" type="LineEdit" parent="Panel/VBox/HSplit/RightPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 36
+placeholder_text = "输入群聊名称…"
+
+[node name="DescHint" type="Label" parent="Panel/VBox/HSplit/RightPanel"]
+layout_mode = 2
+text = "群聊描述（可选）"
+
+[node name="DescInput" type="TextEdit" parent="Panel/VBox/HSplit/RightPanel"]
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 28
+placeholder_text = "描述这个群聊的背景、场景…"
+wrap_mode = 1
+
+[node name="ErrorLabel" type="Label" parent="Panel/VBox/HSplit/RightPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Panel/VBox/HSplit/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="Panel/VBox/HSplit/RightPanel"]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
-[node name="ConfirmButton" type="Button" parent="Panel/VBox/ButtonRow"]
-custom_minimum_size = Vector2(0, 44)
+[node name="ConfirmButton" type="Button" parent="Panel/VBox/HSplit/RightPanel/ButtonRow"]
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_horizontal = 3
 theme = ExtResource("2_pectj")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 30
 text = "✓ 创建群聊"
 
-[node name="CancelButton" type="Button" parent="Panel/VBox/ButtonRow"]
-custom_minimum_size = Vector2(120, 44)
+[node name="CancelButton" type="Button" parent="Panel/VBox/HSplit/RightPanel/ButtonRow"]
+custom_minimum_size = Vector2(110, 50)
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 30
 text = "✕ 取消"

@@ -31,10 +31,12 @@ static func build_messages(messages: Array[Dictionary], character_data: Dictiona
 ## speaking_char: 本次发言的角色数据
 ## all_chars: 群聊中所有角色数据列表
 ## history: 群聊历史 [{role, content}]，role 可以是 "user" / <character_id>
+## group_data: 群聊配置（可选），用于注入群聊描述
 static func build_group_messages(
 	speaking_char: Dictionary,
 	all_chars: Array[Dictionary],
-	history: Array[Dictionary]
+	history: Array[Dictionary],
+	group_data: Dictionary = {}
 ) -> Array[Dictionary]:
 	var speaking_id: String = speaking_char.get("id", "")
 	var moods: Array = speaking_char.get("moods", [])
@@ -51,6 +53,9 @@ static func build_group_messages(
 	var system_content: String = speaking_char.get("prompt", "")
 	if not other_names.is_empty():
 		system_content += "\n你正在和%s等人一起对话。" % "、".join(other_names)
+	var group_des: String = group_data.get("des", "")
+	if not group_des.is_empty():
+		system_content += "\n群聊描述：%s" % group_des
 	system_content += "\n你必须严格以JSON格式输出，包含以下字段：\n\"mood\": <int> 当前情绪序号，必须是以下之一：%s\n\"msg\": <string> 回复内容，1-6句话，禁止换行和markdown" % mood_list
 
 	var result: Array[Dictionary] = [{"role": "system", "content": system_content}]
