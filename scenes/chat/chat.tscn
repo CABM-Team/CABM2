@@ -315,7 +315,6 @@ custom_minimum_size = Vector2(400, 80)
 layout_mode = 2
 theme = ExtResource("4_6xy15")
 theme_override_font_sizes/font_size = 40
-disabled = true
 text = "❌删除角色"
 
 [node name="Label2" type="Label" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer"]

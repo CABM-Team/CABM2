@@ -113,6 +113,21 @@ func _load_avatar(char_data: Dictionary) -> Texture2D:
 	for base in ["user://characters/", "res://characters/"]:
 		for ext in ["png", "jpg", "jpeg", "webp"]:
 			var p: String = base + char_id + "/avatar." + ext
-			if ResourceLoader.exists(p):
-				return load(p)
+			var tex := _load_image_texture(p)
+			if tex:
+				return tex
 	return null
+
+## 兼容 user:// 运行时写入文件的图片加载（绕过 ResourceLoader 缓存）
+static func _load_image_texture(path: String) -> ImageTexture:
+	if path.begins_with("user://"):
+		if not FileAccess.file_exists(path):
+			return null
+		var img := Image.new()
+		if img.load(path) != OK:
+			return null
+		return ImageTexture.create_from_image(img)
+	else:
+		if ResourceLoader.exists(path):
+			return load(path)
+		return null

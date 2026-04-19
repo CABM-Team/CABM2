@@ -43,8 +43,9 @@ func setup(char_data: Dictionary) -> void:
 			break
 		for ext in extensions:
 			var avatar_path: String = base + char_id + "/avatar." + ext
-			if ResourceLoader.exists(avatar_path):
-				avatar.texture = load(avatar_path)
+			var tex := _load_image_texture(avatar_path)
+			if tex:
+				avatar.texture = tex
 				avatar_loaded = true
 				break
 
@@ -107,3 +108,17 @@ func _extract_msg_from_json(json_str: String) -> String:
 		var data: Dictionary = json.get_data()
 		return data.get("msg", json_str)
 	return json_str
+
+## 兼容 user:// 运行时写入文件的图片加载（绕过 ResourceLoader 缓存）
+static func _load_image_texture(path: String) -> ImageTexture:
+	if path.begins_with("user://"):
+		if not FileAccess.file_exists(path):
+			return null
+		var img := Image.new()
+		if img.load(path) != OK:
+			return null
+		return ImageTexture.create_from_image(img)
+	else:
+		if ResourceLoader.exists(path):
+			return load(path)
+		return null

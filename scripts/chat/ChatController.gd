@@ -24,7 +24,11 @@ extends Control
 @onready var more_options_menu: PanelContainer = $MoreOptionsOverlay/MoreOptionsMenu
 @onready var more_options_click_area: ColorRect = $MoreOptionsOverlay/ClickArea
 @onready var clear_history_btn: Button     = $MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/ClearHistoryButton
+@onready var delete_btn: Button            = $MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/DeleteButton
 @onready var confirm_dialog = $ConfirmDialog
+
+# 当前确认对话框的用途：:clear_history 或 :delete
+var _confirm_action := &""
 
 # ── 输出速度 ──────────────────────────────────────────────────
 var type_speed := 0.03
@@ -90,7 +94,7 @@ func _ready() -> void:
 	more_option_button.pressed.connect(_toggle_more_options)
 	more_options_click_area.gui_input.connect(_on_more_options_overlay_input)
 	clear_history_btn.pressed.connect(_show_clear_history_confirm)
-	confirm_dialog.confirmed.connect(_on_clear_history_confirmed)
+	confirm_dialog.confirmed.connect(_on_confirm_dialog_confirmed)
 	confirm_dialog.cancelled.connect(_hide_confirm_dialog)
 
 	ApiClient.stream_chunk.connect(_on_stream_chunk)
@@ -98,6 +102,8 @@ func _ready() -> void:
 	ApiClient.stream_full_json.connect(_on_stream_full_json)
 	ApiClient.stream_done.connect(_on_stream_done)
 	ApiClient.stream_error.connect(_on_stream_error)
+
+	delete_btn.pressed.connect(_show_delete_confirm)
 
 	character_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	character_sprite2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
@@ -234,9 +240,24 @@ func _init_group_mode() -> void:
 func _resolve_image_path(char_id: String, filename: String) -> String:
 	for base in ["user://characters/", "res://characters/"]:
 		var p: String = base + char_id + "/" + filename
-		if ResourceLoader.exists(p):
+		if base.begins_with("user://"):
+			if FileAccess.file_exists(p):
+				return p
+		elif ResourceLoader.exists(p):
 			return p
 	return ""
+
+## 加载图片，兼容 user:// 运行时写入的文件（绕过 ResourceLoader 缓存）
+func _load_image_texture(path: String) -> ImageTexture:
+	if path.begins_with("user://"):
+		var img := Image.new()
+		if img.load(path) != OK:
+			return null
+		return ImageTexture.create_from_image(img)
+	else:
+		if ResourceLoader.exists(path):
+			return load(path)
+		return null
 
 func _load_sprite(sprite: Sprite2D, char_data: Dictionary, mood: String) -> void:
 	var char_id: String = char_data.get("id", "")
@@ -249,7 +270,7 @@ func _load_sprite(sprite: Sprite2D, char_data: Dictionary, mood: String) -> void
 	for filename in candidates:
 		var path := _resolve_image_path(char_id, filename)
 		if not path.is_empty():
-			sprite.texture = load(path)
+			sprite.texture = _load_image_texture(path)
 			return
 
 ## 刷新双立绘显示（群聊模式）
@@ -833,6 +854,17 @@ func _toggle_more_options() -> void:
 	more_options_overlay.visible = not more_options_overlay.visible
 	if more_options_overlay.visible:
 		history_modal.visible = false
+		_update_delete_button()
+
+func _update_delete_button() -> void:
+	if AppState.is_group_mode():
+		delete_btn.text = "❌删除群聊"
+		delete_btn.disabled = false
+	else:
+		var char_id: String = AppState.current_character.get("id", "")
+		var is_builtin := FileAccess.file_exists("res://characters/%s/%s.json" % [char_id, char_id])
+		delete_btn.text = "❌删除角色"
+		delete_btn.disabled = is_builtin
 
 func _on_more_options_overlay_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -840,13 +872,55 @@ func _on_more_options_overlay_input(event: InputEvent) -> void:
 
 func _show_clear_history_confirm() -> void:
 	more_options_overlay.visible = false
+	_confirm_action = &"clear_history"
 	confirm_dialog.show_dialog("⚠\n确定要清空历史记录吗？")
+
+func _show_delete_confirm() -> void:
+	more_options_overlay.visible = false
+	_confirm_action = &"delete"
+	if AppState.is_group_mode():
+		var group_name: String = AppState.current_group.get("name", "该群聊")
+		confirm_dialog.show_dialog("⚠\n确定要删除群聊 %s 吗？（包括历史）\n此操作不可撤销！" % group_name)
+	else:
+		var char_name: String = AppState.current_character.get("name", "该角色")
+		confirm_dialog.show_dialog("⚠\n确定要删除角色 %s 吗？（真的很久）\n此操作不可撤销！" % char_name)
 
 func _hide_confirm_dialog() -> void:
 	confirm_dialog.hide_dialog()
 
-func _on_clear_history_confirmed() -> void:
-	delete_current_history()
+func _on_confirm_dialog_confirmed() -> void:
+	if _confirm_action == &"clear_history":
+		delete_current_history()
+	elif _confirm_action == &"delete":
+		_do_delete()
+	_confirm_action = &""
+
+func _do_delete() -> void:
+	if AppState.is_group_mode():
+		var group_id: String = AppState.current_group.get("id", "")
+		GroupManager.delete_group(group_id)
+	else:
+		var char_id: String = AppState.current_character.get("id", "")
+		var char_dir := "user://characters/%s" % char_id
+		_delete_dir_recursive(char_dir)
+	_on_back_pressed()
+
+func _delete_dir_recursive(path: String) -> void:
+	var dir := DirAccess.open(path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var fname := dir.get_next()
+	while fname != "":
+		if not fname.begins_with("."):
+			var full := path + "/" + fname
+			if dir.current_is_dir():
+				_delete_dir_recursive(full)
+				DirAccess.remove_absolute(full)
+			else:
+				DirAccess.remove_absolute(full)
+		fname = dir.get_next()
+	DirAccess.remove_absolute(path)
 
 # ── 导航 ──────────────────────────────────────────────────────
 func _on_back_pressed() -> void:
