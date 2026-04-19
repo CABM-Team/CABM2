@@ -18,6 +18,14 @@ extends Control
 @onready var history_list: VBoxContainer   = $HistoryModal/HistoryVBox/HistoryScroll/HistoryList
 @onready var close_history_btn: Button     = $HistoryModal/HistoryVBox/HistoryHeader/CloseHistoryButton
 @onready var option_buttons: VBoxContainer = $OptionButtons
+@onready var more_option_button: Button    = $ControlButtons/MoreOptionButton
+@onready var more_options_overlay: Control = $MoreOptionsOverlay
+@onready var more_options_menu: PanelContainer = $MoreOptionsOverlay/MoreOptionsMenu
+@onready var more_options_click_area: ColorRect = $MoreOptionsOverlay/ClickArea
+@onready var clear_history_btn: Button     = $MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/ClearHistoryButton
+@onready var confirm_dialog: PanelContainer = $ConfirmDialog
+@onready var confirm_btn: Button           = $ConfirmDialog/VBox/ButtonBox/ConfirmButton
+@onready var cancel_btn: Button            = $ConfirmDialog/VBox/ButtonBox/CancelButton
 
 # ── 输出速度（秒/字），可在运行时调整 ────────────────────────
 var type_speed := 0.03
@@ -55,6 +63,11 @@ func _ready() -> void:
 	history_button.pressed.connect(_toggle_history)
 	close_history_btn.pressed.connect(_toggle_history)
 	message_input.gui_input.connect(_on_input_key)
+	more_option_button.pressed.connect(_toggle_more_options)
+	more_options_click_area.gui_input.connect(_on_more_options_overlay_input)
+	clear_history_btn.pressed.connect(_show_clear_history_confirm)
+	confirm_btn.pressed.connect(_on_clear_history_confirmed)
+	cancel_btn.pressed.connect(_hide_confirm_dialog)
 
 	# 连接 ApiClient 信号
 	ApiClient.stream_chunk.connect(_on_stream_chunk)
@@ -416,11 +429,42 @@ func delete_current_history() -> void:
 		return
 	if HistoryManager.delete_history(character_id):
 		AppState.clear_history()
+		
+		# 重新添加 system prompt
+		var prompt: String = AppState.current_character.get("prompt", "")
+		if not prompt.is_empty():
+			AppState.add_message("system", prompt)
+		
 		_refresh_history()
-		_show_text("历史记录已清空。")
+		
+		# 显示角色的欢迎语
+		var welcome: String = AppState.current_character.get("welcome", "你好！")
+		_show_text(welcome)
 
-## 清空历史按钮回调
-func _on_clear_history_pressed() -> void:
+## 切换更多选项菜单
+func _toggle_more_options() -> void:
+	more_options_overlay.visible = not more_options_overlay.visible
+	if more_options_overlay.visible:
+		# 关闭其他弹窗
+		history_modal.visible = false
+
+## 点击更多选项菜单的空白区域关闭
+func _on_more_options_overlay_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		more_options_overlay.visible = false
+
+## 显示清空历史确认对话框
+func _show_clear_history_confirm() -> void:
+	more_options_overlay.visible = false
+	confirm_dialog.visible = true
+
+## 隐藏确认对话框
+func _hide_confirm_dialog() -> void:
+	confirm_dialog.visible = false
+
+## 确认清空历史
+func _on_clear_history_confirmed() -> void:
+	confirm_dialog.visible = false
 	delete_current_history()
 
 # ── 导航 ──────────────────────────────────────────────────────
