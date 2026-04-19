@@ -24,6 +24,7 @@ AppState="*res://scripts/autoload/AppState.gd"
 ConfigManager="*res://scripts/autoload/ConfigManager.gd"
 ApiClient="*res://scripts/autoload/ApiClient.gd"
 HistoryManager="*res://scripts/autoload/HistoryManager.gd"
+GroupManager="*res://scripts/autoload/GroupManager.gd"
 
 [display]
 
@@ -34,8 +35,8 @@ window/stretch/mode="canvas_items"
 
 [gui]
 
-theme/custom="res://assets/theme/ui_theme.tres"
-theme/custom_font="uid://cei44ok2kicig"
+theme/custom="uid://buqhsbrq3g0n5"
+theme/custom_font="uid://bgs1yfa1228cv"
 
 [rendering]
 

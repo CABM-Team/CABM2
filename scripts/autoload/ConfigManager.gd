@@ -19,7 +19,7 @@ var defaults := {
 	"embedding_model": "不用填",
 	"reranker_model": "",
 	"tts_api_key": "",
-	"max_history_length": 8,
+	"max_history_length": 20,
 	"enable_option_generation": true,
 	"enable_memory": false,
 	"enable_tts": false,

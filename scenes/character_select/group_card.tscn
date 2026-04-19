@@ -1,0 +1,36 @@
+[gd_scene load_steps=2 format=3 uid="uid://8qwbix6ycroo"]
+
+[ext_resource type="Script" uid="uid://xiod8r5tj118" path="res://scripts/character_select/GroupCard.gd" id="1"]
+
+[node name="GroupCard" type="PanelContainer"]
+custom_minimum_size = Vector2(550, 120)
+script = ExtResource("1")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="AvatarRow" type="HBoxContainer" parent="HBox"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="VBox" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="NameLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "群聊名称"
+
+[node name="MembersLabel" type="Label" parent="HBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 18
+text = "成员：0 人"
+
+[node name="ClickArea" type="Button" parent="."]
+layout_mode = 2
+flat = true

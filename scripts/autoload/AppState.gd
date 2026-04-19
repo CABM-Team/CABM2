@@ -10,6 +10,9 @@ signal history_updated
 # 当前角色数据
 var current_character: Dictionary = {}
 
+# 当前群聊数据（群聊模式时使用）
+var current_group: Dictionary = {}
+
 # 对话历史 [{role, content}, ...]
 var chat_history: Array[Dictionary] = []
 
