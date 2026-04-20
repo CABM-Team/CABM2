@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://chat"]
+[gd_scene load_steps=7 format=3 uid="uid://chat"]
 
 [ext_resource type="Script" uid="uid://cvhu6ve2u05cx" path="res://scripts/chat/ChatController.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/chat/ChatUIController.gd" id="7_uictrl"]
 [ext_resource type="Texture2D" uid="uid://dejv7on4aogy4" path="res://assets/backgrounds/sr-3.png" id="2_r67cr"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="3_xe7gi"]
 [ext_resource type="Theme" uid="uid://nbt4udvni8b5" path="res://assets/theme/red_button.tres" id="4_6xy15"]
@@ -14,6 +15,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+
+[node name="ChatUIController" type="Node" parent="."]
+script = ExtResource("7_uictrl")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 0

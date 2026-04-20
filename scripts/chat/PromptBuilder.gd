@@ -96,7 +96,7 @@ static func build_group_messages(
 	var group_des: String = group_data.get("des", "")
 	if not group_des.is_empty():
 		system_content += "\n对话背景：%s" % group_des
-	system_content += "\n你必须严格以JSON格式输出，包含以下字段：\n\"mood\": <int> 当前情绪序号，必须是以下之一：%s\n\"msg\": <string> 回复内容，1-6句话，禁止换行和markdown" % mood_list
+	system_content += "\n你必须严格以JSON格式，按顺序输出以下字段：\n\"mood\": <int> 当前情绪序号，必须是以下之一：%s\n\"msg\": <string> 回复内容，1-6句话，禁止换行和markdown" % mood_list
 
 	var result: Array[Dictionary] = [{"role": "system", "content": system_content}]
 
@@ -134,7 +134,7 @@ static func build_group_messages(
 
 	# 确保最后一条是 user（API 要求）
 	if not result.is_empty() and result.back().get("role", "") == "assistant":
-		result.append({"role": "user", "content": "系统：请继续对话。"})
+		result.append({"role": "user", "content": ""})
 
 	return _trim_to_limit(result)
 
