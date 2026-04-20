@@ -5,6 +5,7 @@ extends Node
 
 # ── 节点引用（从父节点 Chat 出发）────────────────────────────
 @onready var background: TextureRect       = $"../Background"
+@onready var background_overlay: ColorRect = $"../BackgroundOverlay"
 @onready var character_sprite: Sprite2D    = $"../CharacterSprite"
 @onready var character_sprite2: Sprite2D   = $"../CharacterSprite2"
 @onready var character_name_label: Label   = $"../Header/CharacterName"
@@ -77,23 +78,28 @@ func _ready() -> void:
 	more_options_click_area.gui_input.connect(_on_more_options_overlay_input)
 	clear_history_btn.pressed.connect(func(): clear_history_confirm_requested.emit())
 	delete_btn.pressed.connect(func(): delete_confirm_requested.emit())
+	background.gui_input.connect(_on_background_input)
+	background_overlay.gui_input.connect(_on_background_input)
 
 	character_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	character_sprite2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	character_sprite2.visible = false
 
 # ── 全局输入 ──────────────────────────────────────────────────
+func _on_background_input(event: InputEvent) -> void:
+	if not _waiting_for_advance:
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		get_viewport().set_input_as_handled()
+		advance_requested.emit()
+
 func _input(event: InputEvent) -> void:
 	if not _waiting_for_advance:
 		return
-	var triggered := false
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		triggered = true
-	elif event is InputEventKey and event.pressed and not event.echo:
-		triggered = event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_F, KEY_SPACE]
-	if triggered:
-		get_viewport().set_input_as_handled()
-		advance_requested.emit()
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_F, KEY_SPACE]:
+			get_viewport().set_input_as_handled()
+			advance_requested.emit()
 
 func _on_input_key(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
