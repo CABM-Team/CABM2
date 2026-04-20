@@ -1,4 +1,4 @@
-## TTSManager.gd
+# TTSManager.gd
 ## TTS 语音合成管理器
 ## - 以角色ID+文本哈希缓存音频到 user://speech_cache/
 ## - 调用 /v1/audio/speech 接口（URL 和模型从 ConfigManager 读取）
@@ -7,6 +7,14 @@
 extends Node
 
 const CACHE_DIR := "user://speech_cache"
+
+# 文本注入规则：格式为 { "原文本": "替换文本" }
+var text_injection_rules: Dictionary = {
+	"希儿": "希而",
+	"琪亚娜":"Kiyana",
+	"布洛妮娅":"Bronya",
+	"安柏":"安博"
+}
 
 signal tts_done(audio_path: String)
 signal tts_error(message: String)
@@ -37,6 +45,14 @@ func _cache_path(character_id: String, text: String) -> String:
 	var hash_str := str(hash(key)).replace("-", "n")
 	return "%s/%s_%s.mp3" % [CACHE_DIR, character_id, hash_str]
 
+# ── 文本注入处理 ──────────────────────────────────────────────
+## 对文本应用注入规则，返回处理后的文本
+func _apply_text_injection(original_text: String) -> String:
+	var processed_text := original_text
+	for original_word in text_injection_rules.keys():
+		processed_text = processed_text.replace(original_word, text_injection_rules[original_word])
+	return processed_text
+
 # ── 合成请求 ──────────────────────────────────────────────────
 func _synthesize(character_id: String, character_name: String, text: String, cache_path: String) -> void:
 	var api_key: String = ConfigManager.get_value("tts_api_key")
@@ -56,9 +72,12 @@ func _synthesize(character_id: String, character_name: String, text: String, cac
 	else:
 		voice = model + ":" + character_name.to_lower().replace(" ", "_")
 
+	# 应用文本注入规则（不影响原始 text 用于缓存）
+	var injected_text := _apply_text_injection(text)
+
 	var body := JSON.stringify({
 		"model": model,
-		"input": text,
+		"input": injected_text,  # 使用注入后的文本
 		"voice": voice,
 		"response_format": "mp3",
 		"stream": true,
