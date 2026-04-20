@@ -165,26 +165,52 @@ func setup_group_header(group_data: Dictionary) -> void:
 	character_name_label.text = group_data.get("name", "群聊")
 
 func refresh_sprites(displayed_chars: Array[Dictionary]) -> void:
+	# 记录哪些槽位是新角色（需要淡入）
+	var slot0_new: bool = displayed_chars.size() >= 1 and (
+		_displayed_chars.size() < 1 or
+		_displayed_chars[0].get("id", "") != displayed_chars[0].get("id", "")
+	)
+	var slot1_new: bool = displayed_chars.size() >= 2 and (
+		_displayed_chars.size() < 2 or
+		_displayed_chars[1].get("id", "") != displayed_chars[1].get("id", "")
+	)
+
 	_displayed_chars = displayed_chars
 	if _displayed_chars.size() == 0:
 		character_sprite.visible = false
 		character_sprite2.visible = false
 		return
+
 	var c0 := _displayed_chars[0]
 	character_sprite.visible = true
-	load_sprite(character_sprite, c0, "")
 	var s0: float = c0.get("scale_rate", 100) / 100.0
 	_base_scale = s0
 	character_sprite.scale = Vector2(s0, s0)
 	character_sprite.position = Vector2(550, 1080 + c0.get("calib", 0))
+	if slot0_new:
+		character_sprite.modulate = Color(1, 1, 1, 0)
+		load_sprite(character_sprite, c0, "")
+		var tw0 := create_tween()
+		tw0.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tw0.tween_property(character_sprite, "modulate:a", 1.0, 0.4)
+	else:
+		load_sprite(character_sprite, c0, "")
+
 	if _displayed_chars.size() >= 2:
 		var c1 := _displayed_chars[1]
 		character_sprite2.visible = true
-		load_sprite(character_sprite2, c1, "")
 		var s1: float = c1.get("scale_rate", 100) / 100.0
 		_base_scale2 = s1
 		character_sprite2.scale = Vector2(s1, s1)
 		character_sprite2.position = Vector2(1150, 1080 + c1.get("calib", 0))
+		if slot1_new:
+			character_sprite2.modulate = Color(1, 1, 1, 0)
+			load_sprite(character_sprite2, c1, "")
+			var tw1 := create_tween()
+			tw1.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tw1.tween_property(character_sprite2, "modulate:a", 1.0, 0.4)
+		else:
+			load_sprite(character_sprite2, c1, "")
 	else:
 		character_sprite2.visible = false
 	set_active_speaker("")
@@ -195,14 +221,28 @@ func set_active_speaker(speaker_id: String) -> void:
 		return
 	var gray := Color(0.45, 0.45, 0.45, 1.0)
 	var normal := Color(1, 1, 1, 1)
+	# 活跃角色 z_index 高于后台角色（但低于 UI 层，UI 默认在 CanvasLayer 上）
+	const Z_ACTIVE := -1
+	const Z_INACTIVE := -2
 	if speaker_id.is_empty():
-		character_sprite.modulate = normal
-		character_sprite2.modulate = normal
+		_tween_modulate(character_sprite, normal)
+		_tween_modulate(character_sprite2, normal)
+		character_sprite.z_index = Z_INACTIVE
+		character_sprite2.z_index = Z_INACTIVE
 		return
 	if _displayed_chars.size() >= 1:
-		character_sprite.modulate = normal if _displayed_chars[0].get("id", "") == speaker_id else gray
+		var is_active0: bool = _displayed_chars[0].get("id", "") == speaker_id
+		_tween_modulate(character_sprite, normal if is_active0 else gray)
+		character_sprite.z_index = Z_ACTIVE if is_active0 else Z_INACTIVE
 	if _displayed_chars.size() >= 2:
-		character_sprite2.modulate = normal if _displayed_chars[1].get("id", "") == speaker_id else gray
+		var is_active1: bool = _displayed_chars[1].get("id", "") == speaker_id
+		_tween_modulate(character_sprite2, normal if is_active1 else gray)
+		character_sprite2.z_index = Z_ACTIVE if is_active1 else Z_INACTIVE
+
+func _tween_modulate(sprite: Sprite2D, target: Color) -> void:
+	var tw := create_tween()
+	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(sprite, "modulate", target, 0.3)
 
 func get_sprite_for(char_id: String) -> Sprite2D:
 	if _displayed_chars.size() >= 1 and _displayed_chars[0].get("id", "") == char_id:

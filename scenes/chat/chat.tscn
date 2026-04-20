@@ -21,6 +21,7 @@ script = ExtResource("1")
 script = ExtResource("7_uictrl")
 
 [node name="Background" type="TextureRect" parent="."]
+z_index = -3
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -29,11 +30,12 @@ expand_mode = 1
 stretch_mode = 6
 
 [node name="BackgroundOverlay" type="ColorRect" parent="."]
+z_index = -3
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color(0, 0, 0, 0.35)
+color = Color(0, 0, 0, 0)
 
 [node name="CharacterSprite" type="Sprite2D" parent="."]
 texture_filter = 1
