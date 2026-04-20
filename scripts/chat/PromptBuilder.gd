@@ -4,7 +4,7 @@
 class_name PromptBuilder
 extends RefCounted
 
-const MAX_CONTEXT_CHARS := 1200
+const MAX_CONTEXT_CHARS := 2000
 
 ## 对消息数组进行字符数截断，保留 system 消息，从最旧的非 system 消息开始丢弃
 ## 直到总字符数 <= MAX_CONTEXT_CHARS
@@ -37,7 +37,8 @@ static func _trim_to_limit(messages: Array[Dictionary]) -> Array[Dictionary]:
 		if budget >= msg_len:
 			trimmed.insert(0, other_msgs[i])
 			budget -= msg_len
-		# 预算不足则跳过（丢弃旧消息）
+		else:
+			break  # 预算不足则停止，优先保留最新消息
 
 	var result: Array[Dictionary] = []
 	result.append_array(system_msgs)
