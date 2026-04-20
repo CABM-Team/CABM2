@@ -36,6 +36,7 @@ var _group_moods: Dictionary = {}
 
 # ── TTS 发言者追踪（群聊用）──────────────────────────────────
 var _current_tts_speaker_id := ""
+var _current_sentence_no_tts := false
 
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
@@ -384,7 +385,9 @@ func _on_stream_chunk(text: String) -> void:
 	_stream_display_content += text
 	var sentences := SentenceSplitter.split_stream(_stream_state, text)
 	for s in sentences:
-		ui.enqueue_sentence(s["text"])
+		if not ui.is_typing() and not ui.is_waiting_for_advance() and not ui.has_queued_sentences():
+			_current_sentence_no_tts = s.get("no_tts", false)
+		ui.enqueue_sentence(s)
 
 func _on_stream_mood(mood: int) -> void:
 	if AppState.is_group_mode():
@@ -403,7 +406,7 @@ func _on_stream_done() -> void:
 	_is_receiving = false
 	var sentences := SentenceSplitter.split_stream(_stream_state, "", true)
 	for s in sentences:
-		ui.enqueue_sentence(s["text"])
+		ui.enqueue_sentence(s)
 
 	if not _stream_full_content.is_empty():
 		if AppState.is_group_mode():
@@ -414,7 +417,7 @@ func _on_stream_done() -> void:
 			AppState.add_message("assistant", _stream_full_content)
 			_save_history()
 
-	if ConfigManager.get_value("enable_tts"):
+	if ConfigManager.get_value("enable_tts") and not _current_sentence_no_tts:
 		ui.set_tts_enabled(true)
 
 	if not ui.is_typing() and not ui.is_waiting_for_advance() and not ui.has_queued_sentences():
@@ -445,8 +448,11 @@ func _on_sentence_finished() -> void:
 func _advance() -> void:
 	ui.set_waiting_for_advance(false)
 	if ui.has_queued_sentences():
-		var next: String = ui.pop_next_sentence()
-		ui.show_text(next)
+		var next: Dictionary = ui.pop_next_sentence()
+		_current_sentence_no_tts = next.get("no_tts", false)
+		ui.show_text(next.get("text", ""))
+		if ConfigManager.get_value("enable_tts"):
+			ui.set_tts_enabled(not _current_sentence_no_tts)
 	elif not _is_receiving and not _group_reply_queue.is_empty():
 		_dispatch_next_group_char()
 
@@ -594,7 +600,7 @@ func _on_back_pressed() -> void:
 
 # ── TTS ───────────────────────────────────────────────────────
 func _on_tts_requested(text: String) -> void:
-	if text.is_empty():
+	if text.is_empty() or _current_sentence_no_tts:
 		return
 	var char_data: Dictionary
 	if AppState.is_group_mode():

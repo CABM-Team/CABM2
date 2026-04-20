@@ -47,7 +47,7 @@ var _is_typing := false
 var _full_text := ""
 var _shown_chars := 0
 var _type_timer: SceneTreeTimer
-var _sentence_queue: Array[String] = []
+var _sentence_queue: Array[Dictionary] = []
 var _waiting_for_advance := false
 
 # ── continue_hint 动画 ────────────────────────────────────────
@@ -334,18 +334,18 @@ func is_typing() -> bool:
 func is_waiting_for_advance() -> bool:
 	return _waiting_for_advance
 
-func get_sentence_queue() -> Array[String]:
+func get_sentence_queue() -> Array[Dictionary]:
 	return _sentence_queue
 
-func enqueue_sentence(sentence: String) -> void:
+func enqueue_sentence(sentence: Dictionary) -> void:
 	if not _is_typing and not _waiting_for_advance:
-		show_text(sentence)
+		show_text(sentence.get("text", ""))
 	else:
 		_sentence_queue.append(sentence)
 
-func pop_next_sentence() -> String:
+func pop_next_sentence() -> Dictionary:
 	if _sentence_queue.is_empty():
-		return ""
+		return {}
 	return _sentence_queue.pop_front()
 
 func has_queued_sentences() -> bool:
