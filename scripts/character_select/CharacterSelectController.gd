@@ -27,6 +27,7 @@ const SORT_TIME  := 2
 @onready var import_char_btn: Button        = $VBox/SortBar/ImportCharButton
 @onready var new_group_btn: Button          = $VBox/SortBar/NewGroupButton
 @onready var import_result_dialog: Control  = $ImportResultDialog
+@onready var import_progress_dialog: Control = $ImportProgressDialog
 
 var _all_characters: Array[Dictionary] = []
 
@@ -42,6 +43,7 @@ func _ready() -> void:
 	sort_order_btn.pressed.connect(_on_sort_order_pressed)
 	import_char_btn.pressed.connect(_on_import_char_pressed)
 	import_result_dialog.closed.connect(_on_import_dialog_closed)
+	import_progress_dialog.import_finished.connect(_on_import_finished)
 
 	_all_characters = CharacterLoader.load_all()
 	_update_sort_buttons()
@@ -204,7 +206,9 @@ func _on_import_char_pressed() -> void:
 
 func _on_zip_selected(zip_path: String, dialog: FileDialog) -> void:
 	dialog.queue_free()
-	var results: Array[Dictionary] = CharacterImporterScript.import_from_zip(zip_path)
+	import_progress_dialog.start_import(zip_path)
+
+func _on_import_finished(results: Array) -> void:
 	import_result_dialog.show_results(results)
 
 func _on_import_dialog_closed() -> void:

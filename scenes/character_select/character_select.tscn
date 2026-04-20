@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://dcvroj6lom1y4"]
+[gd_scene load_steps=8 format=3 uid="uid://dcvroj6lom1y4"]
 
 [ext_resource type="Script" uid="uid://dnmh1q3t3axjy" path="res://scripts/character_select/CharacterSelectController.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://c1sq3exfquy7k" path="res://assets/backgrounds/sr-7.png" id="2_4ervu"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://cpuujkd8al054" path="res://scenes/character_select/group_create_dialog.tscn" id="3_grpd"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4_yd6k2"]
 [ext_resource type="PackedScene" path="res://scenes/character_select/import_result_dialog.tscn" id="5_imprt"]
+[ext_resource type="PackedScene" path="res://scenes/character_select/import_progress_dialog.tscn" id="6_prog"]
 
 [node name="CharacterSelect" type="Control"]
 layout_mode = 3
@@ -181,6 +182,11 @@ layout_mode = 1
 
 [node name="ImportResultDialog" parent="." instance=ExtResource("5_imprt")]
 visible = false
+layout_mode = 1
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ImportProgressDialog" parent="." instance=ExtResource("6_prog")]
 layout_mode = 1
 grow_horizontal = 2
 grow_vertical = 2

@@ -10,6 +10,27 @@ const DEST_BASE := "user://characters/"
 # 保留关键字，不允许作为角色 ID
 const RESERVED_IDS := ["user", "group", "groups", "saves", "settings", "system", "admin", "root"]
 
+## 扫描 ZIP，返回顶层角色文件夹字典 { folder_name -> Array[file_path] }
+## 不执行任何写操作，可用于提前获取角色数量
+static func scan_zip(zip_path: String) -> Dictionary:
+	var char_folders: Dictionary = {}
+	var reader := ZIPReader.new()
+	if reader.open(zip_path) != OK:
+		return char_folders
+	var files := reader.get_files()
+	reader.close()
+	for f in files:
+		var parts := f.split("/")
+		if parts.size() < 2:
+			continue
+		var folder := parts[0]
+		if folder.begins_with(".") or folder.is_empty():
+			continue
+		if not char_folders.has(folder):
+			char_folders[folder] = []
+		char_folders[folder].append(f)
+	return char_folders
+
 ## 从 ZIP 文件导入，返回每个角色的导入结果列表
 static func import_from_zip(zip_path: String) -> Array[Dictionary]:
 	var results: Array[Dictionary] = []
