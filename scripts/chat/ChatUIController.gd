@@ -57,6 +57,7 @@ var _breath_time := 0.0
 var _breath_active := false
 var _base_scale := 1.0
 var _base_scale2 := 1.0
+var _breath_offset2 := 0.0
 
 # ── 群聊立绘状态 ──────────────────────────────────────────────
 var _displayed_chars: Array[Dictionary] = []
@@ -455,6 +456,7 @@ func refresh_history(chat_history: Array, get_char_data_fn: Callable, extract_ms
 func start_breath_animation() -> void:
 	_breath_time = 0.0
 	_breath_active = true
+	_breath_offset2 = randf_range(0.8, 2.4)
 
 func _process(delta: float) -> void:
 	if not _breath_active:
@@ -462,4 +464,4 @@ func _process(delta: float) -> void:
 	_breath_time += delta
 	character_sprite.scale.y = _base_scale + 0.003 * sin(_breath_time * PI / 2.0)
 	if character_sprite2.visible:
-		character_sprite2.scale.y = _base_scale2 + 0.003 * sin(_breath_time * PI / 2.0 + 0.5)
+		character_sprite2.scale.y = _base_scale2 + 0.003 * sin(_breath_time * PI / 2.0 + _breath_offset2)
