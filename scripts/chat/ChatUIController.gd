@@ -21,6 +21,7 @@ extends Node
 @onready var close_history_btn: Button     = $"../HistoryModal/HistoryVBox/HistoryHeader/CloseHistoryButton"
 @onready var option_buttons: VBoxContainer = $"../OptionButtons"
 @onready var more_option_button: Button    = $"../ControlButtons/MoreOptionButton"
+@onready var tts_button: Button            = $"../ControlButtons/TTSButton"
 @onready var more_options_overlay: Control = $"../MoreOptionsOverlay"
 @onready var more_options_menu: PanelContainer = $"../MoreOptionsOverlay/MoreOptionsMenu"
 @onready var more_options_click_area: ColorRect = $"../MoreOptionsOverlay/ClickArea"
@@ -36,6 +37,7 @@ signal clear_history_confirm_requested
 signal delete_confirm_requested
 signal advance_requested
 signal input_key_enter
+signal tts_requested(text: String)
 
 # ── 输出速度 ──────────────────────────────────────────────────
 var type_speed := 0.03
@@ -76,6 +78,7 @@ func _ready() -> void:
 	close_history_btn.pressed.connect(func(): history_toggle_requested.emit())
 	message_input.gui_input.connect(_on_input_key)
 	more_option_button.pressed.connect(func(): more_options_toggle_requested.emit())
+	tts_button.pressed.connect(_on_tts_button_pressed)
 	more_options_click_area.gui_input.connect(_on_more_options_overlay_input)
 	clear_history_btn.pressed.connect(func(): clear_history_confirm_requested.emit())
 	delete_btn.pressed.connect(func(): delete_confirm_requested.emit())
@@ -505,3 +508,18 @@ func _process(delta: float) -> void:
 	character_sprite.scale.y = _base_scale + 0.003 * sin(_breath_time * PI / 2.0)
 	if character_sprite2.visible:
 		character_sprite2.scale.y = _base_scale2 + 0.003 * sin(_breath_time * PI / 2.0 + _breath_offset2)
+
+# ── TTS 按钮 ──────────────────────────────────────────────────
+func set_tts_enabled(enabled: bool) -> void:
+	tts_button.disabled = not enabled
+
+func set_tts_loading(loading: bool) -> void:
+	if loading:
+		tts_button.text = "⏳ 播放语音"
+		tts_button.disabled = true
+	else:
+		tts_button.text = "🔊 播放语音"
+		tts_button.disabled = false
+
+func _on_tts_button_pressed() -> void:
+	tts_requested.emit(dialog_text.text)

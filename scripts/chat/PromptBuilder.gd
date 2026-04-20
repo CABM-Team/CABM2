@@ -4,7 +4,7 @@
 class_name PromptBuilder
 extends RefCounted
 
-const MAX_CONTEXT_CHARS := 2000
+const MAX_CONTEXT_CHARS := 1200
 
 ## 对消息数组进行字符数截断，保留 system 消息，从最旧的非 system 消息开始丢弃
 ## 直到总字符数 <= MAX_CONTEXT_CHARS

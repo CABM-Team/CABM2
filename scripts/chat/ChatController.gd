@@ -6,6 +6,7 @@ extends Control
 # ── UI 控制器引用 ─────────────────────────────────────────────
 @onready var ui: Node = $ChatUIController
 @onready var confirm_dialog = $ConfirmDialog
+@onready var audio_player: AudioStreamPlayer = $AudioStreamPlayer
 
 # 当前确认对话框的用途：:clear_history 或 :delete
 var _confirm_action := &""
@@ -33,6 +34,9 @@ const IDLE_FORCE_PROB_PER_ROUND := 0.35
 var _current_mood := 0
 var _group_moods: Dictionary = {}
 
+# ── TTS 发言者追踪（群聊用）──────────────────────────────────
+var _current_tts_speaker_id := ""
+
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
 	ui.send_requested.connect(_on_send_pressed)
@@ -47,6 +51,10 @@ func _ready() -> void:
 
 	confirm_dialog.confirmed.connect(_on_confirm_dialog_confirmed)
 	confirm_dialog.cancelled.connect(_hide_confirm_dialog)
+
+	TTSManager.tts_done.connect(_on_tts_done)
+	TTSManager.tts_error.connect(_on_tts_error)
+	ui.tts_requested.connect(_on_tts_requested)
 
 	ApiClient.stream_chunk.connect(_on_stream_chunk)
 	ApiClient.stream_mood.connect(_on_stream_mood)
@@ -68,7 +76,17 @@ func _load_character(char_data: Dictionary) -> void:
 
 	ui.setup_single_character(char_data)
 
-	var character_id: String = char_data.get("id", char_data.get("name", ""))
+	# 异步确保参考音频已上传（不阻塞界面）
+	var char_id: String = char_data.get("id", char_data.get("name", ""))
+	if not char_id.is_empty() and ConfigManager.get_value("enable_tts"):
+		VoiceUploadManager.ensure_voice_uploaded(char_id, func(uri: String, error: String):
+			if not error.is_empty():
+				print("[TTS] 参考音频上传失败：", error)
+			else:
+				print("[TTS] 参考音频 URI：", uri)
+		)
+
+	var character_id: String = char_id
 	var save_data := HistoryManager.load_history(character_id)
 	var loaded_history: Array[Dictionary] = save_data["history"]
 
@@ -141,9 +159,22 @@ func _init_group_mode() -> void:
 		for i in range(loaded_history.size() - 1, -1, -1):
 			var r: String = loaded_history[i].get("role", "")
 			if r != "user" and r != "system":
+				_current_tts_speaker_id = r
 				_set_speaker_by_id(r)
 				ui.show_text(_extract_msg_from_json(loaded_history[i]["content"]))
 				break
+
+	# 异步预上传所有群聊角色的参考音频
+	if ConfigManager.get_value("enable_tts"):
+		for c in chars:
+			var cid: String = c.get("id", "")
+			if not cid.is_empty():
+				VoiceUploadManager.ensure_voice_uploaded(cid, func(uri: String, error: String):
+					if not error.is_empty():
+						print("[TTS] 角色 %s 参考音频上传失败：%s" % [cid, error])
+					else:
+						print("[TTS] 角色 %s URI：%s" % [cid, uri])
+				)
 
 func _get_char_data_by_id(char_id: String) -> Dictionary:
 	if AppState.is_group_mode():
@@ -262,7 +293,7 @@ func _ask_ai_next_speaker() -> void:
 				display_name = role
 		context_lines.append(display_name + "：" + text)
 
-	var system_p := "你是一个专业的导演，根据对话上下文决定下一个最合适发言的人。\n参与者ID列表：%s\n只需回复一个ID，不要有任何其他内容。" % "、".join(id_list)
+	var system_p := "你是一个专业的导演，根据对话上下文决定下一个最合适发言的人。\n参与者ID列表：%s\n要求：只需回复一个ID，不要有任何其他内容" % "、".join(id_list)
 	var user_p := "最近的对话：\n%s\n\n下一个应该由谁发言？" % "\n".join(context_lines)
 
 	EasyAI.ask(system_p, user_p, func(reply: String):
@@ -318,6 +349,7 @@ func _match_char_by_id(char_id: String) -> Dictionary:
 func _request_group_char(char_data: Dictionary) -> void:
 	var char_id: String = char_data.get("id", "")
 	_group_waiting_char_id = char_id
+	_current_tts_speaker_id = char_id
 	_idle_rounds[char_id] = 0
 
 	_ensure_char_on_screen(char_data)
@@ -381,6 +413,9 @@ func _on_stream_done() -> void:
 		else:
 			AppState.add_message("assistant", _stream_full_content)
 			_save_history()
+
+	if ConfigManager.get_value("enable_tts"):
+		ui.set_tts_enabled(true)
 
 	if not ui.is_typing() and not ui.is_waiting_for_advance() and not ui.has_queued_sentences():
 		var has_next_char := not _group_reply_queue.is_empty()
@@ -553,4 +588,52 @@ func _on_back_pressed() -> void:
 	ApiClient.stream_full_json.disconnect(_on_stream_full_json)
 	ApiClient.stream_done.disconnect(_on_stream_done)
 	ApiClient.stream_error.disconnect(_on_stream_error)
+	TTSManager.tts_done.disconnect(_on_tts_done)
+	TTSManager.tts_error.disconnect(_on_tts_error)
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
+
+# ── TTS ───────────────────────────────────────────────────────
+func _on_tts_requested(text: String) -> void:
+	if text.is_empty():
+		return
+	var char_data: Dictionary
+	if AppState.is_group_mode():
+		char_data = _get_char_data_by_id(_current_tts_speaker_id)
+	else:
+		char_data = AppState.current_character
+	if char_data.is_empty():
+		return
+	var char_id: String = char_data.get("id", char_data.get("name", ""))
+	var char_name: String = char_data.get("name", char_id)
+	ui.set_tts_loading(true)
+	TTSManager.request(char_id, char_name, text)
+
+func _on_tts_done(audio_path: String) -> void:
+	ui.set_tts_loading(false)
+	var stream := _load_audio_stream(audio_path)
+	if stream == null:
+		ui.show_text("⚠ 无法加载音频文件")
+		return
+	audio_player.stream = stream
+	audio_player.play()
+
+func _on_tts_error(message: String) -> void:
+	ui.set_tts_loading(false)
+	print("[TTS] 错误：", message)
+
+func _load_audio_stream(path: String) -> AudioStream:
+	var ext := path.get_extension().to_lower()
+	var data := FileAccess.get_file_as_bytes(path)
+	if data.is_empty():
+		return null
+	match ext:
+		"mp3":
+			var stream := AudioStreamMP3.new()
+			stream.data = data
+			return stream
+		"ogg":
+			return AudioStreamOggVorbis.load_from_buffer(data)
+		"wav":
+			# WAV 需要通过 ResourceLoader 或 Image 方式，直接用 load
+			return load(path)
+	return null

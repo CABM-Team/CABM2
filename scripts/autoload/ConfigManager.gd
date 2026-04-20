@@ -21,11 +21,11 @@ var defaults := {
 	# 语音（TTS）模型
 	"tts_api_key": "",
 	"tts_api_base_url": "https://api.siliconflow.cn/v1",
-	"tts_model": "FunAudioLLM/CosyVoice2-0.5B",
+	"tts_model": "IndexTeam/IndexTTS-2",
 	# 功能开关
 	"max_history_length": 100,
 	"enable_option_generation": true,
-	"enable_tts": false,
+	"enable_tts": true,
 }
 
 func _ready() -> void:

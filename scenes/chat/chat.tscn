@@ -178,7 +178,7 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 30
-text = "📝历史记录"
+text = "📝 历史记录"
 
 [node name="TTSButton" type="Button" parent="ControlButtons"]
 custom_minimum_size = Vector2(0, 40)
@@ -186,7 +186,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 30
 disabled = true
-text = "🔊播放语音"
+text = "🔊 播放语音"
 
 [node name="BackgroundButton" type="Button" parent="ControlButtons"]
 custom_minimum_size = Vector2(0, 40)
@@ -194,14 +194,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 30
 disabled = true
-text = "🖼更换背景"
+text = "🖼 更换背景"
 
 [node name="MoreOptionButton" type="Button" parent="ControlButtons"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 30
-text = "➕更多选项"
+text = "➕ 更多选项"
 
 [node name="HistoryModal" type="PanelContainer" parent="."]
 visible = false
@@ -338,3 +338,5 @@ text = "点击空白处关闭"
 [node name="ConfirmDialog" parent="." instance=ExtResource("6_confirm")]
 visible = false
 layout_mode = 1
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]

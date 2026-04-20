@@ -67,8 +67,8 @@ CABM2/
 - [x] 对话系统（流式）
 - [ ] 配置管理
 - ~~[ ] 记忆系统~~
-- [ ] TTS
-- [ ] 剧情模式
+- [x] TTS
+- [x] 多角色
 
 ## 配置
 
@@ -84,4 +84,4 @@ CABM2/
 
 ## 许可证
 
-GNU General Public License v3.0
+©All Rights Reserved
