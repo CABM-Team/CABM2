@@ -26,6 +26,9 @@ var defaults := {
 	"max_history_length": 100,
 	"enable_option_generation": true,
 	"enable_tts": true,
+	# 聊天设置
+	"username": "用户",
+	"max_context_chars": 2000,
 }
 
 func _ready() -> void:

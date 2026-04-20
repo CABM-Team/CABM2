@@ -285,7 +285,7 @@ func _ask_ai_next_speaker() -> void:
 		var text := PromptBuilder._extract_msg(msg.get("content", ""))
 		var display_name := ""
 		if role == "user":
-			display_name = "user"
+			display_name = "user(%s)" % ConfigManager.get_value("username")
 		else:
 			var char_data := _get_char_data_by_id(role)
 			if not char_data.is_empty():
