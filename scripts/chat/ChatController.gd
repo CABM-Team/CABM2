@@ -220,14 +220,28 @@ func _ask_ai_next_speaker() -> void:
 
 	print("【AI决策】排除："+_group_waiting_char_id)
 	var chars := AppState.group_characters
-	var id_list: Array[String] = ["user"]
+	var id_list: Array[String] = []
+	
+	# 检查上一条消息是否是 user
+	var last_was_user := false
+	if not AppState.chat_history.is_empty():
+		var last_msg := AppState.chat_history[AppState.chat_history.size() - 1]
+		last_was_user = last_msg.get("role", "") == "user"
+	
+	# 构建 ID 列表（系统提示词用）
+	if _group_waiting_char_id.is_empty():
+		id_list.append("~~user~~（不允许再次选择）")
+	else:
+		id_list.append("user")
+	
 	for c in chars:
 		var cid: String = c.get("id", "")
 		if cid == _group_waiting_char_id:
-			id_list.append(cid+"（不允许再次选择）")
+			id_list.append("~~"+cid+"~~（不允许再次选择）")
 		else:
 			id_list.append(cid)
 
+	# 构建聊天记录（使用名字+ID格式）
 	var recent: Array[Dictionary] = AppState.chat_history
 	var start_idx := maxi(0, recent.size() - 8)
 	var context_lines: Array[String] = []
@@ -237,17 +251,39 @@ func _ask_ai_next_speaker() -> void:
 		if role == "system":
 			continue
 		var text := PromptBuilder._extract_msg(msg.get("content", ""))
-		context_lines.append(role + "：" + text)
+		var display_name := ""
+		if role == "user":
+			display_name = "user"
+		else:
+			var char_data := _get_char_data_by_id(role)
+			if not char_data.is_empty():
+				display_name = "%s（%s）" % [char_data.get("name", role), role]
+			else:
+				display_name = role
+		context_lines.append(display_name + "：" + text)
 
 	var system_p := "你是一个专业的导演，根据对话上下文决定下一个最合适发言的人。\n参与者ID列表：%s\n只需回复一个ID，不要有任何其他内容。" % "、".join(id_list)
 	var user_p := "最近的对话：\n%s\n\n下一个应该由谁发言？" % "\n".join(context_lines)
 
 	EasyAI.ask(system_p, user_p, func(reply: String):
 		var chosen_char := _match_char_by_id(reply)
-		if chosen_char.is_empty():
-			if not ui.is_typing() and not ui.is_waiting_for_advance() and not ui.has_queued_sentences():
-				ui.unlock_input()
-			return
+		
+		# 如果上一个是 user 但 AI 仍然选择了 user，强制随机选择角色
+		if chosen_char.is_empty() or (last_was_user and reply.strip_edges() == "user"):
+			if last_was_user and reply.strip_edges() == "user":
+				print("【AI决策】上一个是user但AI选择了user，强制随机选择角色")
+				var available_chars: Array[Dictionary] = []
+				for c in chars:
+					if c.get("id", "") != _group_waiting_char_id:
+						available_chars.append(c)
+				if not available_chars.is_empty():
+					chosen_char = available_chars[randi() % available_chars.size()]
+			
+			if chosen_char.is_empty():
+				if not ui.is_typing() and not ui.is_waiting_for_advance() and not ui.has_queued_sentences():
+					ui.unlock_input()
+				return
+		
 		_group_turn_count += 1
 		_request_group_char(chosen_char)
 	)
