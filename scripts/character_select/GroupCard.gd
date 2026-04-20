@@ -56,9 +56,10 @@ func setup(group_data: Dictionary, all_characters: Array[Dictionary]) -> void:
 
 	# 卡片样式
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.2, 0.35, 0.6)
+	style.bg_color = Color(0.2, 0.2, 0.3, 0.7)
+	# style.bg_color = Color(0.2, 0.2, 0.35, 0.6)
 	style.border_color = Color(0.5, 0.5, 0.8, 0.6)
-	style.set_border_width_all(2)
+	style.set_border_width_all(4)
 	style.set_corner_radius_all(12)
 	style.content_margin_left = 10
 	style.content_margin_right = 10

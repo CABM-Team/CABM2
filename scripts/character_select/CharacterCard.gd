@@ -24,9 +24,10 @@ func setup(char_data: Dictionary) -> void:
 
 	# 卡片背景样式（按角色主题色）
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(base_color.r, base_color.g, base_color.b, 0.15)
-	style.border_color = Color(base_color.r, base_color.g, base_color.b, 0.6)
-	style.set_border_width_all(2)
+	#style.bg_color = Color(base_color.r, base_color.g, base_color.b, 0.15)
+	style.bg_color = Color(0.2, 0.2, 0.3, 0.7)
+	style.border_color = Color(base_color.r, base_color.g, base_color.b, 0.7)
+	style.set_border_width_all(4)
 	style.set_corner_radius_all(12)
 	style.content_margin_left = 10
 	style.content_margin_right = 10

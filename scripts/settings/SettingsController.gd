@@ -66,9 +66,42 @@ func _load_values() -> void:
 	var ctx_chars: int          = ConfigManager.get_value("max_context_chars")
 	max_context_slider.value    = ctx_chars
 	max_context_label.text      = "记忆最大字符数：%d" % ctx_chars
+	_update_slider_color(ctx_chars)
 
 func _on_max_context_changed(value: float) -> void:
-	max_context_label.text = "记忆最大字符数：%d" % int(value)
+	max_context_label.text = ("⚠"if value>5000 else "" )+ "记忆最大字符数：%d" % int(value)
+	_update_slider_color(value)
+
+func _update_slider_color(value: float) -> void:
+	# 对数插值：与滑杆的 exp_edit 保持一致
+	var log_min := log(max_context_slider.min_value)
+	var log_max := log(max_context_slider.max_value)
+	var t := (log(value) - log_min) / (log_max - log_min)
+	t = clampf(t, 0.0, 1.0)
+
+	# 深绿 → 橙红，饱和度高、亮度适中，避免中间黄绿色过淡
+	var color := Color.from_hsv(0.33 * (1.0 - t), 0.9, 0.75)
+	var color_bright := color.lightened(0.2)
+
+	# 填充轨道
+	var fill_style := StyleBoxFlat.new()
+	fill_style.bg_color = color
+	fill_style.set_corner_radius_all(4)
+	max_context_slider.add_theme_stylebox_override("fill", fill_style)
+
+	# grabber 普通 + focus（highlight）状态都覆盖，避免 focus 时变回灰色
+	for key in ["grabber_area", "grabber_area_highlight"]:
+		var s := StyleBoxFlat.new()
+		s.bg_color = color_bright
+		s.set_corner_radius_all(12)
+		s.content_margin_left   = 12.0
+		s.content_margin_right  = 12.0
+		s.content_margin_top    = 12.0
+		s.content_margin_bottom = 12.0
+		max_context_slider.add_theme_stylebox_override(key, s)
+
+	# label 文字颜色同步
+	max_context_label.add_theme_color_override("font_color", color)
 
 func _on_fill_all() -> void:
 	var key := master_key_input.text.strip_edges()

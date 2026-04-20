@@ -9,7 +9,7 @@
 content_margin_left = 20.0
 content_margin_top = 5.0
 content_margin_right = 20.0
-bg_color = Color(0, 0.83137256, 0.8509804, 0.6862745)
+bg_color = Color(0.20784314, 0.20784314, 0.35686275, 0.7529412)
 border_width_left = 6
 border_width_right = 6
 border_width_bottom = 6
@@ -17,7 +17,7 @@ corner_radius_bottom_right = 9
 corner_radius_bottom_left = 9
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1slea"]
-bg_color = Color(0.7121294, 0.7121294, 0.71212924, 1)
+bg_color = Color(0.7137255, 0.7137255, 0.7137255, 0.5764706)
 border_width_left = 6
 border_width_top = 6
 border_width_right = 6
@@ -85,9 +85,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_vu5fi")
 theme_override_styles/tabbar_background = SubResource("StyleBoxFlat_1slea")
 theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_vghtj")
 theme_override_styles/tab_selected = SubResource("StyleBoxFlat_v1hle")
-current_tab = 0
+current_tab = 1
 
 [node name="API设置" type="ScrollContainer" parent="MainLayout/TabContainer"]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -221,7 +222,6 @@ theme_override_font_sizes/font_size = 28
 placeholder_text = "FunAudioLLM/CosyVoice2-0.5B"
 
 [node name="聊天设置" type="VBoxContainer" parent="MainLayout/TabContainer"]
-visible = false
 layout_mode = 2
 theme_override_constants/separation = 20
 metadata/_tab_index = 1
@@ -252,10 +252,16 @@ text = "── 上下文设置 ──"
 layout_mode = 2
 
 [node name="LabelMaxContext" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2"]
-custom_minimum_size = Vector2(420, 0)
+custom_minimum_size = Vector2(450, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
-text = "记忆最大字符数：2000"
+text = "上下文最大字符数：2000"
+
+[node name="Label2" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.023529412, 0.8627451, 0, 1)
+theme_override_font_sizes/font_size = 35
+text = "短 "
 
 [node name="MaxContextSlider" type="HSlider" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2"]
 layout_mode = 2
@@ -263,15 +269,18 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 min_value = 1000.0
 max_value = 128000.0
-step = 10.0
+step = 50.0
 value = 2000.0
 exp_edit = true
-tick_count = 30
+tick_count = 29
 ticks_on_borders = true
 ticks_position = 2
 
-[node name="Label" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2"]
+[node name="Label3" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2"]
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 35
+text = " 长"
 
 [node name="BottomBar" type="HBoxContainer" parent="MainLayout"]
 custom_minimum_size = Vector2(0, 60)
