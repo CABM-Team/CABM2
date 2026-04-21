@@ -554,7 +554,7 @@ func _render_history_page() -> void:
 			var display_content := ""
 
 			if is_user:
-				display_name = "你"
+				display_name = ConfigManager.get_value("username")
 				color_str = "#00ffff"
 				display_content = msg["content"]
 			else:
@@ -573,34 +573,67 @@ func _render_history_page() -> void:
 					char_id = AppState.current_character.get("id", "")
 				display_content = _history_extract_fn.call(msg["content"])
 
-			var row := HBoxContainer.new()
-			row.add_theme_constant_override("separation", 8)
-			history_list.add_child(row)
-			history_list.add_child(HSeparator.new())
-
-			var btn := Button.new()
-			btn.text = "💬" if is_user else "🔊"
-			btn.flat = true
-			btn.add_theme_font_size_override("font_size", 25)
-			btn.focus_mode = Control.FOCUS_NONE
-			btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 			if is_user:
+				# 用户消息：整条一行，💬 按钮置灰
+				var row := HBoxContainer.new()
+				row.add_theme_constant_override("separation", 8)
+				history_list.add_child(row)
+				history_list.add_child(HSeparator.new())
+
+				var btn := Button.new()
+				btn.text = "💬"
+				btn.flat = true
+				btn.add_theme_font_size_override("font_size", 25)
+				btn.focus_mode = Control.FOCUS_NONE
+				btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 				btn.disabled = true
 				btn.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			else:
-				var captured_text := display_content
-				var captured_id := char_id
-				btn.pressed.connect(func(): history_tts_requested.emit(captured_text, captured_id))
-			row.add_child(btn)
+				row.add_child(btn)
 
-			var label := RichTextLabel.new()
-			label.bbcode_enabled = true
-			label.fit_content = true
-			label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
-			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			label.text = "[color=%s]%s[/color]：%s" % [color_str, display_name, display_content]
-			row.add_child(label)
+				var label := RichTextLabel.new()
+				label.bbcode_enabled = true
+				label.fit_content = true
+				label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+				label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				label.text = "[color=%s]%s[/color]：%s" % [color_str, display_name, display_content]
+				row.add_child(label)
+			else:
+				# AI 消息：用分句器拆分，每句一行，各自绑一个 🔊 按钮
+				var sentences := SentenceSplitter.split_text(display_content)
+				for sentence in sentences:
+					var s_text: String = sentence.get("text", "")
+					if s_text.is_empty():
+						continue
+					var s_no_tts: bool = sentence.get("no_tts", false)
+
+					var row := HBoxContainer.new()
+					row.add_theme_constant_override("separation", 8)
+					history_list.add_child(row)
+					history_list.add_child(HSeparator.new())
+
+					var btn := Button.new()
+					btn.text = "🔊"
+					btn.flat = true
+					btn.add_theme_font_size_override("font_size", 25)
+					btn.focus_mode = Control.FOCUS_NONE
+					btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+					if s_no_tts:
+						btn.disabled = true
+					else:
+						var captured_text := s_text
+						var captured_id := char_id
+						btn.pressed.connect(func(): history_tts_requested.emit(captured_text, captured_id))
+					row.add_child(btn)
+
+					var label := RichTextLabel.new()
+					label.bbcode_enabled = true
+					label.fit_content = true
+					label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+					label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+					label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+					label.text = "[color=%s]%s[/color]：%s" % [color_str, display_name, s_text]
+					row.add_child(label)
 
 	var scroll: ScrollContainer = $"../HistoryModal/HistoryVBox/HistoryScroll"
 	await get_tree().process_frame

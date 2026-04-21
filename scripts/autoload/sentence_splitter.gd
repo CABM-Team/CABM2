@@ -257,7 +257,6 @@ static func split_text(text: String) -> Array:
 	var posttext = text.substr(last_index)
 	if not posttext.strip_edges().is_empty():
 		results.append_array(_split_chunk(posttext, false))
-		
 	return results
 
 # 公开方法：流式切分文本
