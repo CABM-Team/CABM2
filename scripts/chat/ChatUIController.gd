@@ -38,6 +38,7 @@ signal delete_confirm_requested
 signal advance_requested
 signal input_key_enter
 signal tts_requested(text: String)
+signal history_tts_requested(text: String, char_id: String)
 
 # ── 输出速度 ──────────────────────────────────────────────────
 var type_speed := 0.03
@@ -460,38 +461,76 @@ func refresh_history(chat_history: Array, get_char_data_fn: Callable, extract_ms
 	for child in history_list.get_children():
 		child.queue_free()
 
-	var history_text := ""
+	var has_content := false
 	for msg in chat_history:
 		var role: String = msg["role"]
 		if role == "system":
 			continue
-		if role == "user":
-			history_text += "[color=cyan]你[/color]：" + msg["content"] + "\n\n"
+		has_content = true
+
+		var is_user := role == "user"
+		var display_name := ""
+		var color_str := "#aaaaff"
+		var char_id := ""
+		var display_content := ""
+
+		if is_user:
+			display_name = "你"
+			color_str = "#00ffff"
+			display_content = msg["content"]
 		else:
-			var display_name := role
-			var color_str := "#aaaaff"
 			if AppState.is_group_mode():
 				var cd: Dictionary = get_char_data_fn.call(role)
 				if not cd.is_empty():
 					display_name = cd.get("name", role)
 					color_str = cd.get("color", "#aaaaff")
+					char_id = cd.get("id", role)
+				else:
+					display_name = role
+					char_id = role
 			else:
 				display_name = AppState.current_character.get("name", "AI")
 				color_str = AppState.current_character.get("color", "#aaaaff")
-			var display_content: String = extract_msg_fn.call(msg["content"])
-			history_text += "[color=%s]%s[/color]：%s\n\n" % [color_str, display_name, display_content]
+				char_id = AppState.current_character.get("id", "")
+			display_content = extract_msg_fn.call(msg["content"])
 
-	if history_text.is_empty():
-		history_text = "[color=gray]暂无历史记录[/color]"
+		# 每条消息：HBox [ 按钮 | 文本 ]
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		
+		history_list.add_child(row)
+		history_list.add_child(HSeparator.new())
+		var btn := Button.new()
+		btn.text = "💬" if is_user else "🔊"
+		btn.flat = true
+		btn.add_theme_font_size_override("font_size",25)
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		if is_user:
+			btn.disabled = true
+			btn.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		else:
+			var captured_text := display_content
+			var captured_id := char_id
+			btn.pressed.connect(func(): history_tts_requested.emit(captured_text, captured_id))
+		row.add_child(btn)
 
-	var label := RichTextLabel.new()
-	label.bbcode_enabled = true
-	label.fit_content = true
-	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.text = history_text
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	history_list.add_child(label)
+		var label := RichTextLabel.new()
+		label.bbcode_enabled = true
+		label.fit_content = true
+		label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		label.text = "[color=%s]%s[/color]：%s" % [color_str, display_name, display_content]
+		row.add_child(label)
+
+	if not has_content:
+		var empty := RichTextLabel.new()
+		empty.bbcode_enabled = true
+		empty.fit_content = true
+		empty.text = "[color=gray]暂无历史记录[/color]"
+		empty.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		history_list.add_child(empty)
 
 	var scroll: ScrollContainer = $"../HistoryModal/HistoryVBox/HistoryScroll"
 	await get_tree().process_frame

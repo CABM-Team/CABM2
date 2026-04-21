@@ -64,6 +64,7 @@ func _ready() -> void:
 	TTSManager.tts_done.connect(_on_tts_done)
 	TTSManager.tts_error.connect(_on_tts_error)
 	ui.tts_requested.connect(_on_tts_requested)
+	ui.history_tts_requested.connect(_on_history_tts_requested)
 
 	ApiClient.stream_chunk.connect(_on_stream_chunk)
 	ApiClient.stream_mood.connect(_on_stream_mood)
@@ -616,9 +617,20 @@ func _on_back_pressed() -> void:
 	ApiClient.stream_error.disconnect(_on_stream_error)
 	TTSManager.tts_done.disconnect(_on_tts_done)
 	TTSManager.tts_error.disconnect(_on_tts_error)
+	ui.history_tts_requested.disconnect(_on_history_tts_requested)
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 
 # ── TTS ───────────────────────────────────────────────────────
+func _on_history_tts_requested(text: String, char_id: String) -> void:
+	if text.is_empty():
+		return
+	var char_data := _get_char_data_by_id(char_id)
+	if char_data.is_empty():
+		return
+	var char_name: String = char_data.get("name", char_id)
+	_manual_tts_pending = true
+	TTSManager.request(char_id, char_name, text)
+
 func _on_tts_requested(text: String) -> void:
 	if text.is_empty() or _current_sentence_no_tts:
 		return

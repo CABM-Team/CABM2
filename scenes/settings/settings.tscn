@@ -121,10 +121,9 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_vu5fi")
 theme_override_styles/tabbar_background = SubResource("StyleBoxFlat_1slea")
 theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_vghtj")
 theme_override_styles/tab_selected = SubResource("StyleBoxFlat_v1hle")
-current_tab = 1
+current_tab = 0
 
 [node name="API设置" type="ScrollContainer" parent="MainLayout/TabContainer"]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -258,6 +257,7 @@ theme_override_font_sizes/font_size = 28
 placeholder_text = "FunAudioLLM/CosyVoice2-0.5B"
 
 [node name="聊天设置" type="VBoxContainer" parent="MainLayout/TabContainer"]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 20
 metadata/_tab_index = 1
