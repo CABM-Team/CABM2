@@ -336,3 +336,15 @@ text = "自动播放语音"
 [node name="AutoPlayTTSButton" type="CheckButton" parent="MainLayout/TabContainer/聊天设置/HBoxAutoPlayTTS"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
+
+[node name="HBoxOptionGen" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置"]
+layout_mode = 2
+
+[node name="LabelOptionGen" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxOptionGen"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "生成回复选项"
+
+[node name="OptionGenButton" type="CheckButton" parent="MainLayout/TabContainer/聊天设置/HBoxOptionGen"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35

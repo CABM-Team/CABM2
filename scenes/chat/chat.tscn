@@ -85,15 +85,21 @@ theme_override_constants/separation = 30
 
 [node name="Option1" type="Button" parent="OptionButtons"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 26
 text = "选项1"
+autowrap_mode = 1
 
 [node name="Option2" type="Button" parent="OptionButtons"]
 layout_mode = 2
-text = "选项1"
+theme_override_font_sizes/font_size = 26
+text = "选项2"
+autowrap_mode = 1
 
 [node name="Option3" type="Button" parent="OptionButtons"]
 layout_mode = 2
-text = "选项1"
+theme_override_font_sizes/font_size = 26
+text = "选项3"
+autowrap_mode = 1
 
 [node name="InputArea" type="HBoxContainer" parent="."]
 custom_minimum_size = Vector2(500, 200)

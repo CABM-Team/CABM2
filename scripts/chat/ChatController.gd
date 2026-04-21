@@ -65,6 +65,7 @@ func _ready() -> void:
 	TTSManager.tts_error.connect(_on_tts_error)
 	ui.tts_requested.connect(_on_tts_requested)
 	ui.history_tts_requested.connect(_on_history_tts_requested)
+	ui.option_selected.connect(_on_option_selected)
 
 	ApiClient.stream_chunk.connect(_on_stream_chunk)
 	ApiClient.stream_mood.connect(_on_stream_mood)
@@ -119,6 +120,7 @@ func _load_character(char_data: Dictionary) -> void:
 			if loaded_history[i]["role"] == "assistant":
 				ui.show_text(_extract_msg_from_json(loaded_history[i]["content"]))
 				break
+	_try_generate_options()
 
 # ── 群聊模式：初始化 ──────────────────────────────────────────
 func _init_group_mode() -> void:
@@ -173,6 +175,7 @@ func _init_group_mode() -> void:
 				_set_speaker_by_id(r)
 				ui.show_text(_extract_msg_from_json(loaded_history[i]["content"]))
 				break
+	_try_generate_options()
 
 	# 异步预上传所有群聊角色的参考音频
 	if ConfigManager.get_value("enable_tts"):
@@ -462,6 +465,7 @@ func _on_sentence_finished() -> void:
 		ui.set_waiting_for_advance(true)
 	else:
 		ui.unlock_input()
+		_try_generate_options()
 
 func _advance() -> void:
 	ui.set_waiting_for_advance(false)
@@ -606,6 +610,61 @@ func _delete_dir_recursive(path: String) -> void:
 				DirAccess.remove_absolute(full)
 		fname = dir.get_next()
 	DirAccess.remove_absolute(path)
+
+# ── 选项生成 ──────────────────────────────────────────────────
+func _try_generate_options() -> void:
+	if not ConfigManager.get_value("enable_option_generation"):
+		return
+	if EasyAI._busy:
+		return
+	ui.show_option_buttons_loading()
+
+	# 构建上下文：取最近几条对话
+	var recent := AppState.chat_history
+	var start_idx := maxi(0, recent.size() - 6)
+	var context_lines: Array[String] = []
+	var username: String = ConfigManager.get_value("username")
+	for i in range(start_idx, recent.size()):
+		var msg := recent[i]
+		var role: String = msg.get("role", "")
+		if role == "system":
+			continue
+		var text := _extract_msg_from_json(msg.get("content", ""))
+		if role == "user":
+			context_lines.append(username + "：" + text)
+		else:
+			var char_data := _get_char_data_by_id(role)
+			var name_str: String = char_data.get("name", role) if not char_data.is_empty() else role
+			context_lines.append(name_str + "：" + text)
+
+	var system_p := "你是%s，根据当前对话上下文，生成3句你可能会说的话。\n要求：\n- 每句话一行，不加编号或符号前缀\n- 每句不超过20个字\n- 风格贴合对话语境\n- 只输出3行，不要有其他内容" % username
+	var user_p := "当前对话：\n%s\n\n请生成3句你可能会说的话：" % "\n".join(context_lines)
+
+	EasyAI.ask(system_p, user_p, func(reply: String):
+		if reply.is_empty():
+			ui.hide_option_buttons()
+			return
+		var lines := reply.split("\n", false)
+		# 过滤空行，取前3条
+		var options: Array[String] = []
+		for line in lines:
+			var trimmed := line.strip_edges()
+			if not trimmed.is_empty():
+				options.append(trimmed)
+			if options.size() >= 3:
+				break
+		while options.size() < 3:
+			options.append("…")
+		ui.fill_option_buttons(options)
+	)
+
+func _on_option_selected(text: String) -> void:
+	if text.is_empty() or text == "…" or text == "⏳":
+		return
+	if ui.is_typing() or _is_receiving or ui.is_waiting_for_advance():
+		return
+	ui.message_input.text = text
+	_on_send_pressed()
 
 # ── 导航 ──────────────────────────────────────────────────────
 func _on_back_pressed() -> void:

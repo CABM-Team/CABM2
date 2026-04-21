@@ -23,6 +23,9 @@ extends Node
 @onready var next_page_btn: Button         = $"../HistoryModal/HistoryVBox/HistoryHeader/NextPageButton"
 @onready var page_label: Label             = $"../HistoryModal/HistoryVBox/HistoryHeader/PageLabel"
 @onready var option_buttons: VBoxContainer = $"../OptionButtons"
+@onready var option_btn_1: Button = $"../OptionButtons/Option1"
+@onready var option_btn_2: Button = $"../OptionButtons/Option2"
+@onready var option_btn_3: Button = $"../OptionButtons/Option3"
 @onready var more_option_button: Button    = $"../ControlButtons/MoreOptionButton"
 @onready var tts_button: Button            = $"../ControlButtons/TTSButton"
 @onready var more_options_overlay: Control = $"../MoreOptionsOverlay"
@@ -42,6 +45,7 @@ signal advance_requested
 signal input_key_enter
 signal tts_requested(text: String)
 signal history_tts_requested(text: String, char_id: String)
+signal option_selected(text: String)
 
 # ── 历史分页 ──────────────────────────────────────────────────
 const HISTORY_PAGE_SIZE := 40
@@ -97,6 +101,10 @@ func _ready() -> void:
 	delete_btn.pressed.connect(func(): delete_confirm_requested.emit())
 	background.gui_input.connect(_on_background_input)
 	background_overlay.gui_input.connect(_on_background_input)
+
+	option_btn_1.pressed.connect(func(): option_selected.emit(option_btn_1.text))
+	option_btn_2.pressed.connect(func(): option_selected.emit(option_btn_2.text))
+	option_btn_3.pressed.connect(func(): option_selected.emit(option_btn_3.text))
 
 	character_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	character_sprite2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
@@ -440,6 +448,21 @@ func clear_input() -> void:
 
 func hide_option_buttons() -> void:
 	option_buttons.visible = false
+
+func show_option_buttons_loading() -> void:
+	option_btn_1.text = "⏳"
+	option_btn_2.text = "⏳"
+	option_btn_3.text = "⏳"
+	option_btn_1.disabled = true
+	option_btn_2.disabled = true
+	option_btn_3.disabled = true
+	option_buttons.visible = true
+
+func fill_option_buttons(options: Array) -> void:
+	var btns := [option_btn_1, option_btn_2, option_btn_3]
+	for i in 3:
+		btns[i].text = options[i] if i < options.size() else "…"
+		btns[i].disabled = false
 
 # ── 更多选项 ──────────────────────────────────────────────────
 func toggle_more_options() -> void:
