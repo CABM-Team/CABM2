@@ -65,11 +65,15 @@ func _load_values() -> void:
 	username_input.text         = ConfigManager.get_value("username")
 	var ctx_chars: int          = ConfigManager.get_value("max_context_chars")
 	max_context_slider.value    = ctx_chars
-	max_context_label.text      = "记忆最大字符数：%d" % ctx_chars
+	var v := int(ctx_chars)
+	var formatted := "%d,%03d" % [v / 1000, v % 1000] if v >= 1000 else "%d" % v
+	max_context_label.text = ("⚠"if ctx_chars>5000 else "📝")+ "记忆最大字符数：" + formatted
 	_update_slider_color(ctx_chars)
 
 func _on_max_context_changed(value: float) -> void:
-	max_context_label.text = ("⚠"if value>5000 else "" )+ "记忆最大字符数：%d" % int(value)
+	var v := int(value)
+	var formatted := "%d,%03d" % [v / 1000, v % 1000] if v >= 1000 else "%d" % v
+	max_context_label.text = ("⚠" if value > 5000 else "📝") + "记忆最大字符数：" + formatted
 	_update_slider_color(value)
 
 func _update_slider_color(value: float) -> void:
