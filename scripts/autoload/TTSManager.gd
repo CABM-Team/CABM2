@@ -31,8 +31,10 @@ func _ready() -> void:
 func request(character_id: String, character_name: String, text: String) -> void:
 	var cache_path := _cache_path(character_id, text)
 	if FileAccess.file_exists(cache_path):
+		print("[TTS缓存命中]"+text)
 		tts_done.emit(cache_path)
 		return
+	print("[TTS合成]"+text)
 	_synthesize(character_id, character_name, text, cache_path)
 
 ## 同步检查缓存是否存在

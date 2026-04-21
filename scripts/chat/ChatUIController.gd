@@ -307,6 +307,16 @@ func play_jump_animation(sprite: Sprite2D) -> void:
 	tween.tween_property(sprite, "position:y", base_y, 0.22).set_ease(Tween.EASE_IN)
 
 # ── 逐字显示 ──────────────────────────────────────────────────
+## 直接显示文本，不走逐字动画，不触发 sentence_finished 信号（用于进入时显示历史最后一句）
+func show_text_instant(text: String) -> void:
+	stop_thinking_dots()
+	_is_typing = false
+	_waiting_for_advance = false
+	_hide_continue_hint()
+	_full_text = text
+	_shown_chars = text.length()
+	dialog_text.text = text
+
 func show_text(text: String) -> void:
 	stop_thinking_dots()
 	_full_text = text

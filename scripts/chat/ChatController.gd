@@ -119,11 +119,11 @@ func _load_character(char_data: Dictionary) -> void:
 
 	var welcome: String = char_data.get("welcome", "你好！")
 	if loaded_history.is_empty():
-		ui.show_text(welcome)
+		ui.show_text_instant(welcome)
 	else:
 		for i in range(loaded_history.size() - 1, -1, -1):
 			if loaded_history[i]["role"] == "assistant":
-				ui.show_text(_extract_msg_from_json(loaded_history[i]["content"]))
+				ui.show_text_instant(_extract_msg_from_json(loaded_history[i]["content"]))
 				break
 	_try_generate_options()
 
@@ -171,14 +171,14 @@ func _init_group_mode() -> void:
 		ui.set_active_speaker(saved_speaker)
 
 	if loaded_history.is_empty():
-		ui.show_text("已创建群聊")
+		ui.show_text_instant("已创建群聊")
 	else:
 		for i in range(loaded_history.size() - 1, -1, -1):
 			var r: String = loaded_history[i].get("role", "")
 			if r != "user" and r != "system":
 				_current_tts_speaker_id = r
 				_set_speaker_by_id(r)
-				ui.show_text(_extract_msg_from_json(loaded_history[i]["content"]))
+				ui.show_text_instant(_extract_msg_from_json(loaded_history[i]["content"]))
 				break
 	_try_generate_options()
 
@@ -260,6 +260,7 @@ func _ask_ai_next_speaker() -> void:
 	if _group_turn_count >= GROUP_MAX_TURNS:
 		if not ui.is_typing() and not ui.is_waiting_for_advance() and not ui.has_queued_sentences():
 			ui.unlock_input()
+			_try_generate_options()
 		return
 
 	ui.lock_input()
@@ -809,7 +810,6 @@ func _auto_tts_prefetch(sentence: Dictionary) -> void:
 		_auto_tts_queue[idx]["audio_path"] = TTSManager._cache_path(char_id, text)
 	else:
 		_auto_tts_queue[idx]["pending"] = true
-		print(char_id, char_name, text)
 		TTSManager.request(char_id, char_name, text)
 
 ## 句子开始输出时触发（来自 sentence_started 信号）
