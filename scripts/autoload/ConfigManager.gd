@@ -28,7 +28,7 @@ var defaults := {
 	"auto_play_tts": true,
 	"enable_option_generation": true,
 	# 功能开关（用户不可见）
-	"max_history_length": 100,
+	"max_history_length": 200,
 	"enable_tts": true
 }
 

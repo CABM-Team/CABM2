@@ -19,6 +19,9 @@ extends Node
 @onready var history_modal: PanelContainer = $"../HistoryModal"
 @onready var history_list: VBoxContainer   = $"../HistoryModal/HistoryVBox/HistoryScroll/HistoryList"
 @onready var close_history_btn: Button     = $"../HistoryModal/HistoryVBox/HistoryHeader/CloseHistoryButton"
+@onready var prev_page_btn: Button         = $"../HistoryModal/HistoryVBox/HistoryHeader/PrevPageButton"
+@onready var next_page_btn: Button         = $"../HistoryModal/HistoryVBox/HistoryHeader/NextPageButton"
+@onready var page_label: Label             = $"../HistoryModal/HistoryVBox/HistoryHeader/PageLabel"
 @onready var option_buttons: VBoxContainer = $"../OptionButtons"
 @onready var more_option_button: Button    = $"../ControlButtons/MoreOptionButton"
 @onready var tts_button: Button            = $"../ControlButtons/TTSButton"
@@ -40,7 +43,14 @@ signal input_key_enter
 signal tts_requested(text: String)
 signal history_tts_requested(text: String, char_id: String)
 
-# ── 输出速度 ──────────────────────────────────────────────────
+# ── 历史分页 ──────────────────────────────────────────────────
+const HISTORY_PAGE_SIZE := 40
+var _history_page := 1
+var _history_data: Array = []
+var _history_get_char_fn: Callable
+var _history_extract_fn: Callable
+
+
 var type_speed := 0.03
 
 # ── 逐字显示状态 ──────────────────────────────────────────────
@@ -77,6 +87,8 @@ func _ready() -> void:
 	back_button.pressed.connect(func(): back_requested.emit())
 	history_button.pressed.connect(func(): history_toggle_requested.emit())
 	close_history_btn.pressed.connect(func(): history_toggle_requested.emit())
+	prev_page_btn.pressed.connect(_on_prev_page)
+	next_page_btn.pressed.connect(_on_next_page)
 	message_input.gui_input.connect(_on_input_key)
 	more_option_button.pressed.connect(func(): more_options_toggle_requested.emit())
 	tts_button.pressed.connect(_on_tts_button_pressed)
@@ -458,79 +470,104 @@ func hide_history() -> void:
 	history_modal.visible = false
 
 func refresh_history(chat_history: Array, get_char_data_fn: Callable, extract_msg_fn: Callable) -> void:
+	# 过滤掉 system 消息，缓存数据，重置到第1页
+	_history_get_char_fn = get_char_data_fn
+	_history_extract_fn = extract_msg_fn
+	_history_data = chat_history.filter(func(m): return m["role"] != "system")
+	_history_page = 1
+	_render_history_page()
+
+func _on_prev_page() -> void:
+	_history_page += 1
+	_render_history_page()
+
+func _on_next_page() -> void:
+	_history_page -= 1
+	_render_history_page()
+
+func _render_history_page() -> void:
+	var total: int = _history_data.size()
+	var total_pages: int = max(1, ceili(float(total) / HISTORY_PAGE_SIZE))
+	_history_page = clampi(_history_page, 1, total_pages)
+
+	# 第1页 = 最新的40条（末尾），第2页 = 倒数41~80条，以此类推
+	var end_idx: int = total - (_history_page - 1) * HISTORY_PAGE_SIZE
+	var start_idx: int = max(0, end_idx - HISTORY_PAGE_SIZE)
+	var page_msgs: Array = _history_data.slice(start_idx, end_idx)
+
+	# 更新翻页按钮状态
+	prev_page_btn.disabled = (_history_page >= total_pages)  # ◀ 上一页（更旧）
+	next_page_btn.disabled = (_history_page <= 1)            # ▶ 下一页（更新）
+	page_label.text = "%d" % _history_page
+
+	# 清空列表
 	for child in history_list.get_children():
 		child.queue_free()
 
-	var has_content := false
-	for msg in chat_history:
-		var role: String = msg["role"]
-		if role == "system":
-			continue
-		has_content = true
-
-		var is_user := role == "user"
-		var display_name := ""
-		var color_str := "#aaaaff"
-		var char_id := ""
-		var display_content := ""
-
-		if is_user:
-			display_name = "你"
-			color_str = "#00ffff"
-			display_content = msg["content"]
-		else:
-			if AppState.is_group_mode():
-				var cd: Dictionary = get_char_data_fn.call(role)
-				if not cd.is_empty():
-					display_name = cd.get("name", role)
-					color_str = cd.get("color", "#aaaaff")
-					char_id = cd.get("id", role)
-				else:
-					display_name = role
-					char_id = role
-			else:
-				display_name = AppState.current_character.get("name", "AI")
-				color_str = AppState.current_character.get("color", "#aaaaff")
-				char_id = AppState.current_character.get("id", "")
-			display_content = extract_msg_fn.call(msg["content"])
-
-		# 每条消息：HBox [ 按钮 | 文本 ]
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
-		
-		history_list.add_child(row)
-		history_list.add_child(HSeparator.new())
-		var btn := Button.new()
-		btn.text = "💬" if is_user else "🔊"
-		btn.flat = true
-		btn.add_theme_font_size_override("font_size",25)
-		btn.focus_mode = Control.FOCUS_NONE
-		btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		if is_user:
-			btn.disabled = true
-			btn.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		else:
-			var captured_text := display_content
-			var captured_id := char_id
-			btn.pressed.connect(func(): history_tts_requested.emit(captured_text, captured_id))
-		row.add_child(btn)
-
-		var label := RichTextLabel.new()
-		label.bbcode_enabled = true
-		label.fit_content = true
-		label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		label.text = "[color=%s]%s[/color]：%s" % [color_str, display_name, display_content]
-		row.add_child(label)
-
-	if not has_content:
+	if page_msgs.is_empty():
 		var empty := RichTextLabel.new()
 		empty.bbcode_enabled = true
 		empty.fit_content = true
 		empty.text = "[color=gray]暂无历史记录[/color]"
 		empty.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		history_list.add_child(empty)
+	else:
+		for msg in page_msgs:
+			var role: String = msg["role"]
+			var is_user := role == "user"
+			var display_name := ""
+			var color_str := "#aaaaff"
+			var char_id := ""
+			var display_content := ""
+
+			if is_user:
+				display_name = "你"
+				color_str = "#00ffff"
+				display_content = msg["content"]
+			else:
+				if AppState.is_group_mode():
+					var cd: Dictionary = _history_get_char_fn.call(role)
+					if not cd.is_empty():
+						display_name = cd.get("name", role)
+						color_str = cd.get("color", "#aaaaff")
+						char_id = cd.get("id", role)
+					else:
+						display_name = role
+						char_id = role
+				else:
+					display_name = AppState.current_character.get("name", "AI")
+					color_str = AppState.current_character.get("color", "#aaaaff")
+					char_id = AppState.current_character.get("id", "")
+				display_content = _history_extract_fn.call(msg["content"])
+
+			var row := HBoxContainer.new()
+			row.add_theme_constant_override("separation", 8)
+			history_list.add_child(row)
+			history_list.add_child(HSeparator.new())
+
+			var btn := Button.new()
+			btn.text = "💬" if is_user else "🔊"
+			btn.flat = true
+			btn.add_theme_font_size_override("font_size", 25)
+			btn.focus_mode = Control.FOCUS_NONE
+			btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+			if is_user:
+				btn.disabled = true
+				btn.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			else:
+				var captured_text := display_content
+				var captured_id := char_id
+				btn.pressed.connect(func(): history_tts_requested.emit(captured_text, captured_id))
+			row.add_child(btn)
+
+			var label := RichTextLabel.new()
+			label.bbcode_enabled = true
+			label.fit_content = true
+			label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			label.text = "[color=%s]%s[/color]：%s" % [color_str, display_name, display_content]
+			row.add_child(label)
 
 	var scroll: ScrollContainer = $"../HistoryModal/HistoryVBox/HistoryScroll"
 	await get_tree().process_frame
