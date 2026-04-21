@@ -26,6 +26,7 @@ extends Control
 @onready var username_input: LineEdit    = $MainLayout/TabContainer/聊天设置/HBoxContainer/UsernameInput
 @onready var max_context_label: Label    = $MainLayout/TabContainer/聊天设置/HBoxContainer2/LabelMaxContext
 @onready var max_context_slider: HSlider = $MainLayout/TabContainer/聊天设置/HBoxContainer2/MaxContextSlider
+@onready var auto_play_tts_button: CheckButton = $MainLayout/TabContainer/聊天设置/HBoxAutoPlayTTS/AutoPlayTTSButton
 
 # ── 底部栏 ──
 @onready var save_button: Button         = $MainLayout/BottomBar/SaveButton
@@ -69,6 +70,7 @@ func _load_values() -> void:
 	var formatted := "%d,%03d" % [v / 1000, v % 1000] if v >= 1000 else "%d" % v
 	max_context_label.text = ("⚠"if ctx_chars>5000 else "📝")+ "记忆最大字符数：" + formatted
 	_update_slider_color(ctx_chars)
+	auto_play_tts_button.button_pressed = ConfigManager.get_value("auto_play_tts")
 
 func _on_max_context_changed(value: float) -> void:
 	var v := int(value)
@@ -134,6 +136,7 @@ func _on_save() -> void:
 	var uname := username_input.text.strip_edges()
 	ConfigManager.set_value("username",          uname if not uname.is_empty() else "用户")
 	ConfigManager.set_value("max_context_chars", int(max_context_slider.value))
+	ConfigManager.set_value("auto_play_tts",     auto_play_tts_button.button_pressed)
 
 	if _is_first_run:
 		get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")

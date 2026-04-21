@@ -294,6 +294,7 @@ func show_text(text: String) -> void:
 	_waiting_for_advance = false
 	_hide_continue_hint()
 	dialog_text.text = ""
+	sentence_started.emit(text)
 	_type_next_char()
 
 func _type_next_char() -> void:
@@ -314,6 +315,7 @@ func _on_sentence_finished() -> void:
 	sentence_finished.emit()
 
 signal sentence_finished
+signal sentence_started(text: String)
 
 func set_waiting_for_advance(value: bool) -> void:
 	_waiting_for_advance = value

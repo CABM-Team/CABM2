@@ -22,13 +22,14 @@ var defaults := {
 	"tts_api_key": "",
 	"tts_api_base_url": "https://api.siliconflow.cn/v1",
 	"tts_model": "IndexTeam/IndexTTS-2",
-	# 功能开关
-	"max_history_length": 100,
-	"enable_option_generation": true,
-	"enable_tts": true,
 	# 聊天设置
 	"username": "用户",
 	"max_context_chars": 2000,
+	"auto_play_tts": true,
+	"enable_option_generation": true,
+	# 功能开关（用户不可见）
+	"max_history_length": 100,
+	"enable_tts": true
 }
 
 func _ready() -> void:

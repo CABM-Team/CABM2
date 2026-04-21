@@ -38,6 +38,13 @@ var _group_moods: Dictionary = {}
 var _current_tts_speaker_id := ""
 var _current_sentence_no_tts := false
 
+# ── 自动播放 TTS 状态 ─────────────────────────────────────────
+# 每个句子对应一条记录：{ "text": String, "no_tts": bool, "audio_path": String, "pending": bool }
+# pending=true 表示 TTS 请求已发出但尚未完成
+var _auto_tts_queue: Array[Dictionary] = []
+var _auto_tts_playing_idx := -1   # 当前正在播放/等待播放的队列索引
+var _manual_tts_pending := false  # 手动点"播放语音"按钮时置 true
+
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
 	ui.send_requested.connect(_on_send_pressed)
@@ -49,6 +56,7 @@ func _ready() -> void:
 	ui.advance_requested.connect(_advance)
 	ui.input_key_enter.connect(_on_send_pressed)
 	ui.sentence_finished.connect(_on_sentence_finished)
+	ui.sentence_started.connect(_on_sentence_started)
 
 	confirm_dialog.confirmed.connect(_on_confirm_dialog_confirmed)
 	confirm_dialog.cancelled.connect(_hide_confirm_dialog)
@@ -213,6 +221,10 @@ func _send_message(text: String) -> void:
 	_stream_display_content = ""
 	ui.clear_sentence_queue()
 	_is_receiving = true
+	_auto_tts_queue.clear()
+	_auto_tts_playing_idx = -1
+	_manual_tts_pending = false
+	audio_player.stop()
 
 	ui.start_thinking_dots()
 
@@ -361,6 +373,9 @@ func _request_group_char(char_data: Dictionary) -> void:
 	_stream_full_content = ""
 	_stream_display_content = ""
 	_is_receiving = true
+	_auto_tts_queue.clear()
+	_auto_tts_playing_idx = -1
+	audio_player.stop()
 	ui.start_thinking_dots()
 
 	var messages := PromptBuilder.build_group_messages(
@@ -387,6 +402,7 @@ func _on_stream_chunk(text: String) -> void:
 	for s in sentences:
 		if not ui.is_typing() and not ui.is_waiting_for_advance() and not ui.has_queued_sentences():
 			_current_sentence_no_tts = s.get("no_tts", false)
+		_auto_tts_prefetch(s)
 		ui.enqueue_sentence(s)
 
 func _on_stream_mood(mood: int) -> void:
@@ -406,6 +422,7 @@ func _on_stream_done() -> void:
 	_is_receiving = false
 	var sentences := SentenceSplitter.split_stream(_stream_state, "", true)
 	for s in sentences:
+		_auto_tts_prefetch(s)
 		ui.enqueue_sentence(s)
 
 	if not _stream_full_content.is_empty():
@@ -450,6 +467,9 @@ func _advance() -> void:
 	if ui.has_queued_sentences():
 		var next: Dictionary = ui.pop_next_sentence()
 		_current_sentence_no_tts = next.get("no_tts", false)
+		# 自动播放模式：停止当前播放，准备播放下一句
+		if ConfigManager.get_value("auto_play_tts") and ConfigManager.get_value("enable_tts"):
+			audio_player.stop()
 		ui.show_text(next.get("text", ""))
 		if ConfigManager.get_value("enable_tts"):
 			ui.set_tts_enabled(not _current_sentence_no_tts)
@@ -612,15 +632,29 @@ func _on_tts_requested(text: String) -> void:
 	var char_id: String = char_data.get("id", char_data.get("name", ""))
 	var char_name: String = char_data.get("name", char_id)
 	ui.set_tts_loading(true)
+	_manual_tts_pending = true
 	TTSManager.request(char_id, char_name, text)
 
 func _on_tts_done(audio_path: String) -> void:
-	ui.set_tts_loading(false)
-	var stream := _load_audio_stream(audio_path)
-	if stream == null:
-		ui.show_text("⚠ 无法加载音频文件")
+	# 手动请求优先处理
+	if _manual_tts_pending:
+		_manual_tts_pending = false
+		ui.set_tts_loading(false)
+		var stream := _load_audio_stream(audio_path)
+		if stream == null:
+			return
+		audio_player.stream = stream
+		audio_player.play()
 		return
-	audio_player.stream = stream
+	# 自动播放模式：交给队列处理
+	if ConfigManager.get_value("auto_play_tts") and ConfigManager.get_value("enable_tts"):
+		_auto_tts_on_ready(audio_path)
+		return
+	ui.set_tts_loading(false)
+	var stream2 := _load_audio_stream(audio_path)
+	if stream2 == null:
+		return
+	audio_player.stream = stream2
 	audio_player.play()
 
 func _on_tts_error(message: String) -> void:
@@ -643,3 +677,83 @@ func _load_audio_stream(path: String) -> AudioStream:
 			# WAV 需要通过 ResourceLoader 或 Image 方式，直接用 load
 			return load(path)
 	return null
+
+# ── 自动播放 TTS ──────────────────────────────────────────────
+## 每个句子入队时预发起 TTS 请求
+func _auto_tts_prefetch(sentence: Dictionary) -> void:
+	if not ConfigManager.get_value("auto_play_tts") or not ConfigManager.get_value("enable_tts"):
+		return
+	var no_tts: bool = sentence.get("no_tts", false)
+	var text: String = sentence.get("text", "")
+	var entry := {"text": text, "no_tts": no_tts, "audio_path": "", "pending": false}
+	_auto_tts_queue.append(entry)
+	var idx := _auto_tts_queue.size() - 1
+	if no_tts or text.is_empty():
+		return
+	# 获取当前发言角色
+	var char_data: Dictionary
+	if AppState.is_group_mode():
+		char_data = _get_char_data_by_id(_current_tts_speaker_id)
+	else:
+		char_data = AppState.current_character
+	if char_data.is_empty():
+		return
+	var char_id: String = char_data.get("id", char_data.get("name", ""))
+	var char_name: String = char_data.get("name", char_id)
+	# 若缓存已有，直接记录路径
+	if TTSManager.has_cache(char_id, text):
+		_auto_tts_queue[idx]["audio_path"] = TTSManager._cache_path(char_id, text)
+	else:
+		_auto_tts_queue[idx]["pending"] = true
+		print(char_id, char_name, text)
+		TTSManager.request(char_id, char_name, text)
+
+## 句子开始输出时触发（来自 sentence_started 信号）
+func _on_sentence_started(text: String) -> void:
+	if not ConfigManager.get_value("auto_play_tts") or not ConfigManager.get_value("enable_tts"):
+		return
+	# 找到对应队列项
+	for i in _auto_tts_queue.size():
+		var entry := _auto_tts_queue[i]
+		if entry["text"] == text:
+			_auto_tts_playing_idx = i
+			if entry["no_tts"]:
+				audio_player.stop()
+				return
+			if not entry["audio_path"].is_empty():
+				# 音频已就绪，立即播放
+				_auto_tts_play(entry["audio_path"])
+			# else: pending=true，等 _auto_tts_on_ready 回调
+			return
+
+## TTS 完成回调（自动播放模式）
+func _auto_tts_on_ready(audio_path: String) -> void:
+	# 找到对应队列项，填入路径
+	for i in _auto_tts_queue.size():
+		var entry := _auto_tts_queue[i]
+		if entry["pending"] and entry["audio_path"].is_empty():
+			# 通过缓存路径匹配（TTSManager 返回的就是缓存路径）
+			# 用文本反查：检查缓存路径是否匹配
+			var char_data: Dictionary
+			if AppState.is_group_mode():
+				char_data = _get_char_data_by_id(_current_tts_speaker_id)
+			else:
+				char_data = AppState.current_character
+			if char_data.is_empty():
+				return
+			var char_id: String = char_data.get("id", char_data.get("name", ""))
+			var expected_path := TTSManager._cache_path(char_id, entry["text"])
+			if expected_path == audio_path:
+				_auto_tts_queue[i]["audio_path"] = audio_path
+				_auto_tts_queue[i]["pending"] = false
+				# 如果这正是当前正在显示的句子，立即播放
+				if i == _auto_tts_playing_idx:
+					_auto_tts_play(audio_path)
+				return
+
+func _auto_tts_play(audio_path: String) -> void:
+	var stream := _load_audio_stream(audio_path)
+	if stream == null:
+		return
+	audio_player.stream = stream
+	audio_player.play()
