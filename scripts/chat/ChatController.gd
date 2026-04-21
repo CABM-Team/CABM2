@@ -45,6 +45,11 @@ var _auto_tts_queue: Array[Dictionary] = []
 var _auto_tts_playing_idx := -1   # 当前正在播放/等待播放的队列索引
 var _manual_tts_pending := false  # 手动点"播放语音"按钮时置 true
 
+# ── 历史记录 TTS 分句队列 ─────────────────────────────────────
+var _history_tts_queue: Array[String] = []
+var _history_tts_char_id := ""
+var _history_tts_char_name := ""
+
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
 	ui.send_requested.connect(_on_send_pressed)
@@ -687,8 +692,31 @@ func _on_history_tts_requested(text: String, char_id: String) -> void:
 	if char_data.is_empty():
 		return
 	var char_name: String = char_data.get("name", char_id)
+
+	# 先过分句器，确保与流式接收时的缓存 key 一致
+	var state := SentenceSplitter.StreamState.new()
+	var sentences := SentenceSplitter.split_stream(state, text, true)
+	var texts: Array[String] = []
+	for s in sentences:
+		var t: String = s.get("text", "")
+		if not t.is_empty() and not s.get("no_tts", false):
+			texts.append(t)
+
+	if texts.is_empty():
+		return
+
+	# 串行播放：播完一句再请求下一句（缓存命中时几乎无延迟）
 	_manual_tts_pending = true
-	TTSManager.request(char_id, char_name, text)
+	_history_tts_queue = texts
+	_history_tts_char_id = char_id
+	_history_tts_char_name = char_name
+	TTSManager.request(char_id, char_name, texts[0])
+
+func _on_history_tts_sentence_finished() -> void:
+	if _history_tts_queue.is_empty():
+		return
+	_manual_tts_pending = true
+	TTSManager.request(_history_tts_char_id, _history_tts_char_name, _history_tts_queue[0])
 
 func _on_tts_requested(text: String) -> void:
 	if text.is_empty() or _current_sentence_no_tts:
@@ -716,6 +744,11 @@ func _on_tts_done(audio_path: String) -> void:
 			return
 		audio_player.stream = stream
 		audio_player.play()
+		# 历史 TTS：等播完再请求下一句
+		if not _history_tts_queue.is_empty():
+			_history_tts_queue.pop_front()
+			if not _history_tts_queue.is_empty()and not audio_player.finished.is_connected(_on_history_tts_sentence_finished):
+				audio_player.finished.connect(_on_history_tts_sentence_finished, CONNECT_ONE_SHOT)
 		return
 	# 自动播放模式：交给队列处理
 	if ConfigManager.get_value("auto_play_tts") and ConfigManager.get_value("enable_tts"):
