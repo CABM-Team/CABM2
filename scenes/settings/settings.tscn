@@ -1,6 +1,7 @@
-[gd_scene load_steps=9 format=3 uid="uid://settings"]
+[gd_scene load_steps=10 format=3 uid="uid://settings"]
 
 [ext_resource type="Script" uid="uid://bgh3iibcfa8h0" path="res://scripts/settings/SettingsController.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/common/confirm_dialog.tscn" id="10_confirm"]
 [ext_resource type="Texture2D" uid="uid://biblym0268v4b" path="res://assets/backgrounds/sr-6.png" id="2_vu5fi"]
 [ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="3_tt6xx"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4_1slea"]
@@ -348,3 +349,10 @@ text = "生成回复选项"
 [node name="OptionGenButton" type="CheckButton" parent="MainLayout/TabContainer/聊天设置/HBoxOptionGen"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
+
+[node name="ConfirmDialog" parent="." instance=ExtResource("10_confirm")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false

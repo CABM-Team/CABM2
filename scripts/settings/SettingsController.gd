@@ -34,8 +34,10 @@ extends Control
 @onready var back_button: Button         = $MainLayout/BottomBar/BackButton
 @onready var skip_button: Button         = $MainLayout/BottomBar/SkipButton
 @onready var status_label: Label         = $MainLayout/BottomBar/StatusLabel
+@onready var confirm_dialog: Control     = $ConfirmDialog
 
 var _is_first_run := false
+var _saved_snapshot := {}
 
 func _ready() -> void:
 	_is_first_run = ConfigManager.is_first_run()
@@ -50,6 +52,7 @@ func _ready() -> void:
 	max_context_slider.value_changed.connect(_on_max_context_changed)
 
 	_load_values()
+	_saved_snapshot = _take_snapshot()
 
 func _load_values() -> void:
 	chat_key_input.text   = ConfigManager.get_value("chat_api_key")
@@ -144,6 +147,7 @@ func _on_save() -> void:
 	if _is_first_run:
 		get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 	else:
+		_saved_snapshot = _take_snapshot()
 		status_label.text = "✓ 已保存"
 		await get_tree().create_timer(3.0).timeout
 		status_label.text = ""
@@ -153,4 +157,32 @@ func _on_skip() -> void:
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 
 func _on_back() -> void:
+	if _has_unsaved_changes():
+		confirm_dialog.show_dialog("放弃未保存的更改？")
+		if not confirm_dialog.confirmed.is_connected(_go_back):
+			confirm_dialog.confirmed.connect(_go_back, CONNECT_ONE_SHOT)
+	else:
+		_go_back()
+
+func _go_back() -> void:
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
+
+func _take_snapshot() -> Dictionary:
+	return {
+		"chat_key":   chat_key_input.text,
+		"chat_url":   chat_url_input.text,
+		"chat_model": chat_model_input.text,
+		"opt_key":    opt_key_input.text,
+		"opt_url":    opt_url_input.text,
+		"opt_model":  opt_model_input.text,
+		"tts_key":    tts_key_input.text,
+		"tts_url":    tts_url_input.text,
+		"tts_model":  tts_model_input.text,
+		"username":   username_input.text,
+		"max_ctx":    int(max_context_slider.value),
+		"auto_tts":   auto_play_tts_button.button_pressed,
+		"option_gen": option_gen_button.button_pressed,
+	}
+
+func _has_unsaved_changes() -> bool:
+	return _take_snapshot() != _saved_snapshot
