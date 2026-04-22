@@ -7,7 +7,7 @@ extends RefCounted
 ## 对消息数组进行字符数截断，保留 system 消息，从最旧的非 system 消息开始丢弃
 ## 直到总字符数 <= max_context_chars（从 ConfigManager 读取）
 static func _trim_to_limit(messages: Array[Dictionary]) -> Array[Dictionary]:
-	var MAX_CONTEXT_CHARS: int = ConfigManager.get_value("max_context_chars")
+	var MAX_CONTEXT_CHARS: int = ConfigManager.get_effective_value("max_context_chars")
 	var total := 0
 	for msg in messages:
 		total += (msg.get("content", "") as String).length()
@@ -86,7 +86,7 @@ static func build_group_messages(
 
 	# 构建其他角色名字列表（包含用户名）
 	var other_names: Array[String] = []
-	other_names.append(ConfigManager.get_value("username"))
+	other_names.append(ConfigManager.get_effective_value("username"))
 	for c in all_chars:
 		if c.get("id", "") != speaking_id:
 			other_names.append(c.get("name", c.get("id", "")))
@@ -123,7 +123,7 @@ static func build_group_messages(
 			# user 输入或其他角色发言，都归入 user 侧
 			var display_name := _role_display_name(role, all_chars)
 			if role == "user":
-				pending_user_lines.append(ConfigManager.get_value("username") + "：" + content)
+				pending_user_lines.append(ConfigManager.get_effective_value("username") + "：" + content)
 			else:
 				# 其他角色的发言，从 JSON 中提取 msg 字段
 				var msg_text := _extract_msg(content)
@@ -151,7 +151,7 @@ static func _extract_msg(json_str: String) -> String:
 ## 根据 role 获取显示名（user → 用户名，角色 id → 角色名）
 static func _role_display_name(role: String, all_chars: Array[Dictionary]) -> String:
 	if role == "user":
-		return ConfigManager.get_value("username")
+		return ConfigManager.get_effective_value("username")
 	for c in all_chars:
 		if c.get("id", "") == role:
 			return c.get("name", role)

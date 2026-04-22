@@ -1,5 +1,9 @@
 temp/
 CABM/
+*.jks
+encrypt_key.py
+BuiltinKeyManager.gd
+BuiltinKeyManager.gd.uid
 # Godot 生成的临时文件
 .godot/
 imported/

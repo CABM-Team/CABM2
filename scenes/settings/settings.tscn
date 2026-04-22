@@ -134,6 +134,19 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
+[node name="BuiltinKeyRow" type="HBoxContainer" parent="MainLayout/TabContainer/API设置/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="LabelBuiltinKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox/BuiltinKeyRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "🔑 使用内置密钥（免费但功能受限）"
+
+[node name="BuiltinKeyToggle" type="CheckButton" parent="MainLayout/TabContainer/API设置/VBox/BuiltinKeyRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+
 [node name="FirstRunSection" type="VBoxContainer" parent="MainLayout/TabContainer/API设置/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8

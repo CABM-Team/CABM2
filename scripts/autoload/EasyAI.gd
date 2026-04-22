@@ -22,9 +22,9 @@ func ask(system_prompt: String, user_prompt: String, on_done: Callable) -> void:
 		on_done.call("")
 		return
 
-	var api_key: String = ConfigManager.get_value("option_api_key")
-	var base_url: String = ConfigManager.get_value("option_api_base_url")
-	var model: String = ConfigManager.get_value("option_model")
+	var api_key: String = ConfigManager.get_effective_value("option_api_key")
+	var base_url: String = ConfigManager.get_effective_value("option_api_base_url")
+	var model: String = ConfigManager.get_effective_value("option_model")
 
 	# 如果 option_api_key 未配置
 	if api_key.is_empty():

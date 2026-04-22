@@ -47,7 +47,7 @@ func set_group(group_data: Dictionary, characters: Array[Dictionary]) -> void:
 ## role 可以是 "user" / "system" / <character_id>
 func add_message(role: String, content: String) -> void:
 	chat_history.append({"role": role, "content": content})
-	var max_len: int = ConfigManager.get_value("max_history_length")
+	var max_len: int = ConfigManager.get_effective_value("max_history_length")
 	# 保留 system 消息，裁剪超出部分
 	var system_msgs: Array[Dictionary] = []
 	var other_msgs: Array[Dictionary] = []

@@ -89,7 +89,7 @@ func _load_character(char_data: Dictionary) -> void:
 
 	# 异步确保参考音频已上传（不阻塞界面）
 	var char_id: String = char_data.get("id", char_data.get("name", ""))
-	if not char_id.is_empty() and ConfigManager.get_value("enable_tts"):
+	if not char_id.is_empty() and ConfigManager.get_effective_value("enable_tts"):
 		VoiceUploadManager.ensure_voice_uploaded(char_id, func(uri: String, error: String):
 			if not error.is_empty():
 				print("[TTS] 参考音频上传失败：", error)
@@ -179,7 +179,7 @@ func _init_group_mode() -> void:
 	_try_generate_options()
 
 	# 异步预上传所有群聊角色的参考音频
-	if ConfigManager.get_value("enable_tts"):
+	if ConfigManager.get_effective_value("enable_tts"):
 		for c in chars:
 			var cid: String = c.get("id", "")
 			if not cid.is_empty():
@@ -303,7 +303,7 @@ func _ask_ai_next_speaker() -> void:
 		var text := PromptBuilder._extract_msg(msg.get("content", ""))
 		var display_name := ""
 		if role == "user":
-			display_name = "user(%s)" % ConfigManager.get_value("username")
+			display_name = "user(%s)" % ConfigManager.get_effective_value("username")
 		else:
 			var char_data := _get_char_data_by_id(role)
 			if not char_data.is_empty():
@@ -440,7 +440,7 @@ func _on_stream_done() -> void:
 			AppState.add_message("assistant", _stream_full_content)
 			_save_history()
 
-	if ConfigManager.get_value("enable_tts") and not _current_sentence_no_tts:
+	if ConfigManager.get_effective_value("enable_tts") and not _current_sentence_no_tts:
 		ui.set_tts_enabled(true)
 
 	if not ui.is_typing() and not ui.is_waiting_for_advance() and not ui.has_queued_sentences():
@@ -475,10 +475,10 @@ func _advance() -> void:
 		var next: Dictionary = ui.pop_next_sentence()
 		_current_sentence_no_tts = next.get("no_tts", false)
 		# 自动播放模式：停止当前播放，准备播放下一句
-		if ConfigManager.get_value("auto_play_tts") and ConfigManager.get_value("enable_tts"):
+		if ConfigManager.get_effective_value("auto_play_tts") and ConfigManager.get_effective_value("enable_tts"):
 			audio_player.stop()
 		ui.show_text(next.get("text", ""))
-		if ConfigManager.get_value("enable_tts"):
+		if ConfigManager.get_effective_value("enable_tts"):
 			ui.set_tts_enabled(not _current_sentence_no_tts)
 	elif not _is_receiving and not _group_reply_queue.is_empty():
 		_dispatch_next_group_char()
@@ -624,7 +624,7 @@ func _delete_dir_recursive(path: String) -> void:
 
 # ── 选项生成 ──────────────────────────────────────────────────
 func _try_generate_options() -> void:
-	if not ConfigManager.get_value("enable_option_generation"):
+	if not ConfigManager.get_effective_value("enable_option_generation"):
 		return
 	if EasyAI._busy:
 		return
@@ -634,7 +634,7 @@ func _try_generate_options() -> void:
 	var recent := AppState.chat_history
 	var start_idx := maxi(0, recent.size() - 6)
 	var context_lines: Array[String] = []
-	var username: String = ConfigManager.get_value("username")
+	var username: String = ConfigManager.get_effective_value("username")
 	for i in range(start_idx, recent.size()):
 		var msg := recent[i]
 		var role: String = msg.get("role", "")
@@ -728,7 +728,7 @@ func _on_tts_done(audio_path: String) -> void:
 		audio_player.play()
 		return
 	# 自动播放模式：交给队列处理
-	if ConfigManager.get_value("auto_play_tts") and ConfigManager.get_value("enable_tts"):
+	if ConfigManager.get_effective_value("auto_play_tts") and ConfigManager.get_effective_value("enable_tts"):
 		_auto_tts_on_ready(audio_path)
 		return
 	ui.set_tts_loading(false)
@@ -762,7 +762,7 @@ func _load_audio_stream(path: String) -> AudioStream:
 # ── 自动播放 TTS ──────────────────────────────────────────────
 ## 每个句子入队时预发起 TTS 请求
 func _auto_tts_prefetch(sentence: Dictionary) -> void:
-	if not ConfigManager.get_value("auto_play_tts") or not ConfigManager.get_value("enable_tts"):
+	if not ConfigManager.get_effective_value("auto_play_tts") or not ConfigManager.get_effective_value("enable_tts"):
 		return
 	var no_tts: bool = sentence.get("no_tts", false)
 	var text: String = sentence.get("text", "")
@@ -789,7 +789,7 @@ func _auto_tts_prefetch(sentence: Dictionary) -> void:
 
 ## 句子开始输出时触发（来自 sentence_started 信号）
 func _on_sentence_started(text: String) -> void:
-	if not ConfigManager.get_value("auto_play_tts") or not ConfigManager.get_value("enable_tts"):
+	if not ConfigManager.get_effective_value("auto_play_tts") or not ConfigManager.get_effective_value("enable_tts"):
 		return
 	# 找到对应队列项
 	for i in _auto_tts_queue.size():

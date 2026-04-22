@@ -56,18 +56,18 @@ func _apply_text_injection(original_text: String) -> String:
 
 # ── 合成请求 ──────────────────────────────────────────────────
 func _synthesize(character_id: String, text: String, cache_path: String) -> void:
-	var tts_url_base: String = ConfigManager.get_value("tts_api_base_url")
+	var tts_url_base: String = ConfigManager.get_effective_value("tts_api_base_url")
 	if tts_url_base.is_empty():
 		return  # 未配置 URL，静默跳过
 
-	var api_key: String = ConfigManager.get_value("tts_api_key")
+	var api_key: String = ConfigManager.get_effective_value("tts_api_key")
 	if api_key.is_empty():
-		api_key = ConfigManager.get_value("chat_api_key")
+		api_key = ConfigManager.get_effective_value("chat_api_key")
 	if api_key.is_empty():
 		tts_error.emit("未配置 TTS API Key")
 		return
 
-	var model: String = ConfigManager.get_value("tts_model")
+	var model: String = ConfigManager.get_effective_value("tts_model")
 
 	# 使用已上传的参考音频 URI
 	var voice_uri := VoiceUploadManager.get_cached_uri(character_id)

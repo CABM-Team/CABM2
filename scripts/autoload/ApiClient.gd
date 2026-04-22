@@ -42,9 +42,9 @@ func _ready() -> void:
 ## 发送聊天请求
 ## messages: 已构建好的消息数组（由 PromptBuilder 处理）
 func chat_completion(messages: Array[Dictionary]) -> void:
-	var api_key: String = ConfigManager.get_value("chat_api_key")
-	var base_url: String = ConfigManager.get_value("chat_api_base_url")
-	var model: String = ConfigManager.get_value("chat_model")
+	var api_key: String = ConfigManager.get_effective_value("chat_api_key")
+	var base_url: String = ConfigManager.get_effective_value("chat_api_base_url")
+	var model: String = ConfigManager.get_effective_value("chat_model")
 
 	if api_key.is_empty():
 		stream_error.emit("未配置 API Key，请先在设置中填写。")

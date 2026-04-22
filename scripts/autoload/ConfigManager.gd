@@ -29,7 +29,9 @@ var defaults := {
 	"enable_option_generation": true,
 	# 功能开关（用户不可见）
 	"max_history_length": 200,
-	"enable_tts": true
+	"enable_tts": true,
+	# 内置密钥
+	"use_builtin_key": false
 }
 
 func _ready() -> void:
@@ -57,3 +59,21 @@ func is_configured() -> bool:
 ## 是否首次运行（从未保存过 chat_api_key）
 func is_first_run() -> bool:
 	return not _config.has_section_key("app", "chat_api_key")
+
+## 获取有效值：若启用内置密钥，对 API key / URL / model / max_context_chars 返回内置值
+func get_effective_value(key: String) -> Variant:
+	if get_value("use_builtin_key"):
+		match key:
+			"chat_api_key", "option_api_key", "tts_api_key":
+				return BuiltinKeyManager.get_builtin_key()
+			"chat_api_base_url", "option_api_base_url", "tts_api_base_url":
+				return defaults["chat_api_base_url"]
+			"chat_model":
+				return defaults["chat_model"]
+			"option_model":
+				return defaults["option_model"]
+			"tts_model":
+				return defaults["tts_model"]
+			"max_context_chars":
+				return 2000
+	return get_value(key)

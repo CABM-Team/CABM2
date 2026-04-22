@@ -554,7 +554,7 @@ func _render_history_page() -> void:
 			var display_content := ""
 
 			if is_user:
-				display_name = ConfigManager.get_value("username")
+				display_name = ConfigManager.get_effective_value("username")
 				color_str = "#00ffff"
 				display_content = msg["content"]
 			else:

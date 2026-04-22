@@ -32,6 +32,7 @@ VoiceUploadManager="*res://scripts/autoload/VoiceUploadManager.gd"
 TTSManager="*res://scripts/autoload/TTSManager.gd"
 AppInfo="*res://scripts/autoload/AppInfo.gd"
 UUIDUtil="*res://scripts/autoload/UUIDUtil.gd"
+BuiltinKeyManager="*res://scripts/autoload/BuiltinKeyManager.gd"
 
 [debug]
 

@@ -3,6 +3,9 @@
 
 extends Control
 
+# ── 内置密钥 ──
+@onready var builtin_key_toggle: CheckButton = $MainLayout/TabContainer/API设置/VBox/BuiltinKeyRow/BuiltinKeyToggle
+
 # ── 快速填充密钥 ──
 @onready var master_key_input: LineEdit  = $MainLayout/TabContainer/API设置/VBox/FirstRunSection/MasterKeyRow/MasterKeyInput
 @onready var fill_all_button: Button     = $MainLayout/TabContainer/API设置/VBox/FirstRunSection/MasterKeyRow/FillAllButton
@@ -51,6 +54,7 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back)
 	skip_button.pressed.connect(_on_skip)
 	max_context_slider.value_changed.connect(_on_max_context_changed)
+	builtin_key_toggle.toggled.connect(_on_builtin_key_toggled)
 
 	_load_values()
 	_saved_snapshot = _take_snapshot()
@@ -58,6 +62,8 @@ func _ready() -> void:
 	data_cache_tab.confirm_dialog = confirm_dialog
 
 func _load_values() -> void:
+	builtin_key_toggle.button_pressed = ConfigManager.get_value("use_builtin_key")
+
 	chat_key_input.text   = ConfigManager.get_value("chat_api_key")
 	chat_url_input.text   = ConfigManager.get_value("chat_api_base_url")
 	chat_model_input.text = ConfigManager.get_value("chat_model")
@@ -79,6 +85,7 @@ func _load_values() -> void:
 	_update_slider_color(ctx_chars)
 	auto_play_tts_button.button_pressed = ConfigManager.get_value("auto_play_tts")
 	option_gen_button.button_pressed    = ConfigManager.get_value("enable_option_generation")
+	_on_builtin_key_toggled(builtin_key_toggle.button_pressed)
 
 func _on_max_context_changed(value: float) -> void:
 	var v := int(value)
@@ -126,11 +133,13 @@ func _on_fill_all() -> void:
 	tts_key_input.text  = key
 
 func _on_save() -> void:
+	var use_builtin := builtin_key_toggle.button_pressed
 	var chat_key := chat_key_input.text.strip_edges()
-	if chat_key.is_empty():
+	if not use_builtin and chat_key.is_empty():
 		status_label.text = "⚠ 对话 API Key 不能为空"
 		return
 
+	ConfigManager.set_value("use_builtin_key",    use_builtin)
 	ConfigManager.set_value("chat_api_key",       chat_key)
 	ConfigManager.set_value("chat_api_base_url",  chat_url_input.text.strip_edges())
 	ConfigManager.set_value("chat_model",         chat_model_input.text.strip_edges())
@@ -156,6 +165,7 @@ func _on_save() -> void:
 		status_label.text = ""
 
 func _on_skip() -> void:
+	ConfigManager.set_value("use_builtin_key", false)
 	ConfigManager.set_value("chat_api_key", "")
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 
@@ -172,6 +182,7 @@ func _go_back() -> void:
 
 func _take_snapshot() -> Dictionary:
 	return {
+		"use_builtin": builtin_key_toggle.button_pressed,
 		"chat_key":   chat_key_input.text,
 		"chat_url":   chat_url_input.text,
 		"chat_model": chat_model_input.text,
@@ -196,3 +207,23 @@ func _set_status(msg: String) -> void:
 		if status_label.text == msg:
 			status_label.text = ""
 	)
+
+func _on_builtin_key_toggled(enabled: bool) -> void:
+	# 禁用/启用所有 API 输入框
+	var inputs := [
+		master_key_input, fill_all_button,
+		chat_key_input, chat_url_input, chat_model_input,
+		opt_key_input, opt_url_input, opt_model_input,
+		tts_key_input, tts_url_input, tts_model_input,
+	]
+	for node in inputs:
+		if node is Button:
+			node.disabled = enabled
+		elif node is LineEdit:
+			node.editable = not enabled
+	# 内置密钥时上下文限制为 2000
+	if enabled:
+		max_context_slider.value = 2000
+		max_context_slider.editable = false
+	else:
+		max_context_slider.editable = true

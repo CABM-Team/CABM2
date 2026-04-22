@@ -63,9 +63,9 @@ func ensure_voice_uploaded(character_id: String, callback: Callable) -> void:
 		callback.call("", "无法读取参考音频文件")
 		return
 
-	var api_key: String = ConfigManager.get_value("tts_api_key")
+	var api_key: String = ConfigManager.get_effective_value("tts_api_key")
 	if api_key.is_empty():
-		api_key = ConfigManager.get_value("chat_api_key")
+		api_key = ConfigManager.get_effective_value("chat_api_key")
 	if api_key.is_empty():
 		callback.call("", "未配置 TTS API Key")
 		return
@@ -74,7 +74,7 @@ func ensure_voice_uploaded(character_id: String, callback: Callable) -> void:
 
 # ── URL 构建 ──────────────────────────────────────────────────
 func _upload_url() -> String:
-	var base: String = ConfigManager.get_value("tts_api_base_url")
+	var base: String = ConfigManager.get_effective_value("tts_api_base_url")
 	return base.rstrip("/") + "/uploads/audio/voice"
 
 # ── 文件查找 ──────────────────────────────────────────────────
@@ -114,7 +114,7 @@ func _upload_audio(
 	var http := HTTPRequest.new()
 	add_child(http)
 
-	var model: String = ConfigManager.get_value("tts_model")
+	var model: String = ConfigManager.get_effective_value("tts_model")
 	var boundary := "----GodotBoundary%d" % randi()
 	var filename := audio_path.get_file()
 	var mime := _get_mime(filename)
