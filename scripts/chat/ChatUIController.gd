@@ -618,7 +618,7 @@ func _render_history_page() -> void:
 					btn.focus_mode = Control.FOCUS_NONE
 					btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 					if s_no_tts:
-						btn.text = "🔊"
+						btn.text = "💭"
 						btn.disabled = true
 					else:
 						btn.text = "🔊"

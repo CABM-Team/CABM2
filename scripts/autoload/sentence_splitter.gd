@@ -46,141 +46,115 @@ static func _split_chunk(chunk_text: String, is_in_paren: bool) -> Array:
 	if buffer.is_empty():
 		return []
 	
-	var last_ellipsis_pos = -1  # 用于记录当前处理过程中的上一个省略号位置
+	var last_ellipsis_pos = -1
 
 	while not buffer.is_empty():
 		var earliest_pos = -1
-		var found_punct_type = ""  # "normal", "ellipsis"
-		var found_left_paren = false
-		var found_right_paren = false
+		var found_type = ""  # "normal", "ellipsis", "left_paren", "right_paren"
 		
-		# 括号优先级最高：先查找括号
-		# 查找左括号
-		for paren_char in ALL_LEFT_PARENS:
-			var l_pos = buffer.find(paren_char)
-			if l_pos != -1 and (earliest_pos == -1 or l_pos < earliest_pos):
-				earliest_pos = l_pos
-				found_left_paren = true
-				found_punct_type = ""
-		
-		# 查找右括号
-		for paren_char in ALL_RIGHT_PARENS:
-			var r_pos = buffer.find(paren_char)
-			if r_pos != -1 and (earliest_pos == -1 or r_pos < earliest_pos):
-				earliest_pos = r_pos
-				found_right_paren = true
-				found_punct_type = ""
-		
-		# 如果没有找到括号，再查找省略号
-		if not found_left_paren and not found_right_paren:
-			var ellipsis_pos = buffer.find(ELLIPSIS)
-			if ellipsis_pos != -1 and (earliest_pos == -1 or ellipsis_pos < earliest_pos):
-				earliest_pos = ellipsis_pos
-				found_punct_type = "ellipsis"
-		
-		# 如果没有找到括号和省略号，再查找普通标点
-		if not found_left_paren and not found_right_paren and found_punct_type != "ellipsis":
-			for punct in CHINESE_PUNCTUATION:
-				var pos = buffer.find(punct)
+		# 1. 查找最早的左括号（如果不在括号内）
+		if not is_in_paren:
+			for paren_char in ALL_LEFT_PARENS:
+				var pos = buffer.find(paren_char)
 				if pos != -1 and (earliest_pos == -1 or pos < earliest_pos):
 					earliest_pos = pos
-					found_punct_type = "normal"
+					found_type = "left_paren"
 		
-		var sentence_text = ""
+		# 2. 查找最早的右括号（如果在括号内）
+		if is_in_paren:
+			for paren_char in ALL_RIGHT_PARENS:
+				var pos = buffer.find(paren_char)
+				if pos != -1 and (earliest_pos == -1 or pos < earliest_pos):
+					earliest_pos = pos
+					found_type = "right_paren"
+		
+		# 3. 查找普通标点
+		for punct in CHINESE_PUNCTUATION:
+			var pos = buffer.find(punct)
+			if pos != -1 and (earliest_pos == -1 or pos < earliest_pos):
+				earliest_pos = pos
+				found_type = "normal"
+		
+		# 4. 查找省略号
+		var ellipsis_pos = buffer.find(ELLIPSIS)
+		if ellipsis_pos != -1 and (earliest_pos == -1 or ellipsis_pos < earliest_pos):
+			earliest_pos = ellipsis_pos
+			found_type = "ellipsis"
+		
+		# 5. 如果没有找到任何切分点，整段就是一句
 		if earliest_pos == -1:
-			# 如果没有找到任何切分点，整个剩余部分就是一句话
-			sentence_text = buffer
-			buffer = "" # 清空 buffer
-		else:
-			# 找到了切分点，根据类型处理
-			if found_left_paren:
-				# 遇到左括号：立即切分括号之前的内容
-				sentence_text = buffer.substr(0, earliest_pos).strip_edges()
-				buffer = buffer.substr(earliest_pos)  # 保留左括号，让外层括号处理逻辑处理
-				if not sentence_text.is_empty():
-					var result_text = sentence_text
-					if is_in_paren:
-						result_text = LEFT_PAREN_CN + sentence_text + RIGHT_PAREN_CN
-					sentences.append({"text": result_text, "no_tts": is_in_paren})
-				# 这里不继续处理，跳出循环让外层括号处理逻辑处理括号内容
-				break
-				
-			elif found_right_paren:
-				# 遇到右括号：立即切分括号之前的内容（包括右括号？）
-				# 注意：右括号本身不应该被包含在句子中
-				sentence_text = buffer.substr(0, earliest_pos).strip_edges()
-				buffer = buffer.substr(earliest_pos + 1)  # 跳过右括号
-				if not sentence_text.is_empty():
-					var result_text = sentence_text
-					if is_in_paren:
-						# 如果是在括号内，这里不应该再添加括号，因为外层会处理
-						pass
-					sentences.append({"text": result_text, "no_tts": is_in_paren})
-				last_ellipsis_pos = -1
-				
-			elif found_punct_type == "ellipsis":
-				# 处理省略号：根据规则决定是否切分
-				var before_text = buffer.substr(0, earliest_pos)
-				var before_len = before_text.length()
-				
-				# 计算从上一个省略号到当前省略号之间的字数
-				var chars_since_last_ellipsis = before_len
-				if last_ellipsis_pos != -1:
-					chars_since_last_ellipsis = before_len - last_ellipsis_pos - ELLIPSIS.length()
-				
-				# 判断是否需要切分
-				var should_split = false
-				if before_len > ELLIPSIS_MAX_LENGTH:
-					# 当前句子字数超过30，强制分割
-					should_split = true
-				elif last_ellipsis_pos == -1:
-					# 第一个省略号，如果前面内容不为空，且超过最小间隔，则切分
-					if before_len > ELLIPSIS_MIN_INTERVAL:
-						should_split = true
-				elif chars_since_last_ellipsis > ELLIPSIS_MIN_INTERVAL:
-					# 距离上一个省略号超过6字，切分
-					should_split = true
-				
-				if should_split:
-					# 切分：将省略号及之前的内容作为一句
-					var end_pos = earliest_pos + ELLIPSIS.length()
-					sentence_text = buffer.substr(0, end_pos)
-					buffer = buffer.substr(end_pos)
-					last_ellipsis_pos = -1  # 重置，因为已经切分出去了
-				else:
-					# 不切分：跳过这个省略号，继续找下一个切分点
-					# 将省略号视为普通文本，继续处理
-					var next_pos = _find_next_split_point(buffer, earliest_pos + ELLIPSIS.length())
-					if next_pos == -1:
-						# 没有更多切分点，整个剩余部分作为一句
-						sentence_text = buffer
-						buffer = ""
-					else:
-						sentence_text = buffer.substr(0, next_pos)
-						buffer = buffer.substr(next_pos)
-						last_ellipsis_pos = -1  # 重置
-			else:
-				# 处理普通标点：包含连续的标点，以最后一个为准
-				var end_pos = earliest_pos + 1
-				# 检查并包含连续的标点符号
-				while end_pos < buffer.length() and buffer[end_pos] in CHINESE_PUNCTUATION:
-					end_pos += 1
-				
-				sentence_text = buffer.substr(0, end_pos)
-				buffer = buffer.substr(end_pos)
-				last_ellipsis_pos = -1  # 重置，因为普通标点切分会重置省略号计数
-
-		if not sentence_text.is_empty():
-			sentence_text = sentence_text.strip_edges()
+			var final_text = buffer
+			if is_in_paren:
+				final_text = LEFT_PAREN_CN + final_text + RIGHT_PAREN_CN
+			sentences.append({"text": final_text, "no_tts": is_in_paren})
+			break
+		
+		# 6. 根据类型切分
+		var sentence_text = ""
+		if found_type == "left_paren":
+			sentence_text = buffer.substr(0, earliest_pos).strip_edges()
 			if not sentence_text.is_empty():
-				var result_text = sentence_text
-				# 如果是在括号内，根据规则用括号包裹句子
+				var out_text = sentence_text
 				if is_in_paren:
-					# 输出时统一使用中文括号
-					result_text = LEFT_PAREN_CN + sentence_text + RIGHT_PAREN_CN
-				
-				sentences.append({"text": result_text, "no_tts": is_in_paren})
-
+					out_text = LEFT_PAREN_CN + sentence_text + RIGHT_PAREN_CN
+				sentences.append({"text": out_text, "no_tts": is_in_paren})
+			# 保留括号内容交给外层处理
+			buffer = buffer.substr(earliest_pos)
+			break
+		
+		elif found_type == "right_paren":
+			sentence_text = buffer.substr(0, earliest_pos).strip_edges()
+			if not sentence_text.is_empty():
+				sentences.append({"text": LEFT_PAREN_CN + sentence_text + RIGHT_PAREN_CN, "no_tts": true})
+			buffer = buffer.substr(earliest_pos + 1)
+			last_ellipsis_pos = -1
+		
+		elif found_type == "normal":
+			var end_pos = earliest_pos + 1
+			while end_pos < buffer.length() and buffer[end_pos] in CHINESE_PUNCTUATION:
+				end_pos += 1
+			sentence_text = buffer.substr(0, end_pos).strip_edges()
+			buffer = buffer.substr(end_pos)
+			last_ellipsis_pos = -1
+		
+		elif found_type == "ellipsis":
+			var before_text = buffer.substr(0, earliest_pos)
+			var before_len = before_text.length()
+			var chars_since_last_ellipsis = before_len
+			if last_ellipsis_pos != -1:
+				chars_since_last_ellipsis = before_len - last_ellipsis_pos - ELLIPSIS.length()
+			
+			var should_split = false
+			if before_len > ELLIPSIS_MAX_LENGTH:
+				should_split = true
+			elif last_ellipsis_pos == -1 and before_len > ELLIPSIS_MIN_INTERVAL:
+				should_split = true
+			elif chars_since_last_ellipsis > ELLIPSIS_MIN_INTERVAL:
+				should_split = true
+			
+			if should_split:
+				var end_pos = earliest_pos + ELLIPSIS.length()
+				sentence_text = buffer.substr(0, end_pos).strip_edges()
+				buffer = buffer.substr(end_pos)
+				last_ellipsis_pos = -1
+			else:
+				# 不切分，把省略号当普通文本，继续到下一个标点
+				var next_pos = _find_next_split_point(buffer, earliest_pos + ELLIPSIS.length())
+				if next_pos == -1:
+					sentence_text = buffer
+					buffer = ""
+				else:
+					sentence_text = buffer.substr(0, next_pos).strip_edges()
+					buffer = buffer.substr(next_pos)
+				last_ellipsis_pos = -1
+		
+		# 7. 添加到结果
+		if not sentence_text.is_empty():
+			var out_text = sentence_text
+			if is_in_paren:
+				out_text = LEFT_PAREN_CN + sentence_text + RIGHT_PAREN_CN
+			sentences.append({"text": out_text, "no_tts": is_in_paren})
+	
 	return sentences
 
 # 查找下一个有效的切分点（普通标点或省略号）
