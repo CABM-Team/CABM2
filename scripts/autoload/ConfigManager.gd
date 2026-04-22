@@ -21,7 +21,7 @@ var defaults := {
 	# 语音（TTS）模型
 	"tts_api_key": "",
 	"tts_api_base_url": "https://api.siliconflow.cn/v1",
-	"tts_model": "IndexTeam/IndexTTS-2",
+	"tts_model": "FunAudioLLM/CosyVoice2-0.5B",
 	# 聊天设置
 	"username": "用户",
 	"max_context_chars": 2000,
