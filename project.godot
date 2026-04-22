@@ -20,6 +20,7 @@ config/icon="res://assets/icon.png"
 
 [autoload]
 
+UUIDUtil="*res://scripts/autoload/UUIDUtil.gd"
 AppState="*res://scripts/autoload/AppState.gd"
 ConfigManager="*res://scripts/autoload/ConfigManager.gd"
 ApiClient="*res://scripts/autoload/ApiClient.gd"
