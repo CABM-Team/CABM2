@@ -49,8 +49,14 @@ func ask(system_prompt: String, user_prompt: String, on_done: Callable) -> void:
 	var http := HTTPRequest.new()
 	add_child(http)
 	http.request_completed.connect(func(result: int, code: int, _headers: PackedStringArray, body_bytes: PackedByteArray):
-		http.queue_free()
+		if is_instance_valid(http):
+			http.queue_free()
 		_busy = false
+		var obj = on_done.get_object()
+		if obj != null and not is_instance_valid(obj):
+			return
+		if not on_done.is_valid():
+			return
 		if result != HTTPRequest.RESULT_SUCCESS or code != 200:
 			on_done.call("")
 			return

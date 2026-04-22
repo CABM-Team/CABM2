@@ -88,7 +88,6 @@ func _load_last_message(char_data: Dictionary) -> void:
 		elif role == "user" and last_msg.is_empty():
 			last_msg = content
 			last_role = "user"
-	
 	if last_msg.is_empty():
 		last_message_label.text = "暂无对话记录"
 	else:
