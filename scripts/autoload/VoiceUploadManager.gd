@@ -83,12 +83,8 @@ func _find_ref_audio(character_id: String) -> String:
 	for base in ["user://characters/", "res://characters/"]:
 		for ext in exts:
 			var p := "%s%s/ref.%s" % [base, character_id, ext]
-			if base.begins_with("user://"):
-				if FileAccess.file_exists(p):
-					return p
-			else:
-				if ResourceLoader.exists(p):
-					return p
+			if FileAccess.file_exists(p):
+				return p
 	return ""
 
 func _read_ref_text(character_id: String) -> String:
