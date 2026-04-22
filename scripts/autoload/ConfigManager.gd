@@ -56,8 +56,10 @@ func set_value(key: String, value: Variant) -> void:
 func is_configured() -> bool:
 	return get_value("chat_api_key") != ""
 
-## 是否首次运行（从未保存过 chat_api_key）
+## 是否首次运行（从未保存过 chat_api_key，且未启用内置密钥）
 func is_first_run() -> bool:
+	if get_value("use_builtin_key"):
+		return false
 	return not _config.has_section_key("app", "chat_api_key")
 
 ## 获取有效值：若启用内置密钥，对 API key / URL / model / max_context_chars 返回内置值
@@ -75,5 +77,5 @@ func get_effective_value(key: String) -> Variant:
 			"tts_model":
 				return defaults["tts_model"]
 			"max_context_chars":
-				return 2000
+				return mini(get_value("max_context_chars"), 2000)
 	return get_value(key)

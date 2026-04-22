@@ -29,9 +29,16 @@ expand_margin_top = 5.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vghtj"]
 bg_color = Color(0, 0.26666668, 0.12941177, 0.7176471)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_color = Color(0.39308554, 0.3930855, 0.39308548, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v1hle"]
 bg_color = Color(0, 0.8156863, 0.36078432, 0.6901961)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
 border_blend = true
 shadow_size = 3
 
@@ -141,7 +148,7 @@ theme_override_constants/separation = 16
 [node name="LabelBuiltinKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox/BuiltinKeyRow"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
-text = "🔑 使用内置密钥（免费但功能受限）"
+text = "✨使用内置密钥（但功能受限）"
 
 [node name="BuiltinKeyToggle" type="CheckButton" parent="MainLayout/TabContainer/API设置/VBox/BuiltinKeyRow"]
 layout_mode = 2
@@ -312,7 +319,19 @@ tooltip_text = "通常来说，这个数值越大，记忆力越强，同时单�
 注意：这里是字符数而非token数，请确保模型支持这个数量级的上下文"
 mouse_filter = 1
 theme_override_font_sizes/font_size = 35
-text = "上下文最大字符数：2000"
+text = "📝上下文最大字符数：2000"
+
+[node name="Notice" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2/LabelMaxContext"]
+visible = false
+layout_mode = 0
+offset_left = 50.0
+offset_top = 40.0
+offset_right = 395.0
+offset_bottom = 69.0
+mouse_filter = 1
+theme_override_colors/font_color = Color(0.99999994, 0.124691345, 0.08532091, 1)
+theme_override_font_sizes/font_size = 24
+text = "使用内置密钥时，最大值为2,000"
 
 [node name="Label2" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2"]
 layout_mode = 2

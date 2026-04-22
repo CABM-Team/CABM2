@@ -28,6 +28,7 @@ extends Control
 # ── 聊天设置 ──
 @onready var username_input: LineEdit    = $MainLayout/TabContainer/聊天设置/HBoxContainer/UsernameInput
 @onready var max_context_label: Label    = $MainLayout/TabContainer/聊天设置/HBoxContainer2/LabelMaxContext
+@onready var max_context_notice: Label   = $MainLayout/TabContainer/聊天设置/HBoxContainer2/LabelMaxContext/Notice
 @onready var max_context_slider: HSlider = $MainLayout/TabContainer/聊天设置/HBoxContainer2/MaxContextSlider
 @onready var auto_play_tts_button: CheckButton = $MainLayout/TabContainer/聊天设置/HBoxAutoPlayTTS/AutoPlayTTSButton
 @onready var option_gen_button: CheckButton    = $MainLayout/TabContainer/聊天设置/HBoxOptionGen/OptionGenButton
@@ -88,6 +89,9 @@ func _load_values() -> void:
 	_on_builtin_key_toggled(builtin_key_toggle.button_pressed)
 
 func _on_max_context_changed(value: float) -> void:
+	if builtin_key_toggle.button_pressed and value > 2000:
+		max_context_slider.value = 2000
+		return
 	var v := int(value)
 	var formatted := "%d,%03d" % [v / 1000, v % 1000] if v >= 1000 else "%d" % v
 	max_context_label.text = ("⚠" if value > 5000 else "📝") + "记忆最大字符数：" + formatted
@@ -134,11 +138,17 @@ func _on_fill_all() -> void:
 
 func _on_save() -> void:
 	var use_builtin := builtin_key_toggle.button_pressed
+
+	# 启用内置密钥时，对空的 key 字段填充占位符，避免被判定为未配置
+	if use_builtin:
+		if chat_key_input.text.strip_edges().is_empty(): chat_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcabm"
+		if opt_key_input.text.strip_edges().is_empty(): opt_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcab"
+		if tts_key_input.text.strip_edges().is_empty(): tts_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcab"
+	
 	var chat_key := chat_key_input.text.strip_edges()
 	if not use_builtin and chat_key.is_empty():
 		status_label.text = "⚠ 对话 API Key 不能为空"
 		return
-
 	ConfigManager.set_value("use_builtin_key",    use_builtin)
 	ConfigManager.set_value("chat_api_key",       chat_key)
 	ConfigManager.set_value("chat_api_base_url",  chat_url_input.text.strip_edges())
@@ -221,9 +231,12 @@ func _on_builtin_key_toggled(enabled: bool) -> void:
 			node.disabled = enabled
 		elif node is LineEdit:
 			node.editable = not enabled
-	# 内置密钥时上下文限制为 2000
+	# 内置密钥时上下文最大为 2000
 	if enabled:
-		max_context_slider.value = 2000
-		max_context_slider.editable = false
+		if max_context_slider.value > 2000:
+			max_context_slider.value = 2000
+		# max_context_slider.editable = false
+		max_context_notice.visible = true
 	else:
-		max_context_slider.editable = true
+		# max_context_slider.editable = true
+		max_context_notice.visible = false
