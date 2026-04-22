@@ -35,6 +35,7 @@ extends Control
 @onready var skip_button: Button         = $MainLayout/BottomBar/SkipButton
 @onready var status_label: Label         = $MainLayout/BottomBar/StatusLabel
 @onready var confirm_dialog: Control     = $ConfirmDialog
+@onready var data_cache_tab: Control     = $MainLayout/TabContainer/数据与缓存
 
 var _is_first_run := false
 var _saved_snapshot := {}
@@ -53,6 +54,8 @@ func _ready() -> void:
 
 	_load_values()
 	_saved_snapshot = _take_snapshot()
+	# 注入 confirm_dialog 给数据与缓存 tab
+	data_cache_tab.confirm_dialog = confirm_dialog
 
 func _load_values() -> void:
 	chat_key_input.text   = ConfigManager.get_value("chat_api_key")
@@ -186,3 +189,10 @@ func _take_snapshot() -> Dictionary:
 
 func _has_unsaved_changes() -> bool:
 	return _take_snapshot() != _saved_snapshot
+
+func _set_status(msg: String) -> void:
+	status_label.text = msg
+	get_tree().create_timer(3.0).timeout.connect(func() -> void:
+		if status_label.text == msg:
+			status_label.text = ""
+	)

@@ -20,7 +20,6 @@ config/icon="res://assets/icon.png"
 
 [autoload]
 
-UUIDUtil="*res://scripts/autoload/UUIDUtil.gd"
 AppState="*res://scripts/autoload/AppState.gd"
 ConfigManager="*res://scripts/autoload/ConfigManager.gd"
 ApiClient="*res://scripts/autoload/ApiClient.gd"
@@ -32,6 +31,12 @@ UIStateManager="*res://scripts/autoload/UIStateManager.gd"
 VoiceUploadManager="*res://scripts/autoload/VoiceUploadManager.gd"
 TTSManager="*res://scripts/autoload/TTSManager.gd"
 AppInfo="*res://scripts/autoload/AppInfo.gd"
+UUIDUtil="*res://scripts/autoload/UUIDUtil.gd"
+
+[debug]
+
+file_logging/enable_file_logging=true
+file_logging/max_log_files=10
 
 [display]
 

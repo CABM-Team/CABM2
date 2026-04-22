@@ -1,10 +1,11 @@
-[gd_scene load_steps=10 format=3 uid="uid://settings"]
+[gd_scene load_steps=11 format=3 uid="uid://settings"]
 
 [ext_resource type="Script" uid="uid://bgh3iibcfa8h0" path="res://scripts/settings/SettingsController.gd" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/common/confirm_dialog.tscn" id="10_confirm"]
 [ext_resource type="Texture2D" uid="uid://biblym0268v4b" path="res://assets/backgrounds/sr-6.png" id="2_vu5fi"]
 [ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="3_tt6xx"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4_1slea"]
+[ext_resource type="PackedScene" uid="uid://l0myq0186xht" path="res://scenes/common/confirm_dialog.tscn" id="10_confirm"]
+[ext_resource type="Script" uid="uid://cpykggk75yaio" path="res://scripts/settings/DataCacheController.gd" id="11_datacache"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vu5fi"]
 content_margin_left = 20.0
@@ -265,6 +266,7 @@ metadata/_tab_index = 1
 
 [node name="SectionUser" type="Label" parent="MainLayout/TabContainer/聊天设置"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 38
 text = "── 用户设置 ──"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置"]
@@ -283,7 +285,9 @@ placeholder_text = "输入你的名字"
 
 [node name="SectionContext" type="Label" parent="MainLayout/TabContainer/聊天设置"]
 layout_mode = 2
-text = "── 上下文设置 ──"
+theme_override_font_sizes/font_size = 38
+text = "
+── 上下文设置 ──"
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置"]
 layout_mode = 2
@@ -324,7 +328,9 @@ text = " 长"
 
 [node name="SectionTTS" type="Label" parent="MainLayout/TabContainer/聊天设置"]
 layout_mode = 2
-text = "── 语音设置 ──"
+theme_override_font_sizes/font_size = 38
+text = "
+── 对话设置 ──"
 
 [node name="HBoxAutoPlayTTS" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置"]
 layout_mode = 2
@@ -350,9 +356,135 @@ text = "生成回复选项"
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 
-[node name="ConfirmDialog" parent="." instance=ExtResource("10_confirm")]
+[node name="数据与缓存" type="Control" parent="MainLayout/TabContainer"]
+visible = false
+layout_mode = 2
+script = ExtResource("11_datacache")
+metadata/_tab_index = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/TabContainer/数据与缓存"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
+
+[node name="SectionSpeech" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LabelSpeech" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 38
+text = "── 语音缓存 ──"
+
+[node name="LabelSpeechDesc" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "删除后，如果需要播放将重新合成"
+
+[node name="BtnRow" type="HBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BtnDelAll" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech/BtnRow"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+text = "🗑 删除全部（计算中…）"
+
+[node name="BtnDel7d" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech/BtnRow"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+text = "🗑 删除7天前（计算中…）"
+
+[node name="BtnDel1m" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech/BtnRow"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+text = "🗑 删除一个月前（计算中…）"
+
+[node name="SectionVoiceUri" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LabelVoiceUri" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionVoiceUri"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 38
+text = "
+── 音色URI ──"
+
+[node name="LabelVoiceUriDesc" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionVoiceUri"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "清除后下次使用时将重新上传参考音频"
+
+[node name="BtnClearUri" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionVoiceUri"]
+custom_minimum_size = Vector2(380, 60)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 35
+text = "🗑 清除音色URI缓存"
+
+[node name="SectionLog" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LabelLog" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionLog"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 38
+text = "
+── 日志 ──"
+
+[node name="LabelChar" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionLog"]
+layout_mode = 2
+text = "反馈错误时，请将日志提供给开发者"
+
+[node name="BtnExportLog" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionLog"]
+custom_minimum_size = Vector2(380, 60)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 35
+text = "📤 导出日志 ZIP"
+
+[node name="SectionChar" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LabelChar" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 38
+text = "
+── 导出角色 ──"
+
+[node name="LabelCharDesc" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "选择要导出的角色（可多选）："
+
+[node name="CharList" type="GridContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar"]
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 12
+columns = 5
+
+[node name="BtnExportChar" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar"]
+custom_minimum_size = Vector2(380, 60)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 35
+text = "📤 导出所选角色 ZIP"
+
+[node name="ConfirmDialog" parent="." instance=ExtResource("10_confirm")]
 visible = false
+layout_mode = 1
