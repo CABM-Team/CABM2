@@ -697,9 +697,8 @@ func _on_history_tts_requested(text: String, char_id: String) -> void:
 	var char_data := _get_char_data_by_id(char_id)
 	if char_data.is_empty():
 		return
-	var char_name: String = char_data.get("name", char_id)
 	_manual_tts_pending = true
-	TTSManager.request(char_id, char_name, text)
+	TTSManager.request(char_id, text)
 
 func _on_tts_requested(text: String) -> void:
 	if text.is_empty() or _current_sentence_no_tts:
@@ -712,10 +711,9 @@ func _on_tts_requested(text: String) -> void:
 	if char_data.is_empty():
 		return
 	var char_id: String = char_data.get("id", char_data.get("name", ""))
-	var char_name: String = char_data.get("name", char_id)
 	ui.set_tts_loading(true)
 	_manual_tts_pending = true
-	TTSManager.request(char_id, char_name, text)
+	TTSManager.request(char_id, text)
 
 func _on_tts_done(audio_path: String) -> void:
 	# 手动请求优先处理
@@ -780,14 +778,13 @@ func _auto_tts_prefetch(sentence: Dictionary) -> void:
 		char_data = AppState.current_character
 	if char_data.is_empty():
 		return
-	var char_id: String = char_data.get("id", char_data.get("name", ""))
-	var char_name: String = char_data.get("name", char_id)
+	var char_id: String = char_data.get("id","")
 	# 若缓存已有，直接记录路径
 	if TTSManager.has_cache(char_id, text):
 		_auto_tts_queue[idx]["audio_path"] = TTSManager._cache_path(char_id, text)
 	else:
 		_auto_tts_queue[idx]["pending"] = true
-		TTSManager.request(char_id, char_name, text)
+		TTSManager.request(char_id, text)
 
 ## 句子开始输出时触发（来自 sentence_started 信号）
 func _on_sentence_started(text: String) -> void:

@@ -612,15 +612,16 @@ func _render_history_page() -> void:
 					history_list.add_child(row)
 					history_list.add_child(HSeparator.new())
 
-					var btn := Button.new()
-					btn.text = "🔊"
+					var btn := Button.new()	
 					btn.flat = true
 					btn.add_theme_font_size_override("font_size", 25)
 					btn.focus_mode = Control.FOCUS_NONE
 					btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 					if s_no_tts:
+						btn.text = "🔊"
 						btn.disabled = true
 					else:
+						btn.text = "🔊"
 						var captured_text := s_text
 						var captured_id := char_id
 						btn.pressed.connect(func(): history_tts_requested.emit(captured_text, captured_id))

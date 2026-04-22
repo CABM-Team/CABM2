@@ -26,16 +26,15 @@ func _ready() -> void:
 # ── 公共接口 ──────────────────────────────────────────────────
 ## 请求 TTS，优先读缓存，完成后通过信号返回本地音频路径
 ## character_id: 角色 ID
-## character_name: 角色名（用于 voice 参数）
 ## text: 要合成的文本
-func request(character_id: String, character_name: String, text: String) -> void:
+func request(character_id: String, text: String) -> void:
 	var cache_path := _cache_path(character_id, text)
 	if FileAccess.file_exists(cache_path):
-		print("[TTS缓存命中]"+text)
+		print("[TTS缓存命中] ", text)
 		tts_done.emit(cache_path)
 		return
-	print("[TTS合成]"+text)
-	_synthesize(character_id, character_name, text, cache_path)
+	print("[TTS合成] ", text)
+	_synthesize(character_id, text, cache_path)
 
 ## 同步检查缓存是否存在
 func has_cache(character_id: String, text: String) -> bool:
@@ -56,7 +55,11 @@ func _apply_text_injection(original_text: String) -> String:
 	return processed_text
 
 # ── 合成请求 ──────────────────────────────────────────────────
-func _synthesize(character_id: String, character_name: String, text: String, cache_path: String) -> void:
+func _synthesize(character_id: String, text: String, cache_path: String) -> void:
+	var tts_url_base: String = ConfigManager.get_value("tts_api_base_url")
+	if tts_url_base.is_empty():
+		return  # 未配置 URL，静默跳过
+
 	var api_key: String = ConfigManager.get_value("tts_api_key")
 	if api_key.is_empty():
 		api_key = ConfigManager.get_value("chat_api_key")
@@ -66,13 +69,10 @@ func _synthesize(character_id: String, character_name: String, text: String, cac
 
 	var model: String = ConfigManager.get_value("tts_model")
 
-	# 优先使用已上传的参考音频 URI，否则用模型默认音色
+	# 使用已上传的参考音频 URI
 	var voice_uri := VoiceUploadManager.get_cached_uri(character_id)
-	var voice: String
-	if not voice_uri.is_empty():
-		voice = voice_uri
-	else:
-		voice = model + ":" + character_name.to_lower().replace(" ", "_")
+	if voice_uri.is_empty():
+		return
 
 	# 应用文本注入规则（不影响原始 text 用于缓存）
 	var injected_text := _apply_text_injection(text)
@@ -80,7 +80,7 @@ func _synthesize(character_id: String, character_name: String, text: String, cac
 	var body := JSON.stringify({
 		"model": model,
 		"input": injected_text,  # 使用注入后的文本
-		"voice": voice,
+		"voice": voice_uri,
 		"response_format": "mp3",
 		"stream": true,
 	})
@@ -114,7 +114,7 @@ func _synthesize(character_id: String, character_name: String, text: String, cac
 		"Authorization: Bearer " + api_key,
 		"Content-Type: application/json",
 	])
-	var tts_url: String = ConfigManager.get_value("tts_api_base_url").rstrip("/") + "/audio/speech"
+	var tts_url: String = tts_url_base.rstrip("/") + "/audio/speech"
 	var err := http.request(tts_url, headers, HTTPClient.METHOD_POST, body)
 	if err != OK:
 		http.queue_free()
