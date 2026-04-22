@@ -19,6 +19,7 @@ const SORT_TIME  := 2
 @onready var single_tab_btn: Button         = $VBox/TabBar/SingleTabButton
 @onready var group_tab_btn: Button          = $VBox/TabBar/GroupTabButton
 @onready var settings_button: Button        = $VBox/BottomBar/SettingsButton
+@onready var about_button: Button           = $VBox/BottomBar/AboutButton
 @onready var quit_button: Button            = $VBox/BottomBar/QuitButton
 @onready var group_create_dialog: Control   = $GroupCreateDialog
 @onready var sort_field_btn: Button         = $VBox/SortBar/SortFieldButton
@@ -33,6 +34,7 @@ var _all_characters: Array[Dictionary] = []
 
 func _ready() -> void:
 	settings_button.pressed.connect(_on_settings_pressed)
+	about_button.pressed.connect(_on_about_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
 	single_tab_btn.pressed.connect(func(): _switch_tab(false))
 	group_tab_btn.pressed.connect(func(): _switch_tab(true))
@@ -179,6 +181,9 @@ func _on_group_created(_group_data: Dictionary) -> void:
 
 func _on_settings_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/settings/settings.tscn")
+
+func _on_about_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/about/about.tscn")
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()

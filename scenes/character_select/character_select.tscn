@@ -165,10 +165,17 @@ custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 theme_override_constants/separation = 12
 
+[node name="AboutButton" type="Button" parent="VBox/BottomBar"]
+custom_minimum_size = Vector2(250, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "ℹ  关于"
+
 [node name="SettingsButton" type="Button" parent="VBox/BottomBar"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 40
 text = "⚙  设置"
 
 [node name="QuitButton" type="Button" parent="VBox/BottomBar"]

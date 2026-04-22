@@ -30,6 +30,7 @@ AndroidPermissions="*res://scripts/autoload/AndroidPermissions.gd"
 UIStateManager="*res://scripts/autoload/UIStateManager.gd"
 VoiceUploadManager="*res://scripts/autoload/VoiceUploadManager.gd"
 TTSManager="*res://scripts/autoload/TTSManager.gd"
+AppInfo="*res://scripts/autoload/AppInfo.gd"
 
 [display]
 

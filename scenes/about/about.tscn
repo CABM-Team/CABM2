@@ -1,0 +1,165 @@
+[gd_scene load_steps=3 format=3 uid="uid://bqw8x7y3m5n2p"]
+
+[ext_resource type="Script" uid="uid://cidsqu5j1ioc2" path="res://scripts/about/AboutController.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://c1sq3exfquy7k" path="res://assets/backgrounds/sr-7.png" id="2"]
+
+[node name="About" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BackgroundOverlay" type="ColorRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.3)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 0
+anchor_left = 0.1
+anchor_top = 0.05
+anchor_right = 0.9
+anchor_bottom = 0.95
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="VBox"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_colors/font_shadow_color = Color(0.4, 0.2, 0.6, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 48
+text = "关于CABM2"
+horizontal_alignment = 1
+
+[node name="Label" type="Label" parent="VBox/Title"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = 20.0
+offset_right = 300.0
+offset_bottom = 49.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "「当灵性注入载体，它便挣脱物质躯壳，抵达超验之境」"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="ContentScroll" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Content" type="VBoxContainer" parent="VBox/ContentScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
+
+[node name="VersionLabel" type="Label" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_font_sizes/font_size = 32
+text = "版本：0.2.0"
+
+[node name="LinkButton" type="LinkButton" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "QQ群：979030803"
+uri = "https://qm.qq.com/q/v57eebfBHc"
+
+[node name="LinkButton2" type="LinkButton" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "B站：@赏金月桂的爬行者"
+uri = "https://space.bilibili.com/3493140388382914"
+
+[node name="HSeparator" type="HSeparator" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+
+[node name="IntroLabel" type="Label" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_font_sizes/font_size = 28
+text = "CABM2（或CABM-R）是CABM（Code Afflatus & Beyond Matter）的 Godot 重制版。
+
+原版基于 Python + Flask + HTML 实现，存在架构混乱、全局状态耦合严重等问题。本版本使用 Godot 4.5 重写，目标是更清晰的架构、更好的跨平台支持和更流畅的用户体验。"
+autowrap_mode = 3
+
+[node name="HSeparator2" type="HSeparator" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+
+[node name="FeaturesTitle" type="Label" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_font_sizes/font_size = 32
+text = "功能概述"
+
+[node name="FeaturesLabel" type="Label" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_font_sizes/font_size = 26
+text = "• 与AI角色进行沉浸式对话，类视觉小说风格
+• 每个角色有独立人格、立绘和情绪表达
+• 支持多角色群聊
+• 知识库系统，让角色设定无上限（此功能正在开发）
+• 可以自由创建角色
+ ×  长期记忆系统（此功能已放弃）"
+autowrap_mode = 3
+
+[node name="HSeparator3" type="HSeparator" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+
+[node name="TechTitle" type="Label" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_font_sizes/font_size = 32
+text = "技术栈"
+
+[node name="TechLabel" type="Label" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_font_sizes/font_size = 26
+text = "• 引擎：Godot 4.5
+• 语言：GDScript、C++
+• AI：OpenAI 兼容 API"
+autowrap_mode = 3
+
+[node name="HSeparator4" type="HSeparator" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+
+[node name="LicenseLabel" type="Label" parent="VBox/ContentScroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.8)
+theme_override_font_sizes/font_size = 24
+text = "Copyright © 2026 awaCollei"
+horizontal_alignment = 1
+
+[node name="BottomBar" type="HBoxContainer" parent="VBox"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="VBox/BottomBar"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "← 返回"
