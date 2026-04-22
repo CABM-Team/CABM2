@@ -99,6 +99,9 @@ func _load_last_message(char_data: Dictionary) -> void:
 		# 限制显示长度，避免过长
 		# if display_text.length() > 60:
 		# 	display_text = display_text.substr(0, 60) + "..."
+		var sentences := SentenceSplitter.split_text(display_text)
+		if not sentences.is_empty():
+			display_text = sentences.back().get("text", display_text)
 		last_message_label.text = prefix + display_text
 
 ## 从 JSON 字符串中提取 msg 字段

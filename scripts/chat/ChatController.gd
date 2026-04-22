@@ -679,6 +679,7 @@ func _on_option_selected(text: String) -> void:
 
 # ── 导航 ──────────────────────────────────────────────────────
 func _on_back_pressed() -> void:
+	EasyAI.cancel()
 	ApiClient.cancel()
 	ApiClient.stream_chunk.disconnect(_on_stream_chunk)
 	ApiClient.stream_mood.disconnect(_on_stream_mood)

@@ -6,9 +6,14 @@
 extends Node
 
 var _busy := false
+var _cancelled := false
 
 func _ready() -> void:
 	pass
+
+## 取消当前正在进行的请求，回调将不会被调用
+func cancel() -> void:
+	_cancelled = true
 
 ## 发送一次非流式请求
 ## on_done: Callable(reply: String)
@@ -46,14 +51,15 @@ func ask(system_prompt: String, user_prompt: String, on_done: Callable) -> void:
 	])
 
 	_busy = true
+	_cancelled = false
 	var http := HTTPRequest.new()
 	add_child(http)
 	http.request_completed.connect(func(result: int, code: int, _headers: PackedStringArray, body_bytes: PackedByteArray):
 		if is_instance_valid(http):
 			http.queue_free()
 		_busy = false
-		var obj = on_done.get_object()
-		if obj != null and not is_instance_valid(obj):
+		if _cancelled:
+			_cancelled = false
 			return
 		if not on_done.is_valid():
 			return
