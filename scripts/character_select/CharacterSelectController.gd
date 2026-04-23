@@ -174,7 +174,7 @@ func _on_new_group_pressed() -> void:
 	group_create_dialog.open(_all_characters)
 
 func _on_new_char_pressed() -> void:
-	pass  # TODO: 新建角色功能
+	get_tree().change_scene_to_file("res://scenes/character_create/character_create.tscn")
 
 func _on_group_created(_group_data: Dictionary) -> void:
 	_populate_groups()

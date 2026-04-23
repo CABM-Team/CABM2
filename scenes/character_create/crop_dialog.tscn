@@ -1,0 +1,88 @@
+[gd_scene load_steps=3 format=3 uid="uid://crop_dialog"]
+
+[ext_resource type="Script" path="res://scripts/character_create/CropDialog.gd" id="1"]
+[ext_resource type="Theme" path="res://assets/theme/blue_button.tres" id="2"]
+
+[node name="CropDialog" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+script = ExtResource("1")
+
+[node name="Overlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.75)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -380.0
+offset_top = -420.0
+offset_right = 380.0
+offset_bottom = 420.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HintLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "拖拽选择裁剪区域"
+horizontal_alignment = 1
+
+[node name="ImageContainer" type="Control" parent="Panel/VBox"]
+custom_minimum_size = Vector2(700, 700)
+layout_mode = 2
+
+[node name="ImageRect" type="TextureRect" parent="Panel/VBox/ImageContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CropOverlay" type="Control" parent="Panel/VBox/ImageContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Buttons" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 40
+
+[node name="CancelButton" type="Button" parent="Panel/VBox/Buttons"]
+custom_minimum_size = Vector2(160, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "取消"
+
+[node name="ConfirmButton" type="Button" parent="Panel/VBox/Buttons"]
+custom_minimum_size = Vector2(160, 50)
+layout_mode = 2
+theme = ExtResource("2")
+theme_override_font_sizes/font_size = 24
+text = "确认裁剪"

@@ -1,0 +1,409 @@
+[gd_scene load_steps=7 format=3 uid="uid://cx88ewjbai0ab"]
+
+[ext_resource type="Script" uid="uid://dbhuc1y2wkdr" path="res://scripts/character_create/CharacterCreateController.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://c1sq3exfquy7k" path="res://assets/backgrounds/sr-7.png" id="2"]
+[ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="3"]
+[ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+content_margin_left = 24.0
+content_margin_top = 16.0
+content_margin_right = 24.0
+content_margin_bottom = 16.0
+bg_color = Color(0.12, 0.12, 0.22, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.6, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toast"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(0.1, 0.1, 0.1, 0.88)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="CharacterCreate" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BackgroundOverlay" type="ColorRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.35)
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 0
+anchor_left = 0.05
+anchor_top = 0.02
+anchor_right = 0.95
+anchor_bottom = 0.98
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="Scroll/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_font_sizes/font_size = 48
+text = "创建角色"
+horizontal_alignment = 1
+
+[node name="FormPanel" type="PanelContainer" parent="Scroll/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="FormRows" type="VBoxContainer" parent="Scroll/VBox/FormPanel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="RowId" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="IdLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowId"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "* 角色 ID"
+vertical_alignment = 1
+
+[node name="IdInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowId"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+placeholder_text = "角色的唯一标识，仅字母（区分大小写）、数字、下划线"
+
+[node name="IdError" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 20
+
+[node name="RowName" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="NameLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowName"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "* 角色名"
+vertical_alignment = 1
+
+[node name="NameInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowName"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+placeholder_text = "角色的名字"
+
+[node name="RowNameEn" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="NameEnLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowNameEn"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "角色英文名"
+vertical_alignment = 1
+
+[node name="NameEnInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowNameEn"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+placeholder_text = "可选，没什么用"
+
+[node name="RowAvatar" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="AvatarLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "* 头像"
+vertical_alignment = 1
+
+[node name="AvatarRow" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="AvatarPreview" type="TextureRect" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar/AvatarRow"]
+custom_minimum_size = Vector2(150, 150)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AvatarButton" type="Button" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar/AvatarRow"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme = ExtResource("4")
+theme_override_font_sizes/font_size = 22
+text = "上传头像"
+
+[node name="RowColor" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="ColorLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowColor"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "* 颜色"
+vertical_alignment = 1
+
+[node name="ColorPickerButton" type="ColorPickerButton" parent="Scroll/VBox/FormPanel/FormRows/RowColor"]
+custom_minimum_size = Vector2(200, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+color = Color(1, 1, 1, 1)
+
+[node name="RowDesc" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="DescLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowDesc"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 26
+text = "* 角色描述"
+vertical_alignment = 1
+
+[node name="DescInput" type="TextEdit" parent="Scroll/VBox/FormPanel/FormRows/RowDesc"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+placeholder_text = "角色的简介，此内容不会发送给AI"
+wrap_mode = 1
+
+[node name="RowPrompt" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="PromptLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowPrompt"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 26
+text = "* 基础提示词"
+vertical_alignment = 1
+
+[node name="PromptInput" type="TextEdit" parent="Scroll/VBox/FormPanel/FormRows/RowPrompt"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+placeholder_text = "系统提示词，描述角色性格、说话风格等"
+wrap_mode = 1
+
+[node name="RowWelcome" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="WelcomeLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowWelcome"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "* 欢迎词"
+vertical_alignment = 1
+
+[node name="WelcomeInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowWelcome"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+placeholder_text = "首次对话时显示的欢迎语"
+
+[node name="MoodSectionLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "立绘表情列表"
+
+[node name="MoodTable" type="VBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AddMoodButton" type="Button" parent="Scroll/VBox/FormPanel/FormRows"]
+custom_minimum_size = Vector2(200, 44)
+layout_mode = 2
+theme = ExtResource("3")
+theme_override_font_sizes/font_size = 24
+text = "+ 添加行"
+
+[node name="RowCalib" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="CalibLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowCalib"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "* 位置校准"
+vertical_alignment = 1
+
+[node name="CalibInput" type="SpinBox" parent="Scroll/VBox/FormPanel/FormRows/RowCalib"]
+custom_minimum_size = Vector2(200, 44)
+layout_mode = 2
+min_value = -1000.0
+max_value = 1000.0
+
+[node name="RowScale" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="ScaleLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowScale"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "* 缩放"
+vertical_alignment = 1
+
+[node name="ScaleInput" type="SpinBox" parent="Scroll/VBox/FormPanel/FormRows/RowScale"]
+custom_minimum_size = Vector2(200, 44)
+layout_mode = 2
+min_value = 10.0
+max_value = 500.0
+value = 100.0
+
+[node name="RowRefAudio" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="RefAudioLabel2" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "参考音频"
+vertical_alignment = 1
+
+[node name="RefAudioRow" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="RefAudioButton" type="Button" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio/RefAudioRow"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+theme = ExtResource("4")
+theme_override_font_sizes/font_size = 22
+text = "上传音频"
+
+[node name="RefAudioLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio/RefAudioRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 22
+text = "未选择"
+
+[node name="RowRefText" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="RefTextLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowRefText"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "参考音频文本"
+vertical_alignment = 1
+
+[node name="RefTextInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowRefText"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+placeholder_text = "参考音频的文本"
+
+[node name="BottomBar" type="HBoxContainer" parent="Scroll/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="ResetButton" type="Button" parent="Scroll/VBox/BottomBar"]
+custom_minimum_size = Vector2(160, 54)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "重置"
+
+[node name="BackButton" type="Button" parent="Scroll/VBox/BottomBar"]
+custom_minimum_size = Vector2(160, 54)
+layout_mode = 2
+theme = ExtResource("4")
+theme_override_font_sizes/font_size = 26
+text = "返回"
+
+[node name="CreateButton" type="Button" parent="Scroll/VBox/BottomBar"]
+custom_minimum_size = Vector2(200, 54)
+layout_mode = 2
+theme = ExtResource("3")
+theme_override_font_sizes/font_size = 26
+text = "创建"
+
+[node name="FileDialog" type="FileDialog" parent="."]
+title = "Open a File"
+size = Vector2i(900, 700)
+ok_button_text = "选择"
+file_mode = 0
+access = 2
+
+[node name="ConfirmDialog" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ToastLabel" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.85
+anchor_right = 0.5
+anchor_bottom = 0.85
+offset_left = -300.0
+offset_top = -30.0
+offset_right = 300.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_toast")
+horizontal_alignment = 1
+vertical_alignment = 1

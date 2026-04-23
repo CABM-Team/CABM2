@@ -8,7 +8,7 @@ class_name CharacterImporter
 const DEST_BASE := "user://characters/"
 
 # 保留关键字，不允许作为角色 ID
-const RESERVED_IDS := ["user", "group", "groups", "saves", "settings", "system", "admin", "root"]
+const RESERVED_IDS := ["user", "group", "groups", "saves", "settings", "system", "admin", "root","temp"]
 
 ## 扫描 ZIP，返回顶层角色文件夹字典 { folder_name -> Array[file_path] }
 ## 不执行任何写操作，可用于提前获取角色数量

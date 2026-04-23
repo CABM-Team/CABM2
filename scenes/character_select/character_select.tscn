@@ -110,7 +110,6 @@ layout_mode = 2
 size_flags_horizontal = 0
 theme = ExtResource("3_7awtc")
 theme_override_font_sizes/font_size = 35
-disabled = true
 text = "✏ 新建角色"
 
 [node name="ImportCharButton" type="Button" parent="VBox/SortBar"]
