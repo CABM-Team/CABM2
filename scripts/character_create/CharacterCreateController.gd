@@ -5,7 +5,7 @@
 extends Control
 
 # 暂存目录：与标准角色目录结构完全一致，创建时直接 rename
-const DRAFT_DIR := "user://temp/"
+const DRAFT_DIR := "user://temp/draft/"
 const DEST_BASE := "user://characters/"
 
 # 保留关键字（与 CharacterImporter 保持一致）
@@ -260,6 +260,8 @@ func _handle_ref_audio_file(path: String) -> void:
 	var dest := DRAFT_DIR + "ref." + ext
 	_copy_file(path, dest)
 	ref_audio_label.text = path.get_file()
+	# 参考音频变更，清除该角色的 voice URI 缓存
+	_invalidate_voice_cache()
 	_save_draft_json()
 
 # ── 裁剪回调 ──────────────────────────────────────────────────
@@ -292,6 +294,17 @@ func _on_ref_text_changed(text: String) -> void:
 	if f:
 		f.store_string(text)
 		f.close()
+	# 参考文本变更，清除该角色的 voice URI 缓存
+	_invalidate_voice_cache()
+
+# ── 清除 voice URI 缓存 ───────────────────────────────────────
+func _invalidate_voice_cache() -> void:
+	var char_id := id_input.text.strip_edges()
+	if char_id.is_empty() or not _validate_id():
+		return
+	if VoiceUploadManager.get_cached_uri(char_id).is_empty():
+		return
+	VoiceUploadManager.invalidate_cache(char_id)
 
 # ── ID 校验 ───────────────────────────────────────────────────
 func _on_id_changed(_text: String) -> void:

@@ -22,7 +22,7 @@ extends Control
 var confirm_dialog: Control = null
 
 const SPEECH_CACHE_DIR := "user://speech_cache"
-const VOICE_URL_PATH   := "user://voice_url.json"
+const VOICE_URL_PATH   := "user://voice_uri.json"
 const LOG_DIR          := "user://logs"
 
 # 当前待执行的删除操作

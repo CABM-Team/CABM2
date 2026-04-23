@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://dejv7on4aogy4" path="res://assets/backgrounds/sr-3.png" id="2_r67cr"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="3_xe7gi"]
 [ext_resource type="Theme" uid="uid://nbt4udvni8b5" path="res://assets/theme/red_button.tres" id="4_6xy15"]
-[ext_resource type="PackedScene" path="res://scenes/common/confirm_dialog.tscn" id="6_confirm"]
+[ext_resource type="PackedScene" uid="uid://l0myq0186xht" path="res://scenes/common/confirm_dialog.tscn" id="6_confirm"]
 [ext_resource type="Script" uid="uid://d0mn82ic84otc" path="res://scripts/chat/ChatUIController.gd" id="7_uictrl"]
 
 [node name="Chat" type="Control"]
@@ -333,7 +333,6 @@ custom_minimum_size = Vector2(400, 80)
 layout_mode = 2
 theme = ExtResource("3_xe7gi")
 theme_override_font_sizes/font_size = 40
-disabled = true
 text = "✏编辑角色"
 
 [node name="ClearHistoryButton" type="Button" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid"]

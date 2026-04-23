@@ -1,11 +1,11 @@
 ## VoiceUploadManager.gd
 ## 管理角色参考音频上传到 SiliconFlow TTS API
-## 缓存 voice URI 到 user://voice_url.json
+## 缓存 voice URI 到 user://voice_uri.json
 ## AutoLoad 单例
 
 extends Node
 
-const CACHE_PATH := "user://voice_url.json"
+const CACHE_PATH := "user://voice_uri.json"
 
 # { character_id: "speech:xxx:xxx:xxx" }
 var _cache: Dictionary = {}
@@ -35,6 +35,13 @@ func _save_cache() -> void:
 ## 获取角色已缓存的 voice URI，没有则返回空字符串
 func get_cached_uri(character_id: String) -> String:
 	return _cache.get(character_id, "")
+
+## 删除指定角色的 voice URI 缓存
+func invalidate_cache(character_id: String) -> void:
+	if character_id.is_empty():
+		return
+	if _cache.erase(character_id):
+		_save_cache()
 
 ## 确保角色的参考音频已上传，返回 voice URI（通过回调）
 ## callback: func(uri: String, error: String)
