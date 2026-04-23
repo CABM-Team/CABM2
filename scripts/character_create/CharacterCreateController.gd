@@ -634,15 +634,23 @@ func _do_create() -> void:
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 
 # ── 工具函数 ──────────────────────────────────────────────────
-# 预览缩放比：SubViewport 360×202 对应实际 1920×1080，比例 = 360/1920
 const PREVIEW_SCALE := 352.0 / 1920.0
+const BASE_Y_PREVIEW := 1080.0 * PREVIEW_SCALE  # = 198.0
+const OFFSET_Y := -512.0
 
 func _update_preview() -> void:
-	var scale_rate: float = scale_input.value / 100.0 * PREVIEW_SCALE
-	preview_sprite.scale = Vector2(scale_rate, scale_rate)
-	# position.y 基准对应实际 1080 → 预览 198，calib 也等比缩放
-	preview_sprite.position.y = 198.0 + calib_input.value * PREVIEW_SCALE
-	# 加载第一张立绘（如果有）
+	var scale_rate: float = scale_input.value / 100.0
+	
+	# 预览中的缩放值
+	var final_scale: float = scale_rate * PREVIEW_SCALE
+	preview_sprite.scale = Vector2(final_scale, final_scale)
+	
+	# 正确的 Y 位置计算
+	# 实际 Y = 1080 + calib + (offset.y * scale_rate)
+	var actual_y: float = 1080.0 + calib_input.value + (OFFSET_Y * scale_rate)
+	# 转换到预览坐标(你问我这个20是哪来的？不知道，但是加上就对了)
+	preview_sprite.position.y = 20 + actual_y * PREVIEW_SCALE
+	# 加载纹理
 	var first_file := ""
 	if not _mood_rows.is_empty():
 		first_file = _mood_rows[0].get("file", "")
@@ -650,6 +658,8 @@ func _update_preview() -> void:
 		preview_sprite.texture = _load_texture(first_file)
 	else:
 		preview_sprite.texture = null
+
+
 func _copy_file(src: String, dst: String) -> void:
 	var data := FileAccess.get_file_as_bytes(src)
 	if data.is_empty():
