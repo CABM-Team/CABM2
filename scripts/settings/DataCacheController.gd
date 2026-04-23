@@ -227,26 +227,31 @@ func _save_file_to_downloads(filename: String, data: PackedByteArray) -> void:
 		_show_save_dialog(filename, data)
 
 func _save_android(filename: String, data: PackedByteArray) -> void:
-	# Android 10+ 可直接写 Downloads，无需权限
-	# Android 9- 需要 WRITE_EXTERNAL_STORAGE
-	# Godot 4 无法直接获取 Android 版本号，统一请求权限（已授予则立即回调）
-	var _do_save := func(granted: bool) -> void:
-		if not granted:
-			_show_status("⚠ 需要存储权限才能导出文件")
-			return
-		var dl_dir := OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS)
-		var path := dl_dir + "/" + filename
-		var f := FileAccess.open(path, FileAccess.WRITE)
-		if f == null:
-			_show_status("⚠ 写入失败：" + path)
-			return
+	# Android 10+ (API 29+) 写 Downloads 无需任何权限，直接写入即可。
+	# Android 9- 需要 WRITE_EXTERNAL_STORAGE，但先尝试直接写，失败再请求。
+	var dl_dir := OS.get_system_dir(OS.SYSTEM_DIR_DOWNLOADS)
+	var path := dl_dir + "/" + filename
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f != null:
 		f.store_buffer(data)
 		f.close()
 		_show_status("✓ 已保存到下载目录：" + filename)
+		return
 
+	# 直接写失败，说明可能是 Android 9-，尝试请求权限后重试
 	AndroidPermissions.request(
 		["android.permission.WRITE_EXTERNAL_STORAGE"],
-		_do_save
+		func(granted: bool) -> void:
+			if not granted:
+				_show_status("⚠ 需要存储权限才能导出文件")
+				return
+			var f2 := FileAccess.open(path, FileAccess.WRITE)
+			if f2 == null:
+				_show_status("⚠ 写入失败：" + path)
+				return
+			f2.store_buffer(data)
+			f2.close()
+			_show_status("✓ 已保存到下载目录：" + filename)
 	)
 
 func _show_save_dialog(filename: String, data: PackedByteArray) -> void:

@@ -9,7 +9,7 @@ const STATE_PATH := "user://ui_state.json"
 # 排序字段：0=ID首字母, 1=名字首字母, 2=上次游玩时间
 var sort_field: int = 2
 # 排序方向：0=升序, 1=降序
-var sort_order: int = 1
+var sort_order: int = 0
 # 上次选中的标签页（false=单角色, true=群聊）
 var last_tab_is_group: bool = false
 
