@@ -1,12 +1,20 @@
 ## CharacterCreateController.gd
-## 创建角色页面控制器
-## 实时暂存到 user://temp/draft/（标准角色目录结构），确认创建时直接重命名文件夹
+## 创建/编辑角色页面控制器
+## 实时暂存到 user://temp/draft/（创建）或 user://temp/edit/（编辑），确认时直接重命名/覆盖文件夹
 
 extends Control
 
 # 暂存目录：与标准角色目录结构完全一致，创建时直接 rename
 const DRAFT_DIR := "user://temp/draft/"
+const EDIT_DIR  := "user://temp/edit/"
 const DEST_BASE := "user://characters/"
+
+# 是否处于编辑模式
+var _is_edit_mode := false
+var _edit_char_id := ""
+
+# 当前使用的暂存目录（创建=DRAFT_DIR，编辑=EDIT_DIR）
+var _work_dir := DRAFT_DIR
 
 # 保留关键字（与 CharacterImporter 保持一致）
 const RESERVED_IDS := ["user", "group", "groups", "saves", "settings", "system", "admin", "root", "temp"]
@@ -61,7 +69,20 @@ var _file_dialog_purpose := ""  # "avatar" | "mood_N" | "ref_audio"
 
 func _ready() -> void:
 	_id_regex.compile("^[a-zA-Z0-9_]+$")
-	DirAccess.make_dir_recursive_absolute(DRAFT_DIR)
+
+	# 判断编辑模式
+	if not AppState.edit_char_id.is_empty():
+		_is_edit_mode = true
+		_edit_char_id = AppState.edit_char_id
+		AppState.edit_char_id = ""
+		_work_dir = EDIT_DIR
+		# 清空并重建 edit 目录，复制角色文件夹内容
+		_prepare_edit_dir(_edit_char_id)
+		create_btn.text = "修改"
+	else:
+		_work_dir = DRAFT_DIR
+
+	DirAccess.make_dir_recursive_absolute(_work_dir)
 	crop_dialog = CropDialogScene.instantiate()
 	add_child(crop_dialog)
 	confirm_dialog = ConfirmDialogScene.instantiate()
@@ -70,6 +91,43 @@ func _ready() -> void:
 	_init_default_moods()
 	_connect_signals()
 	_load_draft()
+
+	if _is_edit_mode:
+		id_input.editable = false
+
+# ── 编辑模式：准备工作目录 ───────────────────────────────────
+func _prepare_edit_dir(char_id: String) -> void:
+	# 删除旧的 edit 目录
+	_delete_dir_recursive(EDIT_DIR.trim_suffix("/"))
+	DirAccess.make_dir_recursive_absolute(EDIT_DIR)
+	# 从角色目录复制内容
+	var src_dir := DEST_BASE + char_id + "/"
+	var dir := DirAccess.open(src_dir)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var fname := dir.get_next()
+	while fname != "":
+		if not dir.current_is_dir() and not fname.begins_with("."):
+			_copy_file(src_dir + fname, EDIT_DIR + fname)
+		fname = dir.get_next()
+
+func _delete_dir_recursive(path: String) -> void:
+	var dir := DirAccess.open(path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var fname := dir.get_next()
+	while fname != "":
+		if not fname.begins_with("."):
+			var full := path + "/" + fname
+			if dir.current_is_dir():
+				_delete_dir_recursive(full)
+				DirAccess.remove_absolute(full)
+			else:
+				DirAccess.remove_absolute(full)
+		fname = dir.get_next()
+	DirAccess.remove_absolute(path)
 
 # ── 默认四行立绘 ──────────────────────────────────────────────
 func _init_default_moods() -> void:
@@ -174,19 +232,19 @@ func _on_mood_delete(idx: int) -> void:
 		_show_toast("至少保留一行立绘")
 		return
 	# 删除该行的图片文件
-	var del_path := DRAFT_DIR + "%d.png" % (idx + 1)
+	var del_path := _work_dir + "%d.png" % (idx + 1)
 	if FileAccess.file_exists(del_path):
-		DirAccess.open(DRAFT_DIR).remove("%d.png" % (idx + 1))
+		DirAccess.open(_work_dir).remove("%d.png" % (idx + 1))
 	_mood_rows.remove_at(idx)
 	# 把后续图片依次前移重命名（idx+2 -> idx+1, idx+3 -> idx+2, ...）
-	var dir := DirAccess.open(DRAFT_DIR)
+	var dir := DirAccess.open(_work_dir)
 	for i in range(idx + 1, _mood_rows.size() + 1):
 		var old_name := "%d.png" % (i + 1)
 		var new_name := "%d.png" % i
-		if FileAccess.file_exists(DRAFT_DIR + old_name):
+		if FileAccess.file_exists(_work_dir + old_name):
 			dir.rename(old_name, new_name)
 		# 更新内存中的路径
-		_mood_rows[i - 1]["file"] = DRAFT_DIR + new_name if FileAccess.file_exists(DRAFT_DIR + new_name) else ""
+		_mood_rows[i - 1]["file"] = _work_dir + new_name if FileAccess.file_exists(_work_dir + new_name) else ""
 	_rebuild_mood_table()
 	_save_draft_json()
 
@@ -235,7 +293,7 @@ func _on_file_selected(path: String) -> void:
 
 func _handle_avatar_file(path: String) -> void:
 	var ext := path.get_extension().to_lower()
-	var src := DRAFT_DIR + "avatar_src." + ext
+	var src := _work_dir + "avatar_src." + ext
 	_copy_file(path, src)
 	_crop_source_path = src
 	_crop_target_row = -1
@@ -243,7 +301,7 @@ func _handle_avatar_file(path: String) -> void:
 
 func _handle_mood_file(path: String, idx: int) -> void:
 	var ext := path.get_extension().to_lower()
-	var src := DRAFT_DIR + "mood_%d_src.%s" % [idx, ext]
+	var src := _work_dir + "mood_%d_src.%s" % [idx, ext]
 	_copy_file(path, src)
 	_crop_source_path = src
 	_crop_target_row = idx
@@ -252,12 +310,12 @@ func _handle_mood_file(path: String, idx: int) -> void:
 func _handle_ref_audio_file(path: String) -> void:
 	var ext := path.get_extension().to_lower()
 	# 清理旧的参考音频文件
-	var dir := DirAccess.open(DRAFT_DIR)
+	var dir := DirAccess.open(_work_dir)
 	if dir:
 		for f in ["ref.wav", "ref.mp3", "ref.ogg"]:
-			if FileAccess.file_exists(DRAFT_DIR + f):
+			if FileAccess.file_exists(_work_dir + f):
 				dir.remove(f)
-	var dest := DRAFT_DIR + "ref." + ext
+	var dest := _work_dir + "ref." + ext
 	_copy_file(path, dest)
 	ref_audio_label.text = path.get_file()
 	# 参考音频变更，清除该角色的 voice URI 缓存
@@ -273,11 +331,11 @@ func _on_crop_confirmed(cropped_image: Image) -> void:
 
 	if _crop_target_row == -1:
 		cropped_image.resize(150, 150, Image.INTERPOLATE_LANCZOS)
-		cropped_image.save_png(DRAFT_DIR + "avatar.png")
+		cropped_image.save_png(_work_dir + "avatar.png")
 		avatar_preview.texture = ImageTexture.create_from_image(cropped_image)
 	else:
-		cropped_image.save_png(DRAFT_DIR + "%d.png" % (_crop_target_row + 1))
-		_mood_rows[_crop_target_row]["file"] = DRAFT_DIR + "%d.png" % (_crop_target_row + 1)
+		cropped_image.save_png(_work_dir + "%d.png" % (_crop_target_row + 1))
+		_mood_rows[_crop_target_row]["file"] = _work_dir + "%d.png" % (_crop_target_row + 1)
 		_rebuild_mood_table()
 		if _crop_target_row == 0:
 			_update_preview()
@@ -290,7 +348,7 @@ func _on_color_changed(color: Color) -> void:
 
 # ── 参考文本 ──────────────────────────────────────────────────
 func _on_ref_text_changed(text: String) -> void:
-	var f := FileAccess.open(DRAFT_DIR + "ref.txt", FileAccess.WRITE)
+	var f := FileAccess.open(_work_dir + "ref.txt", FileAccess.WRITE)
 	if f:
 		f.store_string(text)
 		f.close()
@@ -300,7 +358,7 @@ func _on_ref_text_changed(text: String) -> void:
 # ── 清除 voice URI 缓存 ───────────────────────────────────────
 func _invalidate_voice_cache() -> void:
 	var char_id := id_input.text.strip_edges()
-	if char_id.is_empty() or not _validate_id():
+	if char_id.is_empty():
 		return
 	if VoiceUploadManager.get_cached_uri(char_id).is_empty():
 		return
@@ -322,10 +380,12 @@ func _validate_id() -> bool:
 	if id in RESERVED_IDS:
 		id_error.text = "ID '%s' 是保留关键字" % id
 		return false
-	for base in ["res://characters/", "user://characters/"]:
-		if FileAccess.file_exists(base + id + "/" + id + ".json"):
-			id_error.text = "ID '%s' 已存在" % id
-			return false
+	# 编辑模式不检查 ID 冲突
+	if not _is_edit_mode:
+		for base in ["res://characters/", "user://characters/"]:
+			if FileAccess.file_exists(base + id + "/" + id + ".json"):
+				id_error.text = "ID '%s' 已存在" % id
+				return false
 	id_error.text = ""
 	return true
 
@@ -347,14 +407,20 @@ func _save_draft_json() -> void:
 		"scale_rate": int(scale_input.value),
 		"moods": mood_names,
 	}
-	# 用占位 id "draft" 作为文件名，创建时再重命名
-	var f := FileAccess.open(DRAFT_DIR + "draft.json", FileAccess.WRITE)
+	var f := FileAccess.open(_work_dir + "draft.json", FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(data, "\t"))
 		f.close()
 
 func _load_draft() -> void:
-	var path := DRAFT_DIR + "draft.json"
+	# 编辑模式优先读取角色原始 JSON
+	var path: String
+	if _is_edit_mode:
+		path = _work_dir + _edit_char_id + ".json"
+		if not FileAccess.file_exists(path):
+			path = _work_dir + "draft.json"
+	else:
+		path = _work_dir + "draft.json"
 	if not FileAccess.file_exists(path):
 		return
 	var f := FileAccess.open(path, FileAccess.READ)
@@ -383,31 +449,30 @@ func _load_draft() -> void:
 	color_picker.color = _current_color
 
 	# 恢复头像预览
-	if FileAccess.file_exists(DRAFT_DIR + "avatar.png"):
-		avatar_preview.texture = _load_texture(DRAFT_DIR + "avatar.png")
+	if FileAccess.file_exists(_work_dir + "avatar.png"):
+		avatar_preview.texture = _load_texture(_work_dir + "avatar.png")
 
 	# 恢复参考音频标签
 	for ext: String in ["wav", "mp3", "ogg"]:
-		var ap: String = DRAFT_DIR + "ref." + ext
+		var ap: String = _work_dir + "ref." + ext
 		if FileAccess.file_exists(ap):
 			ref_audio_label.text = "ref." + ext
 			break
 
 	# 恢复参考文本
-	var ref_txt_path := DRAFT_DIR + "ref.txt"
+	var ref_txt_path := _work_dir + "ref.txt"
 	if FileAccess.file_exists(ref_txt_path):
 		var rf := FileAccess.open(ref_txt_path, FileAccess.READ)
 		if rf:
 			ref_text_input.text = rf.get_as_text()
 			rf.close()
 
-
 	# 恢复立绘行
 	var moods_raw = data.get("moods", [])
 	if moods_raw is Array and not moods_raw.is_empty():
 		_mood_rows.clear()
 		for i in moods_raw.size():
-			var mood_file := DRAFT_DIR + "%d.png" % (i + 1)
+			var mood_file := _work_dir + "%d.png" % (i + 1)
 			_mood_rows.append({
 				"name": moods_raw[i] if moods_raw[i] is String else "",
 				"file": mood_file if FileAccess.file_exists(mood_file) else ""
@@ -422,7 +487,11 @@ func _on_reset_btn_pressed() -> void:
 
 # ── 返回 ──────────────────────────────────────────────────────
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
+	if _is_edit_mode:
+		_confirm_action = &"back"
+		confirm_dialog.show_dialog("放弃所有修改？")
+	else:
+		get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 
 # ── 创建 ──────────────────────────────────────────────────────
 func _on_create_btn_pressed() -> void:
@@ -436,6 +505,8 @@ func _on_confirm_dialog_confirmed() -> void:
 			_do_reset()
 		&"create":
 			_do_create()
+		&"back":
+			get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 
 func _do_reset() -> void:
 	id_input.text = ""
@@ -452,8 +523,8 @@ func _do_reset() -> void:
 	avatar_preview.texture = null
 	ref_audio_label.text = "未选择"
 	_init_default_moods()
-	# 清空 draft 目录
-	var dir := DirAccess.open(DRAFT_DIR)
+	# 清空工作目录
+	var dir := DirAccess.open(_work_dir)
 	if dir:
 		dir.list_dir_begin()
 		var entry := dir.get_next()
@@ -469,7 +540,7 @@ func _validate_all() -> bool:
 	if name_input.text.strip_edges().is_empty():
 		_show_toast("角色名不能为空")
 		return false
-	if not FileAccess.file_exists(DRAFT_DIR + "avatar.png"):
+	if not FileAccess.file_exists(_work_dir + "avatar.png"):
 		_show_toast("请上传头像")
 		return false
 	if desc_input.text.strip_edges().is_empty():
@@ -486,7 +557,7 @@ func _validate_all() -> bool:
 		return false
 	var has_ref_audio := false
 	for ext in ["wav", "mp3", "ogg"]:
-		if FileAccess.file_exists(DRAFT_DIR + "ref." + ext):
+		if FileAccess.file_exists(_work_dir + "ref." + ext):
 			has_ref_audio = true
 			break
 	if has_ref_audio and ref_text_input.text.strip_edges().is_empty():
@@ -513,31 +584,44 @@ func _do_create() -> void:
 		"scale_rate": int(scale_input.value),
 		"moods": mood_names,
 	}
-	var jf := FileAccess.open(DRAFT_DIR + char_id + ".json", FileAccess.WRITE)
+	var jf := FileAccess.open(_work_dir + char_id + ".json", FileAccess.WRITE)
 	if jf:
 		jf.store_string(JSON.stringify(json_data, "\t"))
 		jf.close()
 
 	# 删除临时占位文件
-	if FileAccess.file_exists(DRAFT_DIR + "draft.json"):
-		DirAccess.open(DRAFT_DIR).remove("draft.json")
+	if FileAccess.file_exists(_work_dir + "draft.json"):
+		DirAccess.open(_work_dir).remove("draft.json")
 
-	# 确保目标父目录存在
 	DirAccess.make_dir_recursive_absolute(DEST_BASE)
-
-	# 直接重命名 draft 目录为最终角色目录
 	var dest_dir := DEST_BASE + char_id
-	# DRAFT_DIR 末尾有 /，去掉再 rename
-	var draft_path := DRAFT_DIR.trim_suffix("/")
-	var err := DirAccess.rename_absolute(draft_path, dest_dir)
-	if err != OK:
-		_show_toast("创建失败，无法移动文件夹（错误 %d）" % err)
-		return
 
-	# 重建 draft 目录供下次使用
-	DirAccess.make_dir_recursive_absolute(DRAFT_DIR)
+	if _is_edit_mode:
+		# 编辑模式：删除原角色文件夹，把 edit 目录内容复制过去
+		_delete_dir_recursive(dest_dir)
+		DirAccess.make_dir_recursive_absolute(dest_dir + "/")
+		var src_dir := DirAccess.open(_work_dir)
+		if src_dir:
+			src_dir.list_dir_begin()
+			var fname := src_dir.get_next()
+			while fname != "":
+				if not src_dir.current_is_dir() and not fname.begins_with("."):
+					_copy_file(_work_dir + fname, dest_dir + "/" + fname)
+				fname = src_dir.get_next()
+		# 清空 edit 目录
+		_delete_dir_recursive(EDIT_DIR.trim_suffix("/"))
+		DirAccess.make_dir_recursive_absolute(EDIT_DIR)
+		_show_toast("角色修改成功！")
+	else:
+		# 创建模式：直接重命名 draft 目录
+		var draft_path := DRAFT_DIR.trim_suffix("/")
+		var err := DirAccess.rename_absolute(draft_path, dest_dir)
+		if err != OK:
+			_show_toast("创建失败，无法移动文件夹（错误 %d）" % err)
+			return
+		DirAccess.make_dir_recursive_absolute(DRAFT_DIR)
+		_show_toast("角色创建成功！")
 
-	_show_toast("角色创建成功！")
 	await get_tree().create_timer(1.2).timeout
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 

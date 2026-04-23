@@ -53,6 +53,7 @@ func _ready() -> void:
 	ui.more_options_toggle_requested.connect(_toggle_more_options)
 	ui.clear_history_confirm_requested.connect(_show_clear_history_confirm)
 	ui.delete_confirm_requested.connect(_show_delete_confirm)
+	ui.edit_requested.connect(_on_edit_pressed)
 	ui.advance_requested.connect(_advance)
 	ui.input_key_enter.connect(_on_send_pressed)
 	ui.sentence_finished.connect(_on_sentence_finished)
@@ -584,6 +585,11 @@ func _show_delete_confirm() -> void:
 	else:
 		var char_name: String = AppState.current_character.get("name", "该角色")
 		confirm_dialog.show_dialog("⚠\n确定要删除角色 %s 吗？（真的很久）\n此操作不可撤销！" % char_name)
+
+func _on_edit_pressed() -> void:
+	ui.hide_more_options()
+	AppState.edit_char_id = AppState.current_character.get("id", "")
+	get_tree().change_scene_to_file("res://scenes/character_create/character_create.tscn")
 
 func _hide_confirm_dialog() -> void:
 	confirm_dialog.hide_dialog()
