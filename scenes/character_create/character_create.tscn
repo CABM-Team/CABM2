@@ -302,40 +302,90 @@ theme = ExtResource("3")
 theme_override_font_sizes/font_size = 24
 text = "+ 添加行"
 
-[node name="RowCalib" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="CalibScalePreviewRow" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="CalibScaleControls" type="VBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 16
+
+[node name="RowCalib" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="CalibLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowCalib"]
+[node name="CalibLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowCalib"]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "* 位置校准"
 vertical_alignment = 1
 
-[node name="CalibInput" type="SpinBox" parent="Scroll/VBox/FormPanel/FormRows/RowCalib"]
+[node name="CalibInput" type="SpinBox" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowCalib"]
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 min_value = -1000.0
 max_value = 1000.0
 
-[node name="RowScale" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="RowScale" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="ScaleLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowScale"]
+[node name="ScaleLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowScale"]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "* 缩放"
 vertical_alignment = 1
 
-[node name="ScaleInput" type="SpinBox" parent="Scroll/VBox/FormPanel/FormRows/RowScale"]
+[node name="ScaleInput" type="SpinBox" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowScale"]
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 min_value = 10.0
 max_value = 500.0
 value = 100.0
+
+[node name="SpritePreviewContainer" type="SubViewportContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow"]
+custom_minimum_size = Vector2(360, 202)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+stretch = true
+
+[node name="SpritePreviewViewport" type="SubViewport" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer"]
+size = Vector2i(360, 202)
+render_target_update_mode = 3
+
+[node name="PreviewBg" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.22, 0.22, 0.22, 1)
+mouse_filter = 2
+
+[node name="PreviewSprite" type="Sprite2D" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
+texture_filter = 1
+position = Vector2(180, 202)
+offset = Vector2(0, -96)
+
+[node name="PreviewDialogBar" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 143.0
+offset_right = 330.0
+offset_bottom = 189.0
+color = Color(0.08, 0.08, 0.16, 0.82)
+mouse_filter = 2
+
+[node name="PreviewInputBar" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
+layout_mode = 0
+offset_left = 261.0
+offset_top = 9.0
+offset_right = 354.0
+offset_bottom = 56.0
+color = Color(0.08, 0.08, 0.16, 0.75)
+mouse_filter = 2
 
 [node name="Label4" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
 layout_mode = 2

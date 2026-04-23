@@ -102,7 +102,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_font_sizes/font_size = 28
 text = "CABM2（或CABM-R）是CABM（Code Afflatus & Beyond Matter）的 Godot 重制版。
 
-原版基于 Python + Flask + HTML 实现，存在架构混乱、全局状态耦合严重等问题。本版本使用 Godot 4.5 重写，目标是更清晰的架构、更好的跨平台支持和更流畅的用户体验。"
+原版基于 Python + Flask + HTML 实现，存在架构混乱、全局状态耦合严重等问题。本版本使用 Godot 4.5 重写并全面优化，目标是更清晰的架构、更好的跨平台支持和更流畅的用户体验。"
 autowrap_mode = 3
 
 [node name="HSeparator2" type="HSeparator" parent="VBox/ContentScroll/Content"]

@@ -37,8 +37,9 @@ var _crop_target_row := -1    # -1 = 头像，>=0 = 立绘行索引
 @onready var welcome_input: LineEdit         = $Scroll/VBox/FormPanel/FormRows/RowWelcome/WelcomeInput
 @onready var mood_table: VBoxContainer       = $Scroll/VBox/FormPanel/FormRows/MoodTable
 @onready var add_mood_btn: Button            = $Scroll/VBox/FormPanel/FormRows/AddMoodButton
-@onready var calib_input: SpinBox            = $Scroll/VBox/FormPanel/FormRows/RowCalib/CalibInput
-@onready var scale_input: SpinBox            = $Scroll/VBox/FormPanel/FormRows/RowScale/ScaleInput
+@onready var calib_input: SpinBox            = $Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowCalib/CalibInput
+@onready var scale_input: SpinBox            = $Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowScale/ScaleInput
+@onready var preview_sprite: Sprite2D        = $Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport/PreviewSprite
 @onready var ref_audio_btn: Button           = $Scroll/VBox/FormPanel/FormRows/RowRefAudio/RefAudioRow/RefAudioButton
 @onready var ref_audio_label: Label          = $Scroll/VBox/FormPanel/FormRows/RowRefAudio/RefAudioRow/RefAudioLabel
 @onready var ref_text_input: LineEdit        = $Scroll/VBox/FormPanel/FormRows/RowRefText/RefTextInput
@@ -92,6 +93,8 @@ func _connect_signals() -> void:
 	crop_dialog.crop_confirmed.connect(_on_crop_confirmed)
 	confirm_dialog.confirmed.connect(_on_confirm_dialog_confirmed)
 	confirm_dialog.cancelled.connect(func(): confirm_dialog.hide_dialog())
+	calib_input.value_changed.connect(func(_v): _update_preview())
+	scale_input.value_changed.connect(func(_v): _update_preview())
 
 # ── 立绘表格 ──────────────────────────────────────────────────
 func _rebuild_mood_table() -> void:
@@ -274,6 +277,8 @@ func _on_crop_confirmed(cropped_image: Image) -> void:
 		cropped_image.save_png(DRAFT_DIR + "%d.png" % (_crop_target_row + 1))
 		_mood_rows[_crop_target_row]["file"] = DRAFT_DIR + "%d.png" % (_crop_target_row + 1)
 		_rebuild_mood_table()
+		if _crop_target_row == 0:
+			_update_preview()
 	_save_draft_json()
 
 # ── 颜色 ──────────────────────────────────────────────────────
@@ -395,6 +400,7 @@ func _load_draft() -> void:
 				"file": mood_file if FileAccess.file_exists(mood_file) else ""
 			})
 		_rebuild_mood_table()
+	_update_preview()
 
 # ── 重置 ──────────────────────────────────────────────────────
 func _on_reset_btn_pressed() -> void:
@@ -523,6 +529,22 @@ func _do_create() -> void:
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 
 # ── 工具函数 ──────────────────────────────────────────────────
+# 预览缩放比：SubViewport 360×202 对应实际 1920×1080，比例 = 360/1920
+const PREVIEW_SCALE := 360.0 / 1920.0
+
+func _update_preview() -> void:
+	var scale_rate: float = scale_input.value / 100.0 * PREVIEW_SCALE
+	preview_sprite.scale = Vector2(scale_rate, scale_rate)
+	# position.y 基准对应实际 1080 → 预览 202，calib 也等比缩放
+	preview_sprite.position.y = 202.0 + calib_input.value * PREVIEW_SCALE
+	# 加载第一张立绘（如果有）
+	var first_file := ""
+	if not _mood_rows.is_empty():
+		first_file = _mood_rows[0].get("file", "")
+	if not first_file.is_empty() and FileAccess.file_exists(first_file):
+		preview_sprite.texture = _load_texture(first_file)
+	else:
+		preview_sprite.texture = null
 func _copy_file(src: String, dst: String) -> void:
 	var data := FileAccess.get_file_as_bytes(src)
 	if data.is_empty():
