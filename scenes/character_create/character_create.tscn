@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://cx88ewjbai0ab"]
+[gd_scene load_steps=8 format=3 uid="uid://cx88ewjbai0ab"]
 
 [ext_resource type="Script" uid="uid://dbhuc1y2wkdr" path="res://scripts/character_create/CharacterCreateController.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://c1sq3exfquy7k" path="res://assets/backgrounds/sr-7.png" id="2"]
 [ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="3"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4"]
+[ext_resource type="Theme" uid="uid://nbt4udvni8b5" path="res://assets/theme/red_button.tres" id="5_ixq1y"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 content_margin_left = 24.0
@@ -56,12 +57,35 @@ anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.35)
 
+[node name="BackButton" type="Button" parent="."]
+custom_minimum_size = Vector2(160, 54)
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 180.0
+offset_bottom = 74.0
+theme = ExtResource("4")
+theme_override_font_sizes/font_size = 26
+text = "← 返回"
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 0
+offset_top = 20.0
+offset_right = 1920.0
+offset_bottom = 77.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_font_sizes/font_size = 48
+text = "创建角色"
+horizontal_alignment = 1
+
 [node name="Scroll" type="ScrollContainer" parent="."]
 layout_mode = 0
 anchor_left = 0.05
 anchor_top = 0.02
 anchor_right = 0.95
 anchor_bottom = 0.98
+offset_top = 78.4
+offset_bottom = -8.400024
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -70,20 +94,19 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="TitleLabel" type="Label" parent="Scroll/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.95)
-theme_override_font_sizes/font_size = 48
-text = "创建角色"
-horizontal_alignment = 1
-
 [node name="FormPanel" type="PanelContainer" parent="Scroll/VBox"]
 layout_mode = 2
+mouse_filter = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="FormRows" type="VBoxContainer" parent="Scroll/VBox/FormPanel"]
 layout_mode = 2
 theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "——基础信息——"
 
 [node name="RowId" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
 layout_mode = 2
@@ -190,6 +213,12 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 22
 color = Color(1, 1, 1, 1)
 
+[node name="Label2" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "
+——人物设定——"
+
 [node name="RowDesc" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
 layout_mode = 2
 theme_override_constants/separation = 20
@@ -227,7 +256,9 @@ custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
-placeholder_text = "系统提示词，描述角色性格、说话风格等"
+placeholder_text = "系统提示词，描述角色性格、说话风格等
+推荐以“你是”开头
+如果是知名角色，可以直接写“你是《xxxx》中的xxx”"
 wrap_mode = 1
 
 [node name="RowWelcome" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
@@ -247,6 +278,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 placeholder_text = "首次对话时显示的欢迎语"
+
+[node name="Label3" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "
+——表情立绘——"
 
 [node name="MoodSectionLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
 layout_mode = 2
@@ -300,6 +337,12 @@ min_value = 10.0
 max_value = 500.0
 value = 100.0
 
+[node name="Label4" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+text = "
+——语音——"
+
 [node name="RowRefAudio" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
 layout_mode = 2
 theme_override_constants/separation = 20
@@ -345,32 +388,30 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
-placeholder_text = "参考音频的文本"
+placeholder_text = "填写音频里说的话"
 
 [node name="BottomBar" type="HBoxContainer" parent="Scroll/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 40
+theme_override_constants/separation = 120
 alignment = 1
 
 [node name="ResetButton" type="Button" parent="Scroll/VBox/BottomBar"]
-custom_minimum_size = Vector2(160, 54)
+custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
+theme = ExtResource("5_ixq1y")
+theme_override_font_sizes/font_size = 40
 text = "重置"
 
-[node name="BackButton" type="Button" parent="Scroll/VBox/BottomBar"]
-custom_minimum_size = Vector2(160, 54)
-layout_mode = 2
-theme = ExtResource("4")
-theme_override_font_sizes/font_size = 26
-text = "返回"
-
 [node name="CreateButton" type="Button" parent="Scroll/VBox/BottomBar"]
-custom_minimum_size = Vector2(200, 54)
+custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 theme = ExtResource("3")
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 40
 text = "创建"
+
+[node name="Label" type="Label" parent="Scroll/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
 
 [node name="FileDialog" type="FileDialog" parent="."]
 title = "Open a File"
