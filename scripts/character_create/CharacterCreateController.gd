@@ -449,8 +449,11 @@ func _load_draft() -> void:
 	color_picker.color = _current_color
 
 	# 恢复头像预览
-	if FileAccess.file_exists(_work_dir + "avatar.png"):
-		avatar_preview.texture = _load_texture(_work_dir + "avatar.png")
+	for ext: String in ["png", "jpg", "jpeg", "webp"]:
+		var ap := _work_dir + "avatar." + ext
+		if FileAccess.file_exists(ap):
+			avatar_preview.texture = _load_texture(ap)
+			break
 
 	# 恢复参考音频标签
 	for ext: String in ["wav", "mp3", "ogg"]:
@@ -540,7 +543,12 @@ func _validate_all() -> bool:
 	if name_input.text.strip_edges().is_empty():
 		_show_toast("角色名不能为空")
 		return false
-	if not FileAccess.file_exists(_work_dir + "avatar.png"):
+	var has_avatar := false
+	for ext in ["png", "jpg", "jpeg", "webp"]:
+		if FileAccess.file_exists(_work_dir + "avatar." + ext):
+			has_avatar = true
+			break
+	if not has_avatar:
 		_show_toast("请上传头像")
 		return false
 	if desc_input.text.strip_edges().is_empty():
@@ -627,13 +635,13 @@ func _do_create() -> void:
 
 # ── 工具函数 ──────────────────────────────────────────────────
 # 预览缩放比：SubViewport 360×202 对应实际 1920×1080，比例 = 360/1920
-const PREVIEW_SCALE := 360.0 / 1920.0
+const PREVIEW_SCALE := 352.0 / 1920.0
 
 func _update_preview() -> void:
 	var scale_rate: float = scale_input.value / 100.0 * PREVIEW_SCALE
 	preview_sprite.scale = Vector2(scale_rate, scale_rate)
-	# position.y 基准对应实际 1080 → 预览 202，calib 也等比缩放
-	preview_sprite.position.y = 202.0 + calib_input.value * PREVIEW_SCALE
+	# position.y 基准对应实际 1080 → 预览 198，calib 也等比缩放
+	preview_sprite.position.y = 198.0 + calib_input.value * PREVIEW_SCALE
 	# 加载第一张立绘（如果有）
 	var first_file := ""
 	if not _mood_rows.is_empty():

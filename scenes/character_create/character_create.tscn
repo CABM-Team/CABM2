@@ -300,7 +300,7 @@ custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 theme = ExtResource("3")
 theme_override_font_sizes/font_size = 24
-text = "+ 添加行"
+text = "+ 添加表情立绘"
 
 [node name="CalibScalePreviewRow" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
 layout_mode = 2
@@ -347,45 +347,44 @@ max_value = 500.0
 value = 100.0
 
 [node name="SpritePreviewContainer" type="SubViewportContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow"]
-custom_minimum_size = Vector2(360, 202)
+custom_minimum_size = Vector2(352, 198)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 stretch = true
 
 [node name="SpritePreviewViewport" type="SubViewport" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer"]
-size = Vector2i(360, 202)
-render_target_update_mode = 3
+handle_input_locally = false
+size = Vector2i(352, 198)
+render_target_update_mode = 4
 
 [node name="PreviewBg" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.22, 0.22, 0.22, 1)
 mouse_filter = 2
+color = Color(0.22, 0.22, 0.22, 1)
 
 [node name="PreviewSprite" type="Sprite2D" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
 texture_filter = 1
-position = Vector2(180, 202)
+position = Vector2(176, 198)
 offset = Vector2(0, -96)
 
 [node name="PreviewDialogBar" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
-layout_mode = 0
-offset_left = 14.0
-offset_top = 143.0
-offset_right = 330.0
-offset_bottom = 189.0
-color = Color(0.08, 0.08, 0.16, 0.82)
+offset_left = 29.0
+offset_top = 139.0
+offset_right = 323.0
+offset_bottom = 185.0
 mouse_filter = 2
+color = Color(0.08, 0.08, 0.16, 0.82)
 
 [node name="PreviewInputBar" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
-layout_mode = 0
-offset_left = 261.0
-offset_top = 9.0
-offset_right = 354.0
+offset_left = 255.0
+offset_top = 19.0
+offset_right = 347.0
 offset_bottom = 56.0
-color = Color(0.08, 0.08, 0.16, 0.75)
 mouse_filter = 2
+color = Color(0.08, 0.08, 0.16, 0.75)
 
 [node name="Label4" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
 layout_mode = 2
