@@ -27,6 +27,9 @@ var current_scene: String = ""
 # 编辑模式：要编辑的角色 ID（空字符串表示创建模式）
 var edit_char_id: String = ""
 
+# 编辑完成后自动返回的角色 ID（空字符串表示不自动跳转）
+var return_to_char_id: String = ""
+
 ## 是否处于群聊模式
 func is_group_mode() -> bool:
 	return not current_group.is_empty()

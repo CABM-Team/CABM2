@@ -53,6 +53,15 @@ func _ready() -> void:
 	_populate_groups()
 	_switch_tab(UIStateManager.last_tab_is_group)
 
+	# 编辑完成后自动返回对话页
+	if not AppState.return_to_char_id.is_empty():
+		var rid := AppState.return_to_char_id
+		AppState.return_to_char_id = ""
+		for c in _all_characters:
+			if c.get("id", "") == rid:
+				_on_character_selected(c)
+				return
+
 func _switch_tab(is_group: bool) -> void:
 	UIStateManager.last_tab_is_group = is_group
 	UIStateManager.save()

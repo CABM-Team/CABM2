@@ -589,6 +589,8 @@ func _show_delete_confirm() -> void:
 func _on_edit_pressed() -> void:
 	ui.hide_more_options()
 	AppState.edit_char_id = AppState.current_character.get("id", "")
+	AppState.return_to_char_id = AppState.edit_char_id
+	_disconnect_all()
 	get_tree().change_scene_to_file("res://scenes/character_create/character_create.tscn")
 
 func _hide_confirm_dialog() -> void:
@@ -684,7 +686,7 @@ func _on_option_selected(text: String) -> void:
 	_on_send_pressed()
 
 # ── 导航 ──────────────────────────────────────────────────────
-func _on_back_pressed() -> void:
+func _disconnect_all() -> void:
 	EasyAI.cancel()
 	ApiClient.cancel()
 	ApiClient.stream_chunk.disconnect(_on_stream_chunk)
@@ -695,6 +697,9 @@ func _on_back_pressed() -> void:
 	TTSManager.tts_done.disconnect(_on_tts_done)
 	TTSManager.tts_error.disconnect(_on_tts_error)
 	ui.history_tts_requested.disconnect(_on_history_tts_requested)
+
+func _on_back_pressed() -> void:
+	_disconnect_all()
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 
 # ── TTS ───────────────────────────────────────────────────────
