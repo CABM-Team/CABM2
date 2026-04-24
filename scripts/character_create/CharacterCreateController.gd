@@ -297,7 +297,7 @@ func _handle_avatar_file(path: String) -> void:
 	_copy_file(path, src)
 	_crop_source_path = src
 	_crop_target_row = -1
-	crop_dialog.open_image(src, true)
+	crop_dialog.open_image(src, 1.0)
 
 func _handle_mood_file(path: String, idx: int) -> void:
 	var ext := path.get_extension().to_lower()
@@ -305,7 +305,7 @@ func _handle_mood_file(path: String, idx: int) -> void:
 	_copy_file(path, src)
 	_crop_source_path = src
 	_crop_target_row = idx
-	crop_dialog.open_image(src, false)
+	crop_dialog.open_image(src, 0.0)
 
 func _handle_ref_audio_file(path: String) -> void:
 	var ext := path.get_extension().to_lower()

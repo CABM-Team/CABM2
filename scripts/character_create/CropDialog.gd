@@ -1,6 +1,6 @@
 ## CropDialog.gd
 ## 图片裁剪对话框 - 重写版
-## 支持自由裁剪/正方形裁剪，支持拖拽移动裁剪框，支持调整裁剪框大小
+## 支持自定义比例裁剪/自由裁剪，支持拖拽移动裁剪框，支持调整裁剪框大小
 
 extends Control
 
@@ -24,7 +24,7 @@ enum DragHandle {
 
 var _source_image: Image = null
 var _crop_rect := Rect2()           # 裁剪区域（图片坐标系）
-var _force_square := false           # 强制正方形
+var _aspect_ratio := 0.0            # 宽高比约束，0表示自由裁剪，>0表示固定比例
 var _dragging_handle := DragHandle.NONE
 var _drag_start_mouse := Vector2.ZERO
 var _drag_start_rect := Rect2()
@@ -44,32 +44,51 @@ func _ready() -> void:
 	# 双击全选
 	crop_overlay.gui_input.connect(_on_crop_overlay_double_click)
 
-func open_image(path: String, force_square: bool = false) -> void:
+func open_image(path: String, aspect_ratio: float = 0.0) -> void:
+	"""
+	打开图片进行裁剪
+	参数:
+		path: 图片路径
+		aspect_ratio: 宽高比约束，0表示自由裁剪，>0表示固定比例（如 1.0 为正方形，16.0/9.0 为 16:9）
+	"""
 	var img := Image.new()
 	if img.load(path) != OK:
 		push_error("Failed to load image: ", path)
 		return
 	
 	_source_image = img
-	_force_square = force_square
+	_aspect_ratio = aspect_ratio
 	image_rect.texture = ImageTexture.create_from_image(img)
 	
 	# 设置初始裁剪区域
-	if force_square:
-		# 正方形：取图片中心的最大正方形
-		var square_size = minf(img.get_width(), img.get_height())
-		var x = (img.get_width() - square_size) / 2.0
-		var y = (img.get_height() - square_size) / 2.0
-		_crop_rect = Rect2(x, y, square_size, square_size)
+	if _aspect_ratio > 0:
+		# 固定比例：取图片内最大符合比例的区域
+		_crop_rect = _get_max_aspect_rect(img.get_width(), img.get_height(), _aspect_ratio)
 	else:
-		# 全选
+		# 自由裁剪：全选
 		_crop_rect = Rect2(0, 0, img.get_width(), img.get_height())
 	
 	# 更新提示文本
-	hint_label.text = "拖拽移动裁剪区域 | 拖拽边缘调整大小" + (" | 双击全选" if not force_square else "")
+	var ratio_text := "自由裁剪" if _aspect_ratio == 0 else "比例 %.2f:1" % _aspect_ratio
+	hint_label.text = "拖拽移动裁剪区域 | 拖拽边缘调整大小 | %s" % ratio_text + (" | 双击全选" if _aspect_ratio == 0 else "")
 	
 	crop_overlay.queue_redraw()
 	visible = true
+
+func _get_max_aspect_rect(img_w: int, img_h: int, target_ratio: float) -> Rect2:
+	"""获取图片内最大的目标比例矩形（居中）"""
+	var img_ratio = img_w / float(img_h)
+	
+	if img_ratio > target_ratio:
+		# 图片更宽，以高度为基准
+		var new_w = img_h * target_ratio
+		var x = (img_w - new_w) / 2.0
+		return Rect2(x, 0, new_w, img_h)
+	else:
+		# 图片更高，以宽度为基准
+		var new_h = img_w / target_ratio
+		var y = (img_h - new_h) / 2.0
+		return Rect2(0, y, img_w, new_h)
 
 func _get_display_rect() -> Rect2:
 	"""获取图片在 crop_overlay 中的显示区域（保持比例居中）"""
@@ -124,8 +143,8 @@ func _get_handle_at(pos: Vector2) -> DragHandle:
 	var bottom_right := _to_overlay_coord(_crop_rect.end)
 	
 	# 检测8个手柄区域
-	if _force_square:
-		# 正方形模式只允许移动
+	if _aspect_ratio > 0:
+		# 固定比例模式只允许移动
 		return DragHandle.MOVE
 	
 	# 边角
@@ -150,6 +169,74 @@ func _get_handle_at(pos: Vector2) -> DragHandle:
 	
 	# 内部移动
 	return DragHandle.MOVE
+
+func _apply_aspect_constraint(rect: Rect2, handle: DragHandle, start_rect: Rect2, start_mouse: Vector2, current_mouse: Vector2) -> Rect2:
+	"""应用宽高比约束（中心点不变策略）"""
+	var center = start_rect.get_center()
+	var size = start_rect.size
+	var target_ratio = _aspect_ratio
+	
+	# 根据拖拽手柄计算新的尺寸，保持宽高比
+	var new_size = size
+	
+	match handle:
+		DragHandle.TOP_LEFT, DragHandle.TOP, DragHandle.LEFT:
+			# 拖拽左上角
+			var delta = current_mouse - start_mouse
+			var new_width = size.x - delta.x
+			var new_height = size.y - delta.y
+			# 取两者中变化最大的方向来确定新尺寸
+			if abs(delta.x / size.x) > abs(delta.y / size.y):
+				new_height = new_width / target_ratio
+			else:
+				new_width = new_height * target_ratio
+			new_size = Vector2(new_width, new_height)
+		
+		DragHandle.TOP_RIGHT, DragHandle.RIGHT:
+			var delta = current_mouse - start_mouse
+			var new_width = size.x + delta.x
+			var new_height = size.y - delta.y
+			if abs(delta.x / size.x) > abs(delta.y / size.y):
+				new_height = new_width / target_ratio
+			else:
+				new_width = new_height * target_ratio
+			new_size = Vector2(new_width, new_height)
+		
+		DragHandle.BOTTOM_LEFT, DragHandle.BOTTOM:
+			var delta = current_mouse - start_mouse
+			var new_width = size.x - delta.x
+			var new_height = size.y + delta.y
+			if abs(delta.x / size.x) > abs(delta.y / size.y):
+				new_height = new_width / target_ratio
+			else:
+				new_width = new_height * target_ratio
+			new_size = Vector2(new_width, new_height)
+		
+		DragHandle.BOTTOM_RIGHT:
+			var delta = current_mouse - start_mouse
+			var new_width = size.x + delta.x
+			var new_height = size.y + delta.y
+			if abs(delta.x / size.x) > abs(delta.y / size.y):
+				new_height = new_width / target_ratio
+			else:
+				new_width = new_height * target_ratio
+			new_size = Vector2(new_width, new_height)
+		
+		_:
+			return rect
+	
+	# 确保最小尺寸
+	if new_size.x < MIN_CROP_SIZE:
+		new_size.x = MIN_CROP_SIZE
+		new_size.y = MIN_CROP_SIZE / target_ratio
+	if new_size.y < MIN_CROP_SIZE:
+		new_size.y = MIN_CROP_SIZE
+		new_size.x = MIN_CROP_SIZE * target_ratio
+	
+	# 以中心点计算新位置
+	var new_pos = center - new_size / 2
+	
+	return Rect2(new_pos, new_size)
 
 func _clamp_crop_rect(rect: Rect2) -> Rect2:
 	"""限制裁剪区域在图片范围内"""
@@ -178,14 +265,35 @@ func _clamp_crop_rect(rect: Rect2) -> Rect2:
 		result.size.y = MIN_CROP_SIZE
 		result.position.y = clampf(result.position.y, 0, img_h - MIN_CROP_SIZE)
 	
-	# 正方形模式：强制保持正方形
-	if _force_square:
-		var square_size = minf(result.size.x, result.size.y)
-		result.size = Vector2(square_size, square_size)
-		result.position = Vector2(
-			clampf(result.position.x, 0, img_w - square_size),
-			clampf(result.position.y, 0, img_h - square_size)
-		)
+	# 固定比例模式：强制保持比例
+	if _aspect_ratio > 0:
+		var target_ratio = _aspect_ratio
+		var current_ratio = result.size.x / result.size.y
+		
+		if abs(current_ratio - target_ratio) > 0.01:
+			# 调整尺寸以符合比例
+			if current_ratio > target_ratio:
+				# 太宽，缩小宽度
+				var new_w = result.size.y * target_ratio
+				var delta = result.size.x - new_w
+				result.position.x += delta / 2
+				result.size.x = new_w
+			else:
+				# 太高，缩小高度
+				var new_h = result.size.x / target_ratio
+				var delta = result.size.y - new_h
+				result.position.y += delta / 2
+				result.size.y = new_h
+		
+		# 再次检查边界
+		if result.position.x < 0:
+			result.position.x = 0
+		if result.position.y < 0:
+			result.position.y = 0
+		if result.end.x > img_w:
+			result.position.x = img_w - result.size.x
+		if result.end.y > img_h:
+			result.position.y = img_h - result.size.y
 	
 	return result
 
@@ -242,52 +350,10 @@ func _update_crop_rect(handle: DragHandle, mouse_delta: Vector2) -> Rect2:
 		new_rect.position.y += new_rect.size.y
 		new_rect.size.y = -new_rect.size.y
 	
-	# 正方形模式特殊处理：保持正方形且以拖拽点为中心
-	if _force_square and handle != DragHandle.MOVE:
-		var mouse_img = _drag_start_mouse
-		var current_mouse = mouse_img + mouse_delta
-		
-		# 计算当前拖拽点对应的正方形区域
-		var center = _drag_start_rect.get_center()
-		
-		match handle:
-			DragHandle.TOP_LEFT, DragHandle.TOP, DragHandle.LEFT:
-				# 拖拽左上相关角，新正方形的边长 = 中心到鼠标的最大距离 * 2
-				var dx = abs(current_mouse.x - center.x)
-				var dy = abs(current_mouse.y - center.y)
-				var new_half = maxf(dx, dy)
-				var new_size = new_half * 2
-				new_size = clampf(new_size, MIN_CROP_SIZE, minf(img_w, img_h))
-				new_rect = Rect2(center.x - new_size/2, center.y - new_size/2, new_size, new_size)
-			
-			DragHandle.TOP_RIGHT, DragHandle.RIGHT:
-				# 拖拽右上相关角
-				var dx = abs(current_mouse.x - center.x)
-				var dy = abs(current_mouse.y - center.y)
-				var new_half = maxf(dx, dy)
-				var new_size = new_half * 2
-				new_size = clampf(new_size, MIN_CROP_SIZE, minf(img_w, img_h))
-				new_rect = Rect2(center.x - new_size/2, center.y - new_size/2, new_size, new_size)
-			
-			DragHandle.BOTTOM_LEFT, DragHandle.BOTTOM:
-				# 拖拽左下相关角
-				var dx = abs(current_mouse.x - center.x)
-				var dy = abs(current_mouse.y - center.y)
-				var new_half = maxf(dx, dy)
-				var new_size = new_half * 2
-				new_size = clampf(new_size, MIN_CROP_SIZE, minf(img_w, img_h))
-				new_rect = Rect2(center.x - new_size/2, center.y - new_size/2, new_size, new_size)
-			
-			DragHandle.BOTTOM_RIGHT:
-				# 拖拽右下角
-				var dx = abs(current_mouse.x - center.x)
-				var dy = abs(current_mouse.y - center.y)
-				var new_half = maxf(dx, dy)
-				var new_size = new_half * 2
-				new_size = clampf(new_size, MIN_CROP_SIZE, minf(img_w, img_h))
-				new_rect = Rect2(center.x - new_size/2, center.y - new_size/2, new_size, new_size)
-		
-		return _clamp_crop_rect(new_rect)
+	# 固定比例模式特殊处理
+	if _aspect_ratio > 0 and handle != DragHandle.MOVE:
+		var current_mouse = _drag_start_mouse + mouse_delta
+		return _apply_aspect_constraint(new_rect, handle, _drag_start_rect, _drag_start_mouse, current_mouse)
 	
 	return _clamp_crop_rect(new_rect)
 
@@ -316,27 +382,36 @@ func _on_crop_overlay_input(event: InputEvent) -> void:
 		crop_overlay.queue_redraw()
 	
 	elif event is InputEventMouseMotion:
-		# 更新鼠标样式
+		# 更新鼠标样式（固定比例模式下不显示调整大小手柄）
 		var handle = _get_handle_at(event.position)
 		var cursor = Control.CURSOR_CROSS
-		match handle:
-			DragHandle.TOP_LEFT, DragHandle.BOTTOM_RIGHT:
-				cursor = Control.CURSOR_FDIAGSIZE
-			DragHandle.TOP_RIGHT, DragHandle.BOTTOM_LEFT:
-				cursor = Control.CURSOR_BDIAGSIZE
-			DragHandle.TOP, DragHandle.BOTTOM:
-				cursor = Control.CURSOR_VSIZE
-			DragHandle.LEFT, DragHandle.RIGHT:
-				cursor = Control.CURSOR_HSIZE
-			DragHandle.MOVE:
+		
+		if _aspect_ratio > 0:
+			# 固定比例模式只允许移动
+			if handle == DragHandle.MOVE:
 				cursor = Control.CURSOR_MOVE
-			_:
+			else:
 				cursor = Control.CURSOR_CROSS
+		else:
+			match handle:
+				DragHandle.TOP_LEFT, DragHandle.BOTTOM_RIGHT:
+					cursor = Control.CURSOR_FDIAGSIZE
+				DragHandle.TOP_RIGHT, DragHandle.BOTTOM_LEFT:
+					cursor = Control.CURSOR_BDIAGSIZE
+				DragHandle.TOP, DragHandle.BOTTOM:
+					cursor = Control.CURSOR_VSIZE
+				DragHandle.LEFT, DragHandle.RIGHT:
+					cursor = Control.CURSOR_HSIZE
+				DragHandle.MOVE:
+					cursor = Control.CURSOR_MOVE
+				_:
+					cursor = Control.CURSOR_CROSS
+		
 		crop_overlay.mouse_default_cursor_shape = cursor
 
 func _on_crop_overlay_double_click(event: InputEvent) -> void:
-	"""双击全选（仅限非正方形模式）"""
-	if _force_square:
+	"""双击全选（仅限自由裁剪模式）"""
+	if _aspect_ratio > 0:
 		return
 	
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
@@ -366,8 +441,8 @@ func _on_crop_overlay_draw() -> void:
 	# 绘制裁剪框边框
 	crop_overlay.draw_rect(crop_display_rect, Color(1, 1, 1, 0.9), false, 2.0)
 	
-	# 非正方形模式下绘制手柄
-	if not _force_square:
+	# 自由裁剪模式下绘制手柄
+	if _aspect_ratio == 0:
 		var handles := [
 			top_left,                                                    # 左上
 			Vector2(bottom_right.x, top_left.y),                        # 右上
@@ -379,9 +454,7 @@ func _on_crop_overlay_draw() -> void:
 			Vector2(bottom_right.x, (top_left.y + bottom_right.y) / 2)  # 右中
 		]
 		for handle in handles:
-			# 填充手柄（不需要 line width）
 			crop_overlay.draw_rect(Rect2(handle - Vector2(HANDLE_SIZE/2, HANDLE_SIZE/2), Vector2(HANDLE_SIZE, HANDLE_SIZE)), Color(1, 1, 1, 0.8), true)
-			# 边框
 			crop_overlay.draw_rect(Rect2(handle - Vector2(HANDLE_SIZE/2, HANDLE_SIZE/2), Vector2(HANDLE_SIZE, HANDLE_SIZE)), Color(0, 0, 0, 0.5), false, 1.0)
 
 func _on_confirm() -> void:
