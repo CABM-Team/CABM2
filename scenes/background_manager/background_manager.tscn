@@ -1,0 +1,111 @@
+[gd_scene load_steps=5 format=3 uid="uid://dgwtm8dwsfyj8"]
+
+[ext_resource type="Script" uid="uid://csge680kstg4y" path="res://scripts/background_manager/BackgroundManagerController.gd" id="1_bgctl"]
+[ext_resource type="Texture2D" uid="uid://bqlpftyurtofq" path="res://assets/backgrounds/sr-2.png" id="2_bgtex"]
+[ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="3_green"]
+[ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4_blue"]
+
+[node name="BackgroundManager" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bgctl")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("2_bgtex")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BackgroundOverlay" type="ColorRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.38)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 0
+anchor_left = 0.03
+anchor_top = 0.04
+anchor_right = 0.97
+anchor_bottom = 0.96
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="VBox"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="VBox/Header"]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+text = "← 返回"
+
+[node name="Title" type="Label" parent="VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 46
+text = "场景管理"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HeaderSpacer" type="Control" parent="VBox/Header"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="TabBar" type="HBoxContainer" parent="VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ImageTabButton" type="Button" parent="VBox/TabBar"]
+custom_minimum_size = Vector2(180, 46)
+layout_mode = 2
+theme = ExtResource("4_blue")
+theme_override_font_sizes/font_size = 30
+text = "背景图片"
+
+[node name="MusicTabButton" type="Button" parent="VBox/TabBar"]
+custom_minimum_size = Vector2(180, 46)
+layout_mode = 2
+theme = ExtResource("4_blue")
+theme_override_font_sizes/font_size = 30
+disabled = true
+text = "背景音乐"
+
+[node name="TabSpacer" type="Control" parent="VBox/TabBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Toolbar" type="HBoxContainer" parent="VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+
+[node name="ToolbarSpacer" type="Control" parent="VBox/Toolbar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NewBackgroundButton" type="Button" parent="VBox/Toolbar"]
+custom_minimum_size = Vector2(180, 44)
+layout_mode = 2
+theme = ExtResource("3_green")
+theme_override_font_sizes/font_size = 30
+text = "✚ 新建背景"
+
+[node name="BackgroundScroll" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BackgroundGrid" type="GridContainer" parent="VBox/BackgroundScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+columns = 6

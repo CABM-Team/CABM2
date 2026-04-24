@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://cx88ewjbai0ab"]
 
 [ext_resource type="Script" uid="uid://dbhuc1y2wkdr" path="res://scripts/character_create/CharacterCreateController.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://c1sq3exfquy7k" path="res://assets/backgrounds/sr-7.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://bqlpftyurtofq" path="res://assets/backgrounds/sr-2.png" id="2_ixq1y"]
 [ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="3"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4"]
 [ext_resource type="Theme" uid="uid://nbt4udvni8b5" path="res://assets/theme/red_button.tres" id="5_ixq1y"]
@@ -46,7 +46,7 @@ script = ExtResource("1")
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-texture = ExtResource("2")
+texture = ExtResource("2_ixq1y")
 expand_mode = 1
 stretch_mode = 6
 

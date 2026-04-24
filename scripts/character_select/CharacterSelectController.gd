@@ -26,6 +26,7 @@ const SORT_TIME  := 2
 @onready var sort_order_btn: Button         = $VBox/SortBar/SortOrderButton
 @onready var new_char_btn: Button           = $VBox/SortBar/NewCharButton
 @onready var import_char_btn: Button        = $VBox/SortBar/ImportCharButton
+@onready var background_btn: Button         = $VBox/SortBar/BackgroundButton
 @onready var new_group_btn: Button          = $VBox/SortBar/NewGroupButton
 @onready var import_result_dialog: Control  = $ImportResultDialog
 @onready var import_progress_dialog: Control = $ImportProgressDialog
@@ -44,6 +45,7 @@ func _ready() -> void:
 	sort_field_btn.pressed.connect(_on_sort_field_pressed)
 	sort_order_btn.pressed.connect(_on_sort_order_pressed)
 	import_char_btn.pressed.connect(_on_import_char_pressed)
+	background_btn.pressed.connect(_on_background_pressed)
 	import_result_dialog.closed.connect(_on_import_dialog_closed)
 	import_progress_dialog.import_finished.connect(_on_import_finished)
 
@@ -196,6 +198,9 @@ func _on_about_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+func _on_background_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/background_manager/background_manager.tscn")
 
 # ── 导入角色 ──────────────────────────────────────────
 

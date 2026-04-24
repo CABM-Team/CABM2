@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://bqw8x7y3m5n2p"]
 
 [ext_resource type="Script" uid="uid://cidsqu5j1ioc2" path="res://scripts/about/AboutController.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://c1sq3exfquy7k" path="res://assets/backgrounds/sr-7.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://bqlpftyurtofq" path="res://assets/backgrounds/sr-2.png" id="2_dfybg"]
 
 [node name="About" type="Control"]
 layout_mode = 3
@@ -16,7 +16,7 @@ script = ExtResource("1")
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-texture = ExtResource("2")
+texture = ExtResource("2_dfybg")
 expand_mode = 1
 stretch_mode = 6
 
