@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://dgwtm8dwsfyj8"]
+[gd_scene load_steps=6 format=3 uid="uid://dgwtm8dwsfyj8"]
 
 [ext_resource type="Script" uid="uid://csge680kstg4y" path="res://scripts/background_manager/BackgroundManagerController.gd" id="1_bgctl"]
 [ext_resource type="Texture2D" uid="uid://bqlpftyurtofq" path="res://assets/backgrounds/sr-2.png" id="2_bgtex"]
 [ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="3_green"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4_blue"]
+[ext_resource type="Theme" uid="uid://nbt4udvni8b5" path="res://assets/theme/red_button.tres" id="5_red"]
 
 [node name="BackgroundManager" type="Control"]
 layout_mode = 3
@@ -109,3 +110,168 @@ size_flags_horizontal = 3
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 16
 columns = 6
+
+[node name="FileDialog" type="FileDialog" parent="."]
+oversampling_override = 1.0
+title = "Open a File"
+size = Vector2i(1200, 800)
+ok_button_text = "选择"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.png,*.jpg,*.jpeg,*.webp ; 图片文件")
+
+[node name="DetailLayer" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Overlay" type="ColorRect" parent="DetailLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="Panel" type="PanelContainer" parent="DetailLayer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -787.0
+offset_top = -360.0
+offset_right = 787.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="DetailLayer/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="LeftVBox" type="VBoxContainer" parent="DetailLayer/Panel/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Spacer" type="Control" parent="DetailLayer/Panel/HBoxContainer/LeftVBox"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="UploadButton" type="Button" parent="DetailLayer/Panel/HBoxContainer/LeftVBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme = ExtResource("4_blue")
+theme_override_font_sizes/font_size = 32
+text = "上传图片"
+
+[node name="Preview" type="TextureRect" parent="DetailLayer/Panel/HBoxContainer/LeftVBox"]
+texture_filter = 1
+custom_minimum_size = Vector2(960, 540)
+layout_mode = 2
+size_flags_horizontal = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VSeparator" type="VSeparator" parent="DetailLayer/Panel/HBoxContainer"]
+layout_mode = 2
+
+[node name="RightVBox" type="VBoxContainer" parent="DetailLayer/Panel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 40
+
+[node name="Title" type="Label" parent="DetailLayer/Panel/HBoxContainer/RightVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = "背景详情"
+horizontal_alignment = 1
+
+[node name="NameRow" type="HBoxContainer" parent="DetailLayer/Panel/HBoxContainer/RightVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="NameLabel" type="Label" parent="DetailLayer/Panel/HBoxContainer/RightVBox/NameRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "名字"
+vertical_alignment = 1
+
+[node name="NameInput" type="LineEdit" parent="DetailLayer/Panel/HBoxContainer/RightVBox/NameRow"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+placeholder_text = "输入背景名称"
+
+[node name="DescBox" type="VBoxContainer" parent="DetailLayer/Panel/HBoxContainer/RightVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="DescLabel" type="Label" parent="DetailLayer/Panel/HBoxContainer/RightVBox/DescBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "描述"
+
+[node name="DescInput" type="TextEdit" parent="DetailLayer/Panel/HBoxContainer/RightVBox/DescBox"]
+custom_minimum_size = Vector2(0, 88)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+placeholder_text = "背景的简介"
+wrap_mode = 1
+autowrap_mode = 1
+
+[node name="PromptBox" type="VBoxContainer" parent="DetailLayer/Panel/HBoxContainer/RightVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PromptLabel" type="Label" parent="DetailLayer/Panel/HBoxContainer/RightVBox/PromptBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "提示词"
+
+[node name="PromptInput" type="TextEdit" parent="DetailLayer/Panel/HBoxContainer/RightVBox/PromptBox"]
+custom_minimum_size = Vector2(0, 116)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 26
+placeholder_text = "对场景的客观描述"
+wrap_mode = 1
+autowrap_mode = 1
+
+[node name="Spacer" type="Control" parent="DetailLayer/Panel/HBoxContainer/RightVBox"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="DetailLayer/Panel/HBoxContainer/RightVBox"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="BackButton" type="Button" parent="DetailLayer/Panel/HBoxContainer/RightVBox/Buttons"]
+custom_minimum_size = Vector2(170, 52)
+layout_mode = 2
+theme = ExtResource("3_green")
+theme_override_font_sizes/font_size = 30
+text = "返回"
+
+[node name="DeleteButton" type="Button" parent="DetailLayer/Panel/HBoxContainer/RightVBox/Buttons"]
+custom_minimum_size = Vector2(170, 52)
+layout_mode = 2
+theme = ExtResource("5_red")
+theme_override_font_sizes/font_size = 30
+text = "删除"
+
+[node name="ConfirmButton" type="Button" parent="DetailLayer/Panel/HBoxContainer/RightVBox/Buttons"]
+custom_minimum_size = Vector2(170, 52)
+layout_mode = 2
+theme = ExtResource("3_green")
+theme_override_font_sizes/font_size = 30
+text = "确定"
