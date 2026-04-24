@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://chat"]
 
 [ext_resource type="Script" uid="uid://cvhu6ve2u05cx" path="res://scripts/chat/ChatController.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://dejv7on4aogy4" path="res://assets/backgrounds/sr-3.png" id="2_r67cr"]
+[ext_resource type="Texture2D" uid="uid://d17ouifu8ll2e" path="res://assets/backgrounds/sr-1.png" id="3_80ysr"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="3_xe7gi"]
 [ext_resource type="Theme" uid="uid://nbt4udvni8b5" path="res://assets/theme/red_button.tres" id="4_6xy15"]
 [ext_resource type="PackedScene" uid="uid://l0myq0186xht" path="res://scenes/common/confirm_dialog.tscn" id="6_confirm"]
@@ -25,7 +25,7 @@ z_index = -3
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-texture = ExtResource("2_r67cr")
+texture = ExtResource("3_80ysr")
 expand_mode = 1
 stretch_mode = 6
 

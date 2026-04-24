@@ -3,6 +3,6 @@
 
 extends Node
 
-const VERSION := "beta-0422-1"
+const VERSION := "beta-0423-1"
 const APP_NAME := "cabm.r"
 const APP_FULL_NAME := "Code Afflatus & Beyond Matter"

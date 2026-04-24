@@ -1,7 +1,7 @@
 [gd_scene load_steps=11 format=3 uid="uid://settings"]
 
 [ext_resource type="Script" uid="uid://bgh3iibcfa8h0" path="res://scripts/settings/SettingsController.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://biblym0268v4b" path="res://assets/backgrounds/sr-6.png" id="2_vu5fi"]
+[ext_resource type="Texture2D" uid="uid://dejv7on4aogy4" path="res://assets/backgrounds/sr-3.png" id="2_vghtj"]
 [ext_resource type="Theme" uid="uid://cj18pmn5ewell" path="res://assets/theme/green_button.tres" id="3_tt6xx"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4_1slea"]
 [ext_resource type="PackedScene" uid="uid://l0myq0186xht" path="res://scenes/common/confirm_dialog.tscn" id="10_confirm"]
@@ -55,7 +55,7 @@ script = ExtResource("1")
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-texture = ExtResource("2_vu5fi")
+texture = ExtResource("2_vghtj")
 
 [node name="Label" type="Label" parent="."]
 layout_mode = 0
