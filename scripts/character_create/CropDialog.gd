@@ -41,7 +41,7 @@ func _ready() -> void:
 	crop_overlay.gui_input.connect(_on_crop_overlay_input)
 	crop_overlay.mouse_default_cursor_shape = Control.CURSOR_CROSS
 	
-	# 双击全选
+	# 双击重置到最大符合比例的区域
 	crop_overlay.gui_input.connect(_on_crop_overlay_double_click)
 
 func open_image(path: String, aspect_ratio: float = 0.0) -> void:
@@ -61,19 +61,26 @@ func open_image(path: String, aspect_ratio: float = 0.0) -> void:
 	image_rect.texture = ImageTexture.create_from_image(img)
 	
 	# 设置初始裁剪区域
-	if _aspect_ratio > 0:
-		# 固定比例：取图片内最大符合比例的区域
-		_crop_rect = _get_max_aspect_rect(img.get_width(), img.get_height(), _aspect_ratio)
-	else:
-		# 自由裁剪：全选
-		_crop_rect = Rect2(0, 0, img.get_width(), img.get_height())
+	_crop_rect = _get_initial_crop_rect()
 	
 	# 更新提示文本
 	var ratio_text := "自由裁剪" if _aspect_ratio == 0 else "比例 %.2f:1" % _aspect_ratio
-	hint_label.text = "拖拽移动裁剪区域 | 拖拽边缘调整大小 | %s" % ratio_text + (" | 双击全选" if _aspect_ratio == 0 else "")
+	hint_label.text = "拖拽移动裁剪区域" + (" | 拖拽边缘调整大小" if _aspect_ratio == 0 else "") + " | 双击重置到最大区域"
 	
 	crop_overlay.queue_redraw()
 	visible = true
+
+func _get_initial_crop_rect() -> Rect2:
+	"""获取初始裁剪区域"""
+	var img_w := _source_image.get_width()
+	var img_h := _source_image.get_height()
+	
+	if _aspect_ratio > 0:
+		# 固定比例：取图片内最大符合比例的区域
+		return _get_max_aspect_rect(img_w, img_h, _aspect_ratio)
+	else:
+		# 自由裁剪：全选
+		return Rect2(0, 0, img_w, img_h)
 
 func _get_max_aspect_rect(img_w: int, img_h: int, target_ratio: float) -> Rect2:
 	"""获取图片内最大的目标比例矩形（居中）"""
@@ -89,6 +96,14 @@ func _get_max_aspect_rect(img_w: int, img_h: int, target_ratio: float) -> Rect2:
 		var new_h = img_w / target_ratio
 		var y = (img_h - new_h) / 2.0
 		return Rect2(0, y, img_w, new_h)
+
+func _reset_to_max_rect() -> void:
+	"""重置裁剪区域到最大符合比例的区域"""
+	if _source_image == null:
+		return
+	
+	_crop_rect = _get_initial_crop_rect()
+	crop_overlay.queue_redraw()
 
 func _get_display_rect() -> Rect2:
 	"""获取图片在 crop_overlay 中的显示区域（保持比例居中）"""
@@ -410,13 +425,14 @@ func _on_crop_overlay_input(event: InputEvent) -> void:
 		crop_overlay.mouse_default_cursor_shape = cursor
 
 func _on_crop_overlay_double_click(event: InputEvent) -> void:
-	"""双击全选（仅限自由裁剪模式）"""
-	if _aspect_ratio > 0:
+	"""双击重置到最大符合比例的区域（自由裁剪模式下为全选）"""
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.double_click):
 		return
 	
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
-		_crop_rect = Rect2(0, 0, _source_image.get_width(), _source_image.get_height())
-		crop_overlay.queue_redraw()
+	if _source_image == null:
+		return
+	
+	_reset_to_max_rect()
 
 func _on_crop_overlay_draw() -> void:
 	if _source_image == null:
