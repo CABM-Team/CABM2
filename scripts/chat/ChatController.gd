@@ -3,6 +3,12 @@
 
 extends Control
 
+const BACKGROUND_DEFAULT_ID := "sr-1.png"
+const BACKGROUND_CONFIG_RES := "res://assets/backgrounds.json"
+const BACKGROUND_CONFIG_USER := "user://backgrounds.json"
+const BACKGROUND_RES_DIR := "res://assets/backgrounds/"
+const BACKGROUND_USER_DIR := "user://backgrounds/"
+
 # ── UI 控制器引用 ─────────────────────────────────────────────
 @onready var ui: Node = $ChatUIController
 @onready var confirm_dialog = $ConfirmDialog
@@ -45,6 +51,10 @@ var _auto_tts_queue: Array[Dictionary] = []
 var _auto_tts_playing_idx := -1   # 当前正在播放/等待播放的队列索引
 var _manual_tts_pending := false  # 手动点"播放语音"按钮时置 true
 
+# ── 背景状态 ──────────────────────────────────────────────────
+var _background_entries: Dictionary = {}
+var _current_background_id := BACKGROUND_DEFAULT_ID
+
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
 	ui.send_requested.connect(_on_send_pressed)
@@ -67,12 +77,16 @@ func _ready() -> void:
 	ui.tts_requested.connect(_on_tts_requested)
 	ui.history_tts_requested.connect(_on_history_tts_requested)
 	ui.option_selected.connect(_on_option_selected)
+	ui.background_selected.connect(_on_background_selected)
 
 	ApiClient.stream_chunk.connect(_on_stream_chunk)
 	ApiClient.stream_mood.connect(_on_stream_mood)
 	ApiClient.stream_full_json.connect(_on_stream_full_json)
 	ApiClient.stream_done.connect(_on_stream_done)
 	ApiClient.stream_error.connect(_on_stream_error)
+
+	_reload_background_entries()
+	ui.set_background_options(_build_background_picker_entries(), _current_background_id)
 
 	if AppState.is_group_mode():
 		_init_group_mode()
@@ -101,6 +115,7 @@ func _load_character(char_data: Dictionary) -> void:
 	var character_id: String = char_id
 	var save_data := HistoryManager.load_history(character_id)
 	var loaded_history: Array[Dictionary] = save_data["history"]
+	_apply_background(String(save_data.get("background", BACKGROUND_DEFAULT_ID)), false)
 
 	AppState.chat_history.clear()
 	var prompt: String = char_data.get("prompt", "")
@@ -133,6 +148,7 @@ func _init_group_mode() -> void:
 	var group_id: String = group_data.get("id", "")
 	var save_data := HistoryManager.load_group_history(group_id)
 	var loaded_history: Array[Dictionary] = save_data["history"]
+	_apply_background(String(save_data.get("background", BACKGROUND_DEFAULT_ID)), false)
 	AppState.chat_history.clear()
 	for msg in loaded_history:
 		AppState.chat_history.append(msg)
@@ -206,6 +222,91 @@ func _set_speaker_by_id(char_id: String) -> void:
 	if char_data.is_empty():
 		return
 	ui.set_speaker_label(char_data)
+
+# ── 背景管理 ──────────────────────────────────────────────────
+func _on_background_selected(background_id: String) -> void:
+	_apply_background(background_id, true)
+	_save_history()
+
+func _apply_background(background_id: String, with_fade: bool = true) -> void:
+	var target_id := background_id
+	if target_id.is_empty() or not _background_entries.has(target_id):
+		target_id = BACKGROUND_DEFAULT_ID
+	var bg_path := _get_background_path(target_id)
+	if bg_path.is_empty():
+		target_id = BACKGROUND_DEFAULT_ID
+		bg_path = _get_background_path(target_id)
+	if bg_path.is_empty():
+		return
+	_current_background_id = target_id
+	ui.apply_background(bg_path, with_fade)
+	ui.set_current_background(_current_background_id)
+
+func _build_background_picker_entries() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	var ids := _background_entries.keys()
+	ids.sort()
+	for bg_id in ids:
+		var item: Dictionary = _background_entries[bg_id]
+		entries.append({
+			"id": String(bg_id),
+			"name": String(item.get("name", String(bg_id))),
+			"path": String(item.get("path", ""))
+		})
+	return entries
+
+func _get_background_path(background_id: String) -> String:
+	if not _background_entries.has(background_id):
+		return ""
+	return String((_background_entries[background_id] as Dictionary).get("path", ""))
+
+func _reload_background_entries() -> void:
+	_background_entries.clear()
+	var builtin := _load_background_root(BACKGROUND_CONFIG_RES)
+	var user := _load_background_root(BACKGROUND_CONFIG_USER)
+
+	for filename in builtin.keys():
+		var key := String(filename)
+		var item: Dictionary = builtin[filename]
+		_background_entries[key] = {
+			"name": String(item.get("name", key.get_basename())),
+			"path": BACKGROUND_RES_DIR + key
+		}
+
+	for filename in user.keys():
+		var key := String(filename)
+		var item: Dictionary = user[filename]
+		var user_path := BACKGROUND_USER_DIR + key
+		var final_path := user_path if FileAccess.file_exists(user_path) else BACKGROUND_RES_DIR + key
+		var old: Dictionary = _background_entries.get(key, {})
+		old["name"] = String(item.get("name", old.get("name", key.get_basename())))
+		old["path"] = final_path
+		_background_entries[key] = old
+
+	if not _background_entries.has(BACKGROUND_DEFAULT_ID):
+		_background_entries[BACKGROUND_DEFAULT_ID] = {
+			"name": "默认背景",
+			"path": BACKGROUND_RES_DIR + BACKGROUND_DEFAULT_ID
+		}
+
+func _load_background_root(config_path: String) -> Dictionary:
+	if not FileAccess.file_exists(config_path):
+		return {}
+	var file := FileAccess.open(config_path, FileAccess.READ)
+	if file == null:
+		return {}
+	var text := file.get_as_text().strip_edges()
+	file.close()
+	if text.is_empty():
+		return {}
+	var json := JSON.new()
+	if json.parse(text) != OK:
+		push_warning("背景配置解析失败: " + config_path)
+		return {}
+	var data = json.get_data()
+	if data is Dictionary:
+		return data
+	return {}
 
 # ── 发送消息 ──────────────────────────────────────────────────
 func _on_send_pressed() -> void:
@@ -523,11 +624,11 @@ func _save_history() -> void:
 			for c in _displayed_chars:
 				displayed_ids.append(c.get("id", ""))
 			HistoryManager.save_group_history(group_id, AppState.chat_history,
-				displayed_ids, _current_speaker_id, _group_moods, _idle_rounds)
+				displayed_ids, _current_speaker_id, _group_moods, _idle_rounds, _current_background_id)
 	else:
 		var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
 		if not character_id.is_empty():
-			HistoryManager.save_history(character_id, AppState.chat_history, _current_mood)
+			HistoryManager.save_history(character_id, AppState.chat_history, _current_mood, _current_background_id)
 
 func delete_current_history() -> void:
 	if AppState.is_group_mode():
@@ -550,6 +651,7 @@ func delete_current_history() -> void:
 				AppState.add_message("system", prompt)
 		_current_mood = 0
 		ui.load_sprite(ui.character_sprite, AppState.current_character, "")
+	_apply_background(BACKGROUND_DEFAULT_ID, false)
 	AppState.history_updated.emit()
 	_refresh_history()
 	if AppState.is_group_mode():
@@ -697,6 +799,7 @@ func _disconnect_all() -> void:
 	TTSManager.tts_done.disconnect(_on_tts_done)
 	TTSManager.tts_error.disconnect(_on_tts_error)
 	ui.history_tts_requested.disconnect(_on_history_tts_requested)
+	ui.background_selected.disconnect(_on_background_selected)
 
 func _on_back_pressed() -> void:
 	_disconnect_all()

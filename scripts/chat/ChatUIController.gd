@@ -28,6 +28,7 @@ extends Node
 @onready var option_btn_3: Button = $"../OptionButtons/Option3"
 @onready var more_option_button: Button    = $"../ControlButtons/MoreOptionButton"
 @onready var tts_button: Button            = $"../ControlButtons/TTSButton"
+@onready var background_button: Button     = $"../ControlButtons/BackgroundButton"
 @onready var more_options_overlay: Control = $"../MoreOptionsOverlay"
 @onready var more_options_menu: PanelContainer = $"../MoreOptionsOverlay/MoreOptionsMenu"
 @onready var more_options_click_area: ColorRect = $"../MoreOptionsOverlay/ClickArea"
@@ -48,6 +49,7 @@ signal input_key_enter
 signal tts_requested(text: String)
 signal history_tts_requested(text: String, char_id: String)
 signal option_selected(text: String)
+signal background_selected(background_id: String)
 
 # ── 历史分页 ──────────────────────────────────────────────────
 const HISTORY_PAGE_SIZE := 40
@@ -87,6 +89,15 @@ var _dots_count := 0
 var _dots_active := false
 var _dots_gen := 0
 
+# ── 背景选择面板 ────────────────────────────────────────────────
+var _bg_picker_overlay: Control
+var _bg_picker_panel: PanelContainer
+var _bg_picker_grid: GridContainer
+var _bg_picker_close_btn: Button
+var _bg_picker_entries: Array[Dictionary] = []
+var _bg_picker_current_id := "sr-1.png"
+var _pending_background_texture: Texture2D = null
+
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
 	send_button.pressed.connect(func(): send_requested.emit())
@@ -98,6 +109,7 @@ func _ready() -> void:
 	message_input.gui_input.connect(_on_input_key)
 	more_option_button.pressed.connect(func(): more_options_toggle_requested.emit())
 	tts_button.pressed.connect(_on_tts_button_pressed)
+	background_button.pressed.connect(_on_background_button_pressed)
 	more_options_click_area.gui_input.connect(_on_more_options_overlay_input)
 	clear_history_btn.pressed.connect(func(): clear_history_confirm_requested.emit())
 	delete_btn.pressed.connect(func(): delete_confirm_requested.emit())
@@ -113,6 +125,7 @@ func _ready() -> void:
 	character_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	character_sprite2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	character_sprite2.visible = false
+	_build_background_picker()
 
 # ── 全局输入 ──────────────────────────────────────────────────
 func _on_background_input(event: InputEvent) -> void:
@@ -480,12 +493,152 @@ func fill_option_buttons(options: Array) -> void:
 
 # ── 更多选项 ──────────────────────────────────────────────────
 func toggle_more_options() -> void:
+	hide_background_picker()
 	more_options_overlay.visible = not more_options_overlay.visible
 	if more_options_overlay.visible:
 		history_modal.visible = false
 
 func hide_more_options() -> void:
 	more_options_overlay.visible = false
+
+func _on_background_button_pressed() -> void:
+	toggle_background_picker()
+
+func toggle_background_picker() -> void:
+	if _bg_picker_overlay == null:
+		return
+	var next_visible := not _bg_picker_overlay.visible
+	_bg_picker_overlay.visible = next_visible
+	if next_visible:
+		history_modal.visible = false
+		more_options_overlay.visible = false
+
+func hide_background_picker() -> void:
+	if _bg_picker_overlay:
+		_bg_picker_overlay.visible = false
+
+func set_background_options(entries: Array[Dictionary], current_id: String = "sr-1.png") -> void:
+	_bg_picker_entries = entries
+	_bg_picker_current_id = current_id
+	_rebuild_background_picker_entries()
+
+func set_current_background(background_id: String) -> void:
+	_bg_picker_current_id = background_id
+	_rebuild_background_picker_entries()
+
+func apply_background(path: String, with_fade: bool = true) -> void:
+	var tex := _load_image_texture(path)
+	if tex == null:
+		return
+	if not with_fade:
+		background.texture = tex
+		return
+	var tw := create_tween()
+	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(background_overlay, "color:a", 1.0, 0.18)
+	_pending_background_texture = tex
+	tw.tween_callback(_commit_pending_background_texture)
+	tw.tween_property(background_overlay, "color:a", 0.0, 0.22)
+
+func _commit_pending_background_texture() -> void:
+	if _pending_background_texture == null:
+		return
+	background.texture = _pending_background_texture
+	_pending_background_texture = null
+
+func _build_background_picker() -> void:
+	_bg_picker_overlay = Control.new()
+	_bg_picker_overlay.name = "BackgroundPickerOverlay"
+	_bg_picker_overlay.visible = false
+	_bg_picker_overlay.layout_mode = 1
+	_bg_picker_overlay.anchors_preset = Control.PRESET_FULL_RECT
+	_bg_picker_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	$"..".add_child.call_deferred(_bg_picker_overlay)
+
+	var dim := ColorRect.new()
+	dim.layout_mode = 1
+	dim.anchors_preset = Control.PRESET_FULL_RECT
+	dim.color = Color(0, 0, 0, 0.58)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	_bg_picker_overlay.add_child(dim)
+	dim.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			hide_background_picker()
+	)
+
+	_bg_picker_panel = PanelContainer.new()
+	_bg_picker_panel.layout_mode = 1
+	_bg_picker_panel.anchors_preset = Control.PRESET_CENTER
+	_bg_picker_panel.anchor_left = 0.5
+	_bg_picker_panel.anchor_top = 0.5
+	_bg_picker_panel.anchor_right = 0.5
+	_bg_picker_panel.anchor_bottom = 0.5
+	_bg_picker_panel.offset_left = -720
+	_bg_picker_panel.offset_top = -430
+	_bg_picker_panel.offset_right = 720
+	_bg_picker_panel.offset_bottom = 430
+	_bg_picker_overlay.add_child(_bg_picker_panel)
+
+	var root := VBoxContainer.new()
+	root.add_theme_constant_override("separation", 12)
+	_bg_picker_panel.add_child(root)
+
+	var header := HBoxContainer.new()
+	root.add_child(header)
+
+	var title := Label.new()
+	title.text = "更换背景"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 42)
+	header.add_child(title)
+
+	_bg_picker_close_btn = Button.new()
+	_bg_picker_close_btn.text = "✕"
+	_bg_picker_close_btn.custom_minimum_size = Vector2(56, 56)
+	_bg_picker_close_btn.add_theme_font_size_override("font_size", 34)
+	_bg_picker_close_btn.pressed.connect(hide_background_picker)
+	header.add_child(_bg_picker_close_btn)
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(scroll)
+
+	_bg_picker_grid = GridContainer.new()
+	_bg_picker_grid.columns = 3
+	_bg_picker_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_bg_picker_grid.add_theme_constant_override("h_separation", 10)
+	_bg_picker_grid.add_theme_constant_override("v_separation", 10)
+	scroll.add_child(_bg_picker_grid)
+
+func _rebuild_background_picker_entries() -> void:
+	if _bg_picker_grid == null:
+		return
+	for child in _bg_picker_grid.get_children():
+		child.queue_free()
+
+	for entry in _bg_picker_entries:
+		var background_id := String(entry.get("id", ""))
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(440, 280)
+		button.expand_icon = true
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		button.text = String(entry.get("name", background_id))
+		if background_id == _bg_picker_current_id:
+			button.text = "✅ " + button.text
+		button.add_theme_font_size_override("font_size", 26)
+		button.clip_text = true
+		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.flat = false
+		button.icon = _load_image_texture(String(entry.get("path", "")))
+		var captured_id := background_id
+		button.pressed.connect(func():
+			hide_background_picker()
+			background_selected.emit(captured_id)
+		)
+		_bg_picker_grid.add_child(button)
 
 func update_delete_button(is_group: bool, char_id: String) -> void:
 	if is_group:
@@ -500,6 +653,7 @@ func update_delete_button(is_group: bool, char_id: String) -> void:
 
 # ── 历史弹窗 ──────────────────────────────────────────────────
 func toggle_history() -> void:
+	hide_background_picker()
 	history_modal.visible = not history_modal.visible
 
 func is_history_visible() -> bool:

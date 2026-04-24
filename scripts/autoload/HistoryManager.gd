@@ -16,7 +16,8 @@ const GROUPS_DIR := "user://groups/"
 ## last_moods: { char_id: mood_index } 各角色最后表情
 func save_group_history(group_id: String, messages: Array[Dictionary],
 		displayed_char_ids: Array = [], active_speaker_id: String = "",
-		last_moods: Dictionary = {}, idle_rounds: Dictionary = {}) -> void:
+		last_moods: Dictionary = {}, idle_rounds: Dictionary = {},
+		background: String = "sr-1.png") -> void:
 	if group_id.is_empty():
 		push_warning("HistoryManager: group_id 为空，无法保存群聊历史")
 		return
@@ -36,12 +37,13 @@ func save_group_history(group_id: String, messages: Array[Dictionary],
 	existing["active_speaker_id"] = active_speaker_id
 	existing["last_moods"] = last_moods
 	existing["idle_rounds"] = idle_rounds
+	existing["background"] = background if not background.is_empty() else "sr-1.png"
 	_write_json_file(path, existing)
 
 ## 加载群聊历史，返回 { "history": [...], "displayed_char_ids": [...], "active_speaker_id": "", "last_moods": {} }
 func load_group_history(group_id: String) -> Dictionary:
 	if group_id.is_empty():
-		return {"history": [], "displayed_char_ids": [], "active_speaker_id": "", "last_moods": {}}
+		return {"history": [], "displayed_char_ids": [], "active_speaker_id": "", "last_moods": {}, "background": "sr-1.png"}
 	var path := GROUPS_DIR + group_id + ".json"
 	var data := _load_json_file(path)
 	var history = data.get("history", [])
@@ -57,7 +59,8 @@ func load_group_history(group_id: String) -> Dictionary:
 		"displayed_char_ids": data.get("displayed_char_ids", []),
 		"active_speaker_id": data.get("active_speaker_id", ""),
 		"last_moods": moods,
-		"idle_rounds": data.get("idle_rounds", {})
+		"idle_rounds": data.get("idle_rounds", {}),
+		"background": String(data.get("background", "sr-1.png"))
 	}
 
 ## 清空群聊历史（仅清空 history/状态字段，保留其他字段）
@@ -72,6 +75,7 @@ func clear_group_history(group_id: String) -> void:
 	existing["active_speaker_id"] = ""
 	existing["last_moods"] = {}
 	existing["idle_rounds"] = {}
+	existing["background"] = "sr-1.png"
 	_write_json_file(path, existing)
 
 ## 获取群聊最后游玩时间
@@ -83,7 +87,7 @@ func get_group_last_play_time(group_id: String) -> int:
 	return int(data.get("last_play_time", 0))
 
 ## 保存指定角色的对话历史，可附带最后表情索引
-func save_history(character_id: String, messages: Array[Dictionary], last_mood: int = 0) -> void:
+func save_history(character_id: String, messages: Array[Dictionary], last_mood: int = 0, background: String = "sr-1.png") -> void:
 	if character_id.is_empty():
 		push_warning("HistoryManager: character_id 为空，无法保存历史")
 		return
@@ -102,13 +106,14 @@ func save_history(character_id: String, messages: Array[Dictionary], last_mood: 
 	existing["history"] = filtered
 	existing["last_play_time"] = int(Time.get_unix_time_from_system())
 	existing["last_mood"] = last_mood
+	existing["background"] = background if not background.is_empty() else "sr-1.png"
 	_write_json_file(file_path, existing)
 
 ## 加载指定角色的对话历史，返回 { "history": [...], "last_mood": int }
 func load_history(character_id: String) -> Dictionary:
 	if character_id.is_empty():
 		push_warning("HistoryManager: character_id 为空，无法加载历史")
-		return {"history": [], "last_mood": 0}
+		return {"history": [], "last_mood": 0, "background": "sr-1.png"}
 
 	var file_path := SAVES_DIR + _sanitize_filename(character_id) + ".json"
 	var data := _load_json_file(file_path)
@@ -118,7 +123,11 @@ func load_history(character_id: String) -> Dictionary:
 	for item in history:
 		if item is Dictionary and item.has("role") and item.has("content"):
 			messages.append(item)
-	return {"history": messages, "last_mood": int(data.get("last_mood", 0))}
+	return {
+		"history": messages,
+		"last_mood": int(data.get("last_mood", 0)),
+		"background": String(data.get("background", "sr-1.png"))
+	}
 
 ## 获取最后游玩时间（unix 时间戳），不存在返回 0
 func get_last_play_time(character_id: String) -> int:
@@ -151,6 +160,7 @@ func delete_history(character_id: String) -> bool:
 	existing["history"] = []
 	existing["last_mood"] = 0
 	existing["last_play_time"] = int(Time.get_unix_time_from_system())
+	existing["background"] = "sr-1.png"
 	_write_json_file(file_path, existing)
 	return true
 
