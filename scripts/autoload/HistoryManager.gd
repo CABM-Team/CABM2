@@ -75,7 +75,9 @@ func clear_group_history(group_id: String) -> void:
 	existing["active_speaker_id"] = ""
 	existing["last_moods"] = {}
 	existing["idle_rounds"] = {}
-	existing["background"] = "sr-1.png"
+	# 不再重置背景，保留现有背景
+	if not existing.has("background"):
+		existing["background"] = "sr-1.png"
 	_write_json_file(path, existing)
 
 ## 获取群聊最后游玩时间
@@ -160,7 +162,9 @@ func delete_history(character_id: String) -> bool:
 	existing["history"] = []
 	existing["last_mood"] = 0
 	existing["last_play_time"] = int(Time.get_unix_time_from_system())
-	existing["background"] = "sr-1.png"
+	# 不再重置背景，保留现有背景
+	if not existing.has("background"):
+		existing["background"] = "sr-1.png"
 	_write_json_file(file_path, existing)
 	return true
 

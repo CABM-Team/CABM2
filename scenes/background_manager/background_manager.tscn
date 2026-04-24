@@ -107,7 +107,7 @@ size_flags_vertical = 3
 [node name="BackgroundGrid" type="GridContainer" parent="VBox/BackgroundScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 16
+theme_override_constants/h_separation = 40
 theme_override_constants/v_separation = 16
 columns = 6
 

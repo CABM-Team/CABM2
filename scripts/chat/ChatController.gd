@@ -651,7 +651,6 @@ func delete_current_history() -> void:
 				AppState.add_message("system", prompt)
 		_current_mood = 0
 		ui.load_sprite(ui.character_sprite, AppState.current_character, "")
-	_apply_background(BACKGROUND_DEFAULT_ID, false)
 	AppState.history_updated.emit()
 	_refresh_history()
 	if AppState.is_group_mode():

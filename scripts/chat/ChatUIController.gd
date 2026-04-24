@@ -97,6 +97,7 @@ var _bg_picker_close_btn: Button
 var _bg_picker_entries: Array[Dictionary] = []
 var _bg_picker_current_id := "sr-1.png"
 var _pending_background_texture: Texture2D = null
+var _background_back: TextureRect = null # 用于背景相互淡入淡出的底层
 
 # ── 初始化 ────────────────────────────────────────────────────
 func _ready() -> void:
@@ -125,7 +126,37 @@ func _ready() -> void:
 	character_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	character_sprite2.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	character_sprite2.visible = false
+
+	# 初始化背景淡入淡出需要的底层
+	_background_back = TextureRect.new()
+	_background_back.name = "BackgroundBack"
+	_background_back.expand_mode = background.expand_mode
+	_background_back.stretch_mode = background.stretch_mode
+	_background_back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# 确保底层背景的大小和位置与原背景完全一致
+	background.add_sibling.call_deferred(_background_back)
+	
+	# 延迟设置布局和层级，确保节点已进入场景树
+	call_deferred("_setup_background_nodes")
+
 	_build_background_picker()
+
+func _setup_background_nodes() -> void:
+	if not _background_back or not _background_back.is_inside_tree():
+		return
+	
+	# 强制对齐布局
+	_background_back.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_background_back.show()
+	_background_back.modulate.a = 0.0 # 初始完全透明
+	_background_back.texture_filter = background.texture_filter
+	
+	# 调整层级顺序：BackgroundBack 作为淡入层，必须在 Background 之上，但在 Overlay 之下
+	var parent := background.get_parent()
+	var bg_idx := background.get_index()
+	# move_child 到 bg_idx + 1，使其覆盖在 background 上
+	parent.move_child(_background_back, bg_idx + 1)
 
 # ── 全局输入 ──────────────────────────────────────────────────
 func _on_background_input(event: InputEvent) -> void:
@@ -532,18 +563,37 @@ func apply_background(path: String, with_fade: bool = true) -> void:
 		return
 	if not with_fade:
 		background.texture = tex
+		background.modulate.a = 1.0
+		if _background_back:
+			_background_back.modulate.a = 0.0
 		return
+	
+	# 相互淡入淡出逻辑（改进版）：
+	# 1. 把新图放在上层的 _background_back，初始透明
+	# 2. 让上层的 _background_back 慢慢变不透明，覆盖掉底层的旧图
+	# 3. 结束后，把新图同步到底层，并隐藏上层，准备下一次切换
+	if _background_back == null:
+		background.texture = tex
+		return
+		
+	_background_back.texture = tex
+	_background_back.modulate.a = 0.0
+	
 	var tw := create_tween()
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tw.tween_property(background_overlay, "color:a", 1.0, 0.18)
+	tw.tween_property(_background_back, "modulate:a", 1.0, 0.6) # 0.6秒淡入新背景
 	_pending_background_texture = tex
 	tw.tween_callback(_commit_pending_background_texture)
-	tw.tween_property(background_overlay, "color:a", 0.0, 0.22)
 
 func _commit_pending_background_texture() -> void:
 	if _pending_background_texture == null:
 		return
+	# 同步到底层背景
 	background.texture = _pending_background_texture
+	background.modulate.a = 1.0
+	# 隐藏过渡层
+	if _background_back:
+		_background_back.modulate.a = 0.0
 	_pending_background_texture = null
 
 func _build_background_picker() -> void:
