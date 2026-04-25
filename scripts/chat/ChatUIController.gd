@@ -152,10 +152,14 @@ func _setup_background_nodes() -> void:
 	_background_back.modulate.a = 0.0 # 初始完全透明
 	_background_back.texture_filter = background.texture_filter
 	
-	# 调整层级顺序：BackgroundBack 作为淡入层，必须在 Background 之上，但在 Overlay 之下
+	# 彻底解决覆盖问题：使用 z_index
+	# 背景设为极小值，确保在所有默认 z_index=0 的节点（如角色立绘）之后
+	background.z_index = -10
+	_background_back.z_index = -9 # 过渡层稍微比背景高一点点，但依然是负数
+	
+	# 调整层级顺序（双保险）
 	var parent := background.get_parent()
 	var bg_idx := background.get_index()
-	# move_child 到 bg_idx + 1，使其覆盖在 background 上
 	parent.move_child(_background_back, bg_idx + 1)
 
 # ── 全局输入 ──────────────────────────────────────────────────
