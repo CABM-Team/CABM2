@@ -1,6 +1,7 @@
 temp/
 CABM/
 *.jks
+*.x86_64
 encrypt_key.py
 BuiltinKeyManager.gd
 BuiltinKeyManager.gd.uid
