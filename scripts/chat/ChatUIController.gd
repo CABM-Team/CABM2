@@ -48,6 +48,7 @@ signal advance_requested
 signal input_key_enter
 signal tts_requested(text: String)
 signal history_tts_requested(text: String, char_id: String)
+signal history_recall_requested(non_system_index: int, text: String)
 signal option_selected(text: String)
 signal background_selected(background_id: String)
 
@@ -508,6 +509,9 @@ func get_input_text() -> String:
 func clear_input() -> void:
 	message_input.text = ""
 
+func set_input_text(text: String) -> void:
+	message_input.text = text
+
 func hide_option_buttons() -> void:
 	option_buttons.visible = false
 
@@ -759,7 +763,9 @@ func _render_history_page() -> void:
 		empty.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		history_list.add_child(empty)
 	else:
-		for msg in page_msgs:
+		for local_idx in range(page_msgs.size()):
+			var msg: Dictionary = page_msgs[local_idx]
+			var non_system_index := start_idx + local_idx
 			var role: String = msg["role"]
 			var is_user := role == "user"
 			var display_name := ""
@@ -788,20 +794,21 @@ func _render_history_page() -> void:
 				display_content = _history_extract_fn.call(msg["content"])
 
 			if is_user:
-				# 用户消息：整条一行，💬 按钮置灰
+				# 用户消息：整条一行，↪ 按钮可触发撤回
 				var row := HBoxContainer.new()
 				row.add_theme_constant_override("separation", 8)
 				history_list.add_child(row)
 				history_list.add_child(HSeparator.new())
 
 				var btn := Button.new()
-				btn.text = "💬"
+				btn.text = "↪"
 				btn.flat = true
 				btn.add_theme_font_size_override("font_size", 25)
 				btn.focus_mode = Control.FOCUS_NONE
 				btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-				btn.disabled = true
-				btn.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				var captured_index := non_system_index
+				var captured_text := String(msg.get("content", ""))
+				btn.pressed.connect(func(): history_recall_requested.emit(captured_index, captured_text))
 				row.add_child(btn)
 
 				var label := RichTextLabel.new()

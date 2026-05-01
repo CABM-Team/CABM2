@@ -16,6 +16,8 @@ const BACKGROUND_USER_DIR := "user://backgrounds/"
 
 # 当前确认对话框的用途：:clear_history 或 :delete
 var _confirm_action := &""
+var _pending_recall_non_system_index := -1
+var _pending_recall_text := ""
 
 # ── 流式接收状态 ──────────────────────────────────────────────
 var _stream_state := SentenceSplitter.StreamState.new()
@@ -76,6 +78,7 @@ func _ready() -> void:
 	TTSManager.tts_error.connect(_on_tts_error)
 	ui.tts_requested.connect(_on_tts_requested)
 	ui.history_tts_requested.connect(_on_history_tts_requested)
+	ui.history_recall_requested.connect(_on_history_recall_requested)
 	ui.option_selected.connect(_on_option_selected)
 	ui.background_selected.connect(_on_background_selected)
 
@@ -600,6 +603,12 @@ func _toggle_history() -> void:
 func _refresh_history() -> void:
 	ui.refresh_history(AppState.chat_history, _get_char_data_by_id, _extract_msg_from_json)
 
+func _on_history_recall_requested(non_system_index: int, text: String) -> void:
+	_pending_recall_non_system_index = non_system_index
+	_pending_recall_text = text
+	_confirm_action = &"recall"
+	confirm_dialog.show_dialog("⚠\n确认撤回这条消息吗？\n该消息及之后的对话将被移除。")
+
 func _extract_msg_from_json(json_str: String) -> String:
 	var json := JSON.new()
 	if json.parse(json_str) == OK:
@@ -702,7 +711,102 @@ func _on_confirm_dialog_confirmed() -> void:
 		delete_current_history()
 	elif _confirm_action == &"delete":
 		_do_delete()
+	elif _confirm_action == &"recall":
+		_recall_message()
 	_confirm_action = &""
+
+func _recall_message() -> void:
+	if _pending_recall_non_system_index < 0:
+		return
+	var target_chat_index := _resolve_non_system_index_to_chat_index(_pending_recall_non_system_index)
+	if target_chat_index < 0 or target_chat_index >= AppState.chat_history.size():
+		_pending_recall_non_system_index = -1
+		_pending_recall_text = ""
+		return
+
+	var recalled_text := _pending_recall_text
+	var prev_sentence := _get_prev_sentence_before(target_chat_index)
+
+	_cancel_active_operations()
+
+	var kept: Array[Dictionary] = []
+	for i in range(target_chat_index):
+		kept.append(AppState.chat_history[i])
+	AppState.chat_history = kept
+	_save_history()
+	AppState.history_updated.emit()
+
+	ui.hide_history()
+	ui.hide_more_options()
+	ui.hide_background_picker()
+	ui.unlock_input()
+	ui.hide_option_buttons()
+	ui.set_tts_enabled(false)
+	ui.set_tts_loading(false)
+	ui.set_input_text(recalled_text)
+	if AppState.is_group_mode():
+		_sync_group_speaker_after_recall()
+	ui.show_text_instant(prev_sentence)
+	_try_generate_options()
+
+	_pending_recall_non_system_index = -1
+	_pending_recall_text = ""
+
+func _cancel_active_operations() -> void:
+	EasyAI.cancel()
+	ApiClient.cancel()
+	audio_player.stop()
+	_is_receiving = false
+	_stream_state = SentenceSplitter.StreamState.new()
+	_stream_full_content = ""
+	_stream_display_content = ""
+	_group_reply_queue.clear()
+	_group_waiting_char_id = ""
+	_group_turn_count = 0
+	_auto_tts_queue.clear()
+	_auto_tts_playing_idx = -1
+	_manual_tts_pending = false
+	_current_sentence_no_tts = false
+	ui.stop_thinking_dots()
+	ui.set_waiting_for_advance(false)
+	ui.clear_sentence_queue()
+
+func _resolve_non_system_index_to_chat_index(non_system_index: int) -> int:
+	var cursor := -1
+	for i in range(AppState.chat_history.size()):
+		if String(AppState.chat_history[i].get("role", "")) == "system":
+			continue
+		cursor += 1
+		if cursor == non_system_index:
+			return i
+	return -1
+
+func _get_prev_sentence_before(chat_index: int) -> String:
+	for i in range(chat_index - 1, -1, -1):
+		var msg: Dictionary = AppState.chat_history[i]
+		var role := String(msg.get("role", ""))
+		if role == "system":
+			continue
+		var content := String(msg.get("content", ""))
+		if role == "user":
+			return _last_sentence(content)
+		return _last_sentence(_extract_msg_from_json(content))
+	return ""
+
+func _sync_group_speaker_after_recall() -> void:
+	var found_speaker_id := ""
+	for i in range(AppState.chat_history.size() - 1, -1, -1):
+		var role := String(AppState.chat_history[i].get("role", ""))
+		if role == "system" or role == "user":
+			continue
+		found_speaker_id = role
+		break
+	_current_speaker_id = found_speaker_id
+	ui.set_active_speaker(found_speaker_id)
+	if found_speaker_id.is_empty():
+		ui.setup_group_header(AppState.current_group)
+	else:
+		_set_speaker_by_id(found_speaker_id)
 
 func _do_delete() -> void:
 	if AppState.is_group_mode():
@@ -844,12 +948,8 @@ func _on_tts_done(audio_path: String) -> void:
 	if ConfigManager.get_effective_value("auto_play_tts") and ConfigManager.get_effective_value("enable_tts"):
 		_auto_tts_on_ready(audio_path)
 		return
-	ui.set_tts_loading(false)
-	var stream2 := _load_audio_stream(audio_path)
-	if stream2 == null:
-		return
-	audio_player.stream = stream2
-	audio_player.play()
+	# 非自动播放模式下，只有手动请求才会播放，忽略其他迟到回调
+	return
 
 func _on_tts_error(message: String) -> void:
 	ui.set_tts_loading(false)
