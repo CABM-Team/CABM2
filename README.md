@@ -21,7 +21,7 @@ CABM（Code Afflatus & Beyond Matter）的 Godot 4.5 重制版。
 - 引擎：Godot 4.5
 - 语言：GDScript
 - AI 后端：OpenAI 兼容 API（默认 SiliconFlow / DeepSeek-V3）
-- 记忆：FAISS + Embedding API（通过 Python 后端服务）
+- ~~记忆：FAISS + Embedding API（通过 Python 后端服务）~~
 - TTS：SiliconFlow API
 
 ## 项目结构
