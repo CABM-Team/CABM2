@@ -18,8 +18,11 @@ var current_group: Dictionary = {}
 var group_characters: Array[Dictionary] = []
 
 # 对话历史 [{role, content}, ...]
-# 群聊模式下 role 可以是 "user" / "system" / <character_id>
+# 注意：system 消息不应直接存储在 history 中，应由 PromptBuilder 统一构建
 var chat_history: Array[Dictionary] = []
+
+# 当前知识库上下文（由 VectorStore 检索得到，供 PromptBuilder 使用）
+var knowledge_context: String = ""
 
 # 当前场景标识
 var current_scene: String = ""
@@ -40,6 +43,7 @@ func set_character(data: Dictionary) -> void:
 	current_group = {}
 	group_characters.clear()
 	chat_history.clear()
+	knowledge_context = ""
 	character_changed.emit(data)
 
 ## 设置群聊模式
@@ -48,32 +52,20 @@ func set_group(group_data: Dictionary, characters: Array[Dictionary]) -> void:
 	current_character = {}
 	group_characters = characters
 	chat_history.clear()
+	knowledge_context = ""
 
 ## 添加消息到历史记录
-## role 可以是 "user" / "system" / <character_id>
+## role 可以是 "user" / "assistant" / <character_id>
 func add_message(role: String, content: String) -> void:
 	chat_history.append({"role": role, "content": content})
 	var max_len: int = ConfigManager.get_effective_value("max_history_length")
-	# 保留 system 消息，裁剪超出部分
-	var system_msgs: Array[Dictionary] = []
-	var other_msgs: Array[Dictionary] = []
-	for m in chat_history:
-		if m["role"] == "system":
-			system_msgs.append(m)
-		else:
-			other_msgs.append(m)
-	if other_msgs.size() > max_len:
-		other_msgs = other_msgs.slice(other_msgs.size() - max_len)
-	chat_history = system_msgs + other_msgs
+	if chat_history.size() > max_len:
+		chat_history = chat_history.slice(chat_history.size() - max_len)
 	history_updated.emit()
 
-## 清空历史记录（保留 system 消息）
+## 清空历史记录
 func clear_history() -> void:
-	var kept: Array[Dictionary] = []
-	for m in chat_history:
-		if m["role"] == "system":
-			kept.append(m)
-	chat_history = kept
+	chat_history.clear()
 	history_updated.emit()
 
 ## 获取用于 API 请求的消息数组（单角色模式）

@@ -45,38 +45,41 @@ static func _trim_to_limit(messages: Array[Dictionary]) -> Array[Dictionary]:
 	return result
 
 ## 构建带有情绪格式要求的消息数组（单角色模式）
-static func build_messages(messages: Array[Dictionary], character_data: Dictionary) -> Array[Dictionary]:
+static func build_messages(
+	messages: Array[Dictionary],
+	character_data: Dictionary,
+	knowledge_context: String = ""
+) -> Array[Dictionary]:
 	var moods: Array = character_data.get("moods", [])
 	var mood_list := ""
 	for i in moods.size():
 		mood_list += "%d:%s " % [i + 1, moods[i]]
 
-	var system_prompt_suffix := "\n你必须严格以JSON格式输出，包含以下字段：\n\"mood\": <int> 当前情绪序号，必须是以下之一：%s\n\"msg\": <string> 回复内容，1-6句话，禁止换行和markdown" % mood_list
+	var system_content = character_data.get("prompt", "")
+	if not knowledge_context.is_empty():
+		system_content += "\n" + knowledge_context
 
-	var patched_messages: Array[Dictionary] = []
-	var has_system := false
+	system_content += "\n你必须严格以JSON格式输出，包含以下字段：\n\"mood\": <int> 当前情绪序号，必须是以下之一：%s\n\"msg\": <string> 回复内容，1-6句话，禁止换行和markdown" % mood_list
+
+	var result: Array[Dictionary] = [{"role": "system", "content": system_content}]
 	for msg in messages:
-		if msg["role"] == "system":
-			patched_messages.append({"role": "system", "content": msg["content"] + system_prompt_suffix})
-			has_system = true
-		else:
-			patched_messages.append(msg)
+		if msg.get("role", "") != "system":
+			result.append(msg)
 
-	if not has_system:
-		patched_messages.insert(0, {"role": "system", "content": system_prompt_suffix})
-
-	return _trim_to_limit(patched_messages)
+	return _trim_to_limit(result)
 
 ## 构建群聊模式下某个角色的请求消息数组
 ## speaking_char: 本次发言的角色数据
 ## all_chars: 群聊中所有角色数据列表
 ## history: 群聊历史 [{role, content}]，role 可以是 "user" / <character_id>
 ## group_data: 群聊配置（可选），用于注入群聊描述
+## knowledge_context: 知识库检索结果（可选）
 static func build_group_messages(
 	speaking_char: Dictionary,
 	all_chars: Array[Dictionary],
 	history: Array[Dictionary],
-	group_data: Dictionary = {}
+	group_data: Dictionary = {},
+	knowledge_context: String = ""
 ) -> Array[Dictionary]:
 	var speaking_id: String = speaking_char.get("id", "")
 	var moods: Array = speaking_char.get("moods", [])
@@ -92,6 +95,8 @@ static func build_group_messages(
 			other_names.append(c.get("name", c.get("id", "")))
 
 	var system_content: String = speaking_char.get("prompt", "")
+	if not knowledge_context.is_empty():
+		system_content += "\n" + knowledge_context
 	if not other_names.is_empty():
 		system_content += "\n你正在和%s等人一起对话。" % "、".join(other_names)
 	var group_des: String = group_data.get("des", "")

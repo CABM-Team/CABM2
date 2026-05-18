@@ -127,9 +127,6 @@ func _load_character(char_data: Dictionary) -> void:
 	_apply_background(String(save_data.get("background", BACKGROUND_DEFAULT_ID)), false)
 
 	AppState.chat_history.clear()
-	var prompt: String = char_data.get("prompt", "")
-	if not prompt.is_empty():
-		AppState.add_message("system", prompt)
 	for msg in loaded_history:
 		AppState.chat_history.append(msg)
 
@@ -370,41 +367,15 @@ func _retrieve_knowledge_and_send(user_text: String) -> void:
 	retriever.retrieve_and_format(user_text, func(knowledge_text: String):
 		var retrieval_elapsed := Time.get_ticks_msec() - retrieval_start_time
 		print("[ChatController] 知识库检索完成，用时 %d ms" % retrieval_elapsed)
-		
-		if not knowledge_text.is_empty():
-			# 将知识库内容加入system消息
-			_inject_knowledge_to_system(knowledge_text)
+		AppState.knowledge_context = knowledge_text
 		_build_and_send_messages()
 	)
-
-func _inject_knowledge_to_system(knowledge_text: String) -> void:
-	# 找到或创建知识库相关的system消息
-	var knowledge_msg_found := false
-	for i in range(AppState.chat_history.size()):
-		if AppState.chat_history[i]["role"] == "system" and AppState.chat_history[i]["content"].find("[知识库]") >= 0:
-			# 更新已存在的知识库消息
-			AppState.chat_history[i]["content"] = knowledge_text
-			knowledge_msg_found = true
-			break
-
-	if not knowledge_msg_found:
-		# 在第一个system消息之后插入知识库消息
-		var insert_idx := -1
-		for i in range(AppState.chat_history.size()):
-			if AppState.chat_history[i]["role"] == "system":
-				insert_idx = i + 1
-				break
-		if insert_idx < 0:
-			insert_idx = 0
-		AppState.chat_history.insert(insert_idx, {
-			"role": "system",
-			"content": knowledge_text
-		})
 
 func _build_and_send_messages() -> void:
 	var messages := PromptBuilder.build_messages(
 		AppState.get_messages_for_api(),
-		AppState.current_character
+		AppState.current_character,
+		AppState.knowledge_context
 	)
 	ApiClient.chat_completion(messages)
 
@@ -554,7 +525,8 @@ func _request_group_char(char_data: Dictionary) -> void:
 		char_data,
 		AppState.group_characters,
 		AppState.chat_history,
-		AppState.current_group
+		AppState.current_group,
+		AppState.knowledge_context
 	)
 	ApiClient.chat_completion(messages)
 
@@ -716,9 +688,6 @@ func delete_current_history() -> void:
 		var character_id: String = AppState.current_character.get("id", AppState.current_character.get("name", ""))
 		if HistoryManager.delete_history(character_id):
 			AppState.chat_history.clear()
-			var prompt: String = AppState.current_character.get("prompt", "")
-			if not prompt.is_empty():
-				AppState.add_message("system", prompt)
 		_current_mood = 0
 		ui.load_sprite(ui.character_sprite, AppState.current_character, "")
 	AppState.history_updated.emit()
