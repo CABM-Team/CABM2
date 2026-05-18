@@ -13,7 +13,7 @@ const MAX_KNOWLEDGE_CHARS := 2000
 ## max_results: int 最大返回条数
 ## threshold: float 相似度阈值（0-1）
 ## on_done: Callable(result_text: String) - 检索完成回调
-func retrieve_and_format(query_text: String, on_done: Callable, max_results: int = 5, threshold: float = 0.6) -> void:
+func retrieve_and_format(query_text: String, on_done: Callable, max_results: int = 8, threshold: float = 0.5) -> void:
 	if not EmbedService.is_configured():
 		on_done.call("")
 		return
@@ -46,7 +46,7 @@ func _format_results(results: Array[Dictionary]) -> String:
 		return ""
 
 	var sb := ""
-	sb += "\n\n【以下是与当前对话相关的知识库内容，供参考】\n"
+	sb += "【以下是与当前对话相关的知识库内容，供参考】\n"
 
 	var total_chars := 0
 	var entry_count := 0
@@ -59,10 +59,10 @@ func _format_results(results: Array[Dictionary]) -> String:
 			break
 
 		if entry_count > 0:
-			sb += "\n---\n"
+			sb += "\n"
 
 		# sb += "[相似度 %.2f] %s" % [sim, text]
-		sb += text
+		sb += "- " + text
 		total_chars += text.length()
 		entry_count += 1
 

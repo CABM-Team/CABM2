@@ -233,7 +233,7 @@ func _parse_sse_data(data: String) -> void:
 		return
 
 	var delta: Dictionary = choices[0].get("delta", {})
-	var token: String = delta.get("content", "")
+	var token: String = delta.get("content") if delta.get("content") != null else ""
 	if token.is_empty():
 		return
 

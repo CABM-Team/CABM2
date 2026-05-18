@@ -154,7 +154,7 @@ func _on_knowledge_toggled(enabled: bool) -> void:
 
 func _on_clear_pressed() -> void:
 	# 使用 confirm_dialog 的自定义方法，传入提示文本
-	confirm_dialog.show_dialog("确定要清空所有知识库条目吗？此操作不可撤销。")
+	confirm_dialog.show_dialog("确定要清空所有知识库条目吗？\n此操作不可撤销！")
 
 func _clear_all() -> void:
 	VectorStore.clear_all()

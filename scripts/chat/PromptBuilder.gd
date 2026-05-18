@@ -44,28 +44,57 @@ static func _trim_to_limit(messages: Array[Dictionary]) -> Array[Dictionary]:
 	result.append_array(trimmed)
 	return result
 
+## 构建 Markdown 格式的系统提示词内容
+static func _build_system_content(
+	character_data: Dictionary,
+	knowledge_context: String = "",
+	context_info: Dictionary = {}
+) -> String:
+	var sections: Array[String] = []
+	
+	# 1. 身份设定
+	var prompt: String = character_data.get("prompt", "")
+	if not prompt.is_empty():
+		sections.append("## 身份设定\n" + prompt)
+	
+	# 2. 相关知识（如果有）
+	if not knowledge_context.is_empty():
+		sections.append("## 相关知识\n" + knowledge_context)
+	
+	# 3. 对话背景/上下文（群聊专用）
+	if context_info.has("group_des") and not context_info.group_des.is_empty():
+		sections.append("## 对话背景\n" + context_info.group_des)
+	
+	if context_info.has("other_names") and not context_info.other_names.is_empty():
+		sections.append("## 对话对象\n你正在和" + "、".join(context_info.other_names) + "等人一起对话。")
+	
+	# 4. 输出要求
+	var moods: Array = character_data.get("moods", [])
+	var mood_list := ""
+	for i in moods.size():
+		mood_list += "%d:%s " % [i + 1, moods[i]]
+	
+	var output_requirements: String = "## 输出要求\n"
+	output_requirements += "你必须严格以 JSON 格式按顺序输出两个字段：\n"
+	output_requirements += "  - `\"mood\"`: <int> 当前情绪的序号，必须是以下之一：%s\n" % mood_list
+	output_requirements += "  - `\"msg\"`: <string> 你要说的话，1-6句话，使用中文标点，禁止使用markdown或换行符\n"
+	sections.append(output_requirements)
+
+	return "\n\n".join(sections)
+
 ## 构建带有情绪格式要求的消息数组（单角色模式）
 static func build_messages(
 	messages: Array[Dictionary],
 	character_data: Dictionary,
 	knowledge_context: String = ""
 ) -> Array[Dictionary]:
-	var moods: Array = character_data.get("moods", [])
-	var mood_list := ""
-	for i in moods.size():
-		mood_list += "%d:%s " % [i + 1, moods[i]]
-
-	var system_content = character_data.get("prompt", "")
-	if not knowledge_context.is_empty():
-		system_content += "\n" + knowledge_context
-
-	system_content += "\n你必须严格以JSON格式输出，包含以下字段：\n\"mood\": <int> 当前情绪序号，必须是以下之一：%s\n\"msg\": <string> 回复内容，1-6句话，禁止换行和markdown" % mood_list
-
+	var system_content = _build_system_content(character_data, knowledge_context)
+	
 	var result: Array[Dictionary] = [{"role": "system", "content": system_content}]
 	for msg in messages:
 		if msg.get("role", "") != "system":
 			result.append(msg)
-
+	
 	return _trim_to_limit(result)
 
 ## 构建群聊模式下某个角色的请求消息数组
@@ -82,42 +111,36 @@ static func build_group_messages(
 	knowledge_context: String = ""
 ) -> Array[Dictionary]:
 	var speaking_id: String = speaking_char.get("id", "")
-	var moods: Array = speaking_char.get("moods", [])
-	var mood_list := ""
-	for i in moods.size():
-		mood_list += "%d:%s " % [i + 1, moods[i]]
-
+	
 	# 构建其他角色名字列表（包含用户名）
 	var other_names: Array[String] = []
 	other_names.append(ConfigManager.get_effective_value("username"))
 	for c in all_chars:
 		if c.get("id", "") != speaking_id:
 			other_names.append(c.get("name", c.get("id", "")))
-
-	var system_content: String = speaking_char.get("prompt", "")
-	if not knowledge_context.is_empty():
-		system_content += "\n" + knowledge_context
-	if not other_names.is_empty():
-		system_content += "\n你正在和%s等人一起对话。" % "、".join(other_names)
-	var group_des: String = group_data.get("des", "")
-	if not group_des.is_empty():
-		system_content += "\n对话背景：%s" % group_des
-	system_content += "\n你必须严格以JSON格式，按顺序输出以下字段：\n\"mood\": <int> 当前情绪序号，必须是以下之一：%s\n\"msg\": <string> 回复内容，1-6句话，禁止换行和markdown" % mood_list
-
+	
+	# 构建上下文信息
+	var context_info: Dictionary = {
+		"other_names": other_names,
+		"group_des": group_data.get("des", "")
+	}
+	
+	var system_content = _build_system_content(speaking_char, knowledge_context, context_info)
+	
 	var result: Array[Dictionary] = [{"role": "system", "content": system_content}]
-
+	
 	# 将群聊历史转换为二人对话格式（user / assistant）
 	# speaking_char 的发言 → assistant
 	# 其他所有内容（user 输入 + 其他角色发言）→ user
 	# 规则：连续的 user 侧消息合并为一条
 	var pending_user_lines: Array[String] = []
-
+	
 	for msg in history:
 		var role: String = msg.get("role", "")
 		var content: String = msg.get("content", "")
 		if role == "system":
 			continue
-
+		
 		if role == speaking_id:
 			# 先 flush 待合并的 user 消息
 			if not pending_user_lines.is_empty():
@@ -133,15 +156,15 @@ static func build_group_messages(
 				# 其他角色的发言，从 JSON 中提取 msg 字段
 				var msg_text := _extract_msg(content)
 				pending_user_lines.append(display_name + "：" + msg_text)
-
+	
 	# flush 剩余
 	if not pending_user_lines.is_empty():
 		result.append({"role": "user", "content": "\n".join(pending_user_lines)})
-
+	
 	# 确保最后一条是 user（API 要求）
 	if not result.is_empty() and result.back().get("role", "") == "assistant":
 		result.append({"role": "user", "content": ""})
-
+	
 	return _trim_to_limit(result)
 
 ## 从 JSON 字符串中提取 msg 字段，失败则返回原文
