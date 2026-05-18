@@ -35,7 +35,7 @@ extends Node
 @onready var clear_history_btn: Button     = $"../MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/ClearHistoryButton"
 @onready var delete_btn: Button            = $"../MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/DeleteButton"
 @onready var edit_btn: Button              = $"../MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/EditButton"
-
+@onready var knowledge_btn: Button         = $"../MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/KnowledgeContainer/KnowledgeButton"
 # ── 信号（通知主控制器）────────────────────────────────────────
 signal send_requested
 signal back_requested

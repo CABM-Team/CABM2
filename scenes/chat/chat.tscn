@@ -342,12 +342,12 @@ theme = ExtResource("4_6xy15")
 theme_override_font_sizes/font_size = 40
 text = "🗑清空历史"
 
-[node name="Button4" type="Button" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid"]
+[node name="KnowledgeButton" type="Button" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid"]
 custom_minimum_size = Vector2(400, 80)
 layout_mode = 2
+theme = ExtResource("3_xe7gi")
 theme_override_font_sizes/font_size = 40
-disabled = true
-text = "📍一个按钮"
+text = "✨编辑知识"
 
 [node name="DeleteButton" type="Button" parent="MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid"]
 custom_minimum_size = Vector2(400, 80)

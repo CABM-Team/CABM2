@@ -88,6 +88,10 @@ func _load_values() -> void:
 	tts_url_input.text    = ConfigManager.get_value("tts_api_base_url")
 	tts_model_input.text  = ConfigManager.get_value("tts_model")
 
+	embed_key_input.text    = ConfigManager.get_value("embed_api_key")
+	embed_url_input.text    = ConfigManager.get_value("embed_api_base_url")
+	embed_model_input.text  = ConfigManager.get_value("embed_model")
+
 	username_input.text         = ConfigManager.get_value("username")
 	var ctx_chars: int          = ConfigManager.get_value("max_context_chars")
 	max_context_slider.value    = ctx_chars
@@ -146,6 +150,7 @@ func _on_fill_all() -> void:
 	chat_key_input.text = key
 	opt_key_input.text  = key
 	tts_key_input.text  = key
+	embed_key_input.text = key
 
 func _on_save() -> void:
 	var use_builtin := builtin_key_toggle.button_pressed
@@ -155,6 +160,7 @@ func _on_save() -> void:
 		if chat_key_input.text.strip_edges().is_empty(): chat_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcabm"
 		if opt_key_input.text.strip_edges().is_empty(): opt_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcab"
 		if tts_key_input.text.strip_edges().is_empty(): tts_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcab"
+		if embed_key_input.text.strip_edges().is_empty(): embed_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcab"
 	
 	var chat_key := chat_key_input.text.strip_edges()
 	if not use_builtin and chat_key.is_empty():
@@ -170,6 +176,9 @@ func _on_save() -> void:
 	ConfigManager.set_value("tts_api_key",        tts_key_input.text.strip_edges())
 	ConfigManager.set_value("tts_api_base_url",   tts_url_input.text.strip_edges())
 	ConfigManager.set_value("tts_model",          tts_model_input.text.strip_edges())
+	ConfigManager.set_value("embed_api_key",     embed_key_input.text.strip_edges())
+	ConfigManager.set_value("embed_api_base_url", embed_url_input.text.strip_edges())
+	ConfigManager.set_value("embed_model",       embed_model_input.text.strip_edges())
 
 	var uname := username_input.text.strip_edges()
 	ConfigManager.set_value("username",          uname if not uname.is_empty() else "用户")
@@ -239,6 +248,7 @@ func _on_builtin_key_toggled(enabled: bool) -> void:
 		chat_key_input, chat_url_input, chat_model_input,
 		opt_key_input, opt_url_input, opt_model_input,
 		tts_key_input, tts_url_input, tts_model_input,
+		embed_key_input, embed_url_input, embed_model_input,
 	]
 	for node in inputs:
 		if node is Button:
@@ -251,6 +261,10 @@ func _on_builtin_key_toggled(enabled: bool) -> void:
 			max_context_slider.value = 2000
 		# max_context_slider.editable = false
 		max_context_notice.visible = true
+		# 自动填充嵌入模型的默认值
+		embed_key_input.text = "sk-builtin-placeholder"
+		embed_url_input.text = ConfigManager.defaults["embed_api_base_url"]
+		embed_model_input.text = ConfigManager.defaults["embed_model"]
 	else:
 		# max_context_slider.editable = true
 		max_context_notice.visible = false
