@@ -34,6 +34,8 @@ AppInfo="*res://scripts/autoload/AppInfo.gd"
 UUIDUtil="*res://scripts/autoload/UUIDUtil.gd"
 BuiltinKeyManager="*res://scripts/autoload/BuiltinKeyManager.gd"
 TouchMouseBridge="*res://scripts/autoload/TouchMouseBridge.gd"
+VectorStore="*res://scripts/autoload/VectorStore.gd"
+EmbedService="*res://scripts/autoload/EmbedService.gd"
 
 [debug]
 

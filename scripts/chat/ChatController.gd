@@ -341,11 +341,55 @@ func _send_message(text: String) -> void:
 	if AppState.is_group_mode():
 		_start_group_replies()
 	else:
-		var messages := PromptBuilder.build_messages(
-			AppState.get_messages_for_api(),
-			AppState.current_character
-		)
-		ApiClient.chat_completion(messages)
+		_retrieve_knowledge_and_send(text)
+
+# ── 知识库检索和发送消息 ─────────────────────────────────────
+func _retrieve_knowledge_and_send(user_text: String) -> void:
+	var retriever := KnowledgeRetriever.new()
+
+	# 检查知识库是否可用
+	if not retriever.is_available():
+		_build_and_send_messages()
+		return
+
+	# 检索知识库内容
+	retriever.retrieve_and_format(user_text, func(knowledge_text: String):
+		if not knowledge_text.is_empty():
+			# 将知识库内容加入system消息
+			_inject_knowledge_to_system(knowledge_text)
+		_build_and_send_messages()
+	)
+
+func _inject_knowledge_to_system(knowledge_text: String) -> void:
+	# 找到或创建知识库相关的system消息
+	var knowledge_msg_found := false
+	for i in range(AppState.chat_history.size()):
+		if AppState.chat_history[i]["role"] == "system" and AppState.chat_history[i]["content"].find("[知识库]") >= 0:
+			# 更新已存在的知识库消息
+			AppState.chat_history[i]["content"] = knowledge_text
+			knowledge_msg_found = true
+			break
+
+	if not knowledge_msg_found:
+		# 在第一个system消息之后插入知识库消息
+		var insert_idx := -1
+		for i in range(AppState.chat_history.size()):
+			if AppState.chat_history[i]["role"] == "system":
+				insert_idx = i + 1
+				break
+		if insert_idx < 0:
+			insert_idx = 0
+		AppState.chat_history.insert(insert_idx, {
+			"role": "system",
+			"content": knowledge_text
+		})
+
+func _build_and_send_messages() -> void:
+	var messages := PromptBuilder.build_messages(
+		AppState.get_messages_for_api(),
+		AppState.current_character
+	)
+	ApiClient.chat_completion(messages)
 
 # ── 群聊 AI 决定发言顺序 ──────────────────────────────────────
 func _start_group_replies() -> void:

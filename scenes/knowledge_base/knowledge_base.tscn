@@ -1,0 +1,317 @@
+[gd_scene load_steps=7 format=3 uid="uid://knowledge_base"]
+
+[ext_resource type="Script" uid="uid://knowledge_base_controller" path="res://scripts/knowledge_base/KnowledgeBaseController.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://dejv7on4aogy4" path="res://assets/backgrounds/sr-3.png" id="2_vghtj"]
+[ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4_1slea"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vu5fi"]
+content_margin_left = 20.0
+content_margin_top = 5.0
+content_margin_right = 20.0
+bg_color = Color(0.20784314, 0.20784314, 0.35686275, 0.7529412)
+border_width_left = 6
+border_width_right = 6
+border_width_bottom = 6
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1slea"]
+bg_color = Color(0.7137255, 0.7137255, 0.7137255, 0.5764706)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+expand_margin_top = 5.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vghtj"]
+bg_color = Color(0, 0.26666668, 0.12941177, 0.7176471)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_color = Color(0.39308554, 0.3930855, 0.39308548, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v1hle"]
+bg_color = Color(0, 0.8156863, 0.36078432, 0.6901961)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_blend = true
+shadow_size = 3
+
+[node name="KnowledgeBase" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("2_vghtj")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 25.0
+offset_right = 150.0
+offset_bottom = 355.0
+theme_override_font_sizes/font_size = 64
+text = "📚
+知
+识
+库"
+horizontal_alignment = 1
+
+[node name="MainLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -850.0
+offset_top = -500.0
+offset_right = 950.0
+offset_bottom = 500.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="StatusLabel" type="Label" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TabContainer" type="TabContainer" parent="MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_selected_color = Color(1, 1, 1, 1)
+theme_override_colors/font_unselected_color = Color(0.54497474, 0.54497415, 0.54497427, 1)
+theme_override_font_sizes/font_size = 38
+theme_override_styles/panel = SubResource("StyleBoxFlat_vu5fi")
+theme_override_styles/tabbar_background = SubResource("StyleBoxFlat_1slea")
+theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_vghtj")
+theme_override_styles/tab_selected = SubResource("StyleBoxFlat_v1hle")
+current_tab = 0
+
+[node name="知识库管理" type="ScrollContainer" parent="MainLayout/TabContainer"]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/TabContainer/知识库管理"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 15
+
+[node name="SectionInfo" type="HBoxContainer" parent="MainLayout/TabContainer/知识库管理/VBox"]
+layout_mode = 2
+
+[node name="LabelCount" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+text = "条目数量：0"
+
+[node name="ButtonClear" type="Button" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo"]
+custom_minimum_size = Vector2(160, 55)
+layout_mode = 2
+theme = ExtResource("4_1slea")
+theme_override_font_sizes/font_size = 28
+text = "🗑清空"
+
+[node name="SectionImport" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "── 批量导入（TXT文件）──"
+
+[node name="ImportSection" type="VBoxContainer" parent="MainLayout/TabContainer/知识库管理/VBox"]
+layout_mode = 2
+
+[node name="LabelImportHint" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox/ImportSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "提示：TXT文件每行作为一条知识库条目，按行分隔批量构建向量"
+
+[node name="ImportRow" type="HBoxContainer" parent="MainLayout/TabContainer/知识库管理/VBox/ImportSection"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="FileDialogButton" type="Button" parent="MainLayout/TabContainer/知识库管理/VBox/ImportSection/ImportRow"]
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+theme = ExtResource("4_1slea")
+theme_override_font_sizes/font_size = 32
+text = "📁选择文件"
+
+[node name="LabelFilePath" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox/ImportSection/ImportRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+text = "未选择文件"
+
+[node name="ButtonBuild" type="Button" parent="MainLayout/TabContainer/知识库管理/VBox/ImportSection/ImportRow"]
+custom_minimum_size = Vector2(160, 60)
+layout_mode = 2
+theme = ExtResource("4_1slea")
+theme_override_font_sizes/font_size = 32
+text = "🔨构建"
+
+[node name="SectionManual" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "── 列表预览 ──"
+
+[node name="ScrollList" type="ScrollContainer" parent="MainLayout/TabContainer/知识库管理/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ItemList" type="VBoxContainer" parent="MainLayout/TabContainer/知识库管理/VBox/ScrollList"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="手动添加" type="ScrollContainer" parent="MainLayout/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/TabContainer/手动添加"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="SectionHint" type="Label" parent="MainLayout/TabContainer/手动添加/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "输入单条知识内容，添加到知识库"
+
+[node name="LabelInput" type="Label" parent="MainLayout/TabContainer/手动添加/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "知识内容："
+
+[node name="TextEditInput" type="TextEdit" parent="MainLayout/TabContainer/手动添加/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 30
+placeholder_text = "在此输入知识内容..."
+wrap_mode = 1
+
+[node name="AddButtonRow" type="HBoxContainer" parent="MainLayout/TabContainer/手动添加/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Spacer" type="Control" parent="MainLayout/TabContainer/手动添加/VBox/AddButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ButtonAdd" type="Button" parent="MainLayout/TabContainer/手动添加/VBox/AddButtonRow"]
+custom_minimum_size = Vector2(200, 70)
+layout_mode = 2
+theme = ExtResource("4_1slea")
+theme_override_font_sizes/font_size = 36
+text = "➕添加"
+
+[node name="检索测试" type="ScrollContainer" parent="MainLayout/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/TabContainer/检索测试"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
+
+[node name="SectionHint" type="Label" parent="MainLayout/TabContainer/检索测试/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "输入查询文本，测试知识库检索效果"
+
+[node name="LabelQuery" type="Label" parent="MainLayout/TabContainer/检索测试/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "查询文本："
+
+[node name="QueryInput" type="TextEdit" parent="MainLayout/TabContainer/检索测试/VBox"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+placeholder_text = "输入要查询的内容..."
+wrap_mode = 1
+
+[node name="SearchRow" type="HBoxContainer" parent="MainLayout/TabContainer/检索测试/VBox"]
+layout_mode = 2
+
+[node name="LabelThreshold" type="Label" parent="MainLayout/TabContainer/检索测试/VBox/SearchRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "相似度阈值："
+
+[node name="ThresholdSlider" type="HSlider" parent="MainLayout/TabContainer/检索测试/VBox/SearchRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 0.5
+
+[node name="LabelThresholdValue" type="Label" parent="MainLayout/TabContainer/检索测试/VBox/SearchRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "0.50"
+
+[node name="ButtonSearch" type="Button" parent="MainLayout/TabContainer/检索测试/VBox/SearchRow"]
+custom_minimum_size = Vector2(180, 60)
+layout_mode = 2
+theme = ExtResource("4_1slea")
+theme_override_font_sizes/font_size = 32
+text = "🔍检索"
+
+[node name="SectionResults" type="Label" parent="MainLayout/TabContainer/检索测试/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "── 检索结果 ──"
+
+[node name="ResultsScroll" type="ScrollContainer" parent="MainLayout/TabContainer/检索测试/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ResultsList" type="VBoxContainer" parent="MainLayout/TabContainer/检索测试/VBox/ResultsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="BottomBar" type="HBoxContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
+
+[node name="BackButton" type="Button" parent="MainLayout/BottomBar"]
+custom_minimum_size = Vector2(180, 60)
+layout_mode = 2
+theme = ExtResource("4_1slea")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 40
+text = "↩返回"
+
+[node name="Spacer" type="Control" parent="MainLayout/BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FileDialog" type="FileDialog" parent="."]
+initial_position = 2
+title = "选择TXT文件"
+size = Vector2i(800, 600)
+ok_button_text = "确认"
+file_mode = 0
+filters = PackedStringArray("*.txt ; 文本文件")

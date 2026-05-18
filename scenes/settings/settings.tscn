@@ -288,6 +288,50 @@ theme_override_font_sizes/font_size = 28
 placeholder_text = "FunAudioLLM/CosyVoice2-0.5B"
 selecting_enabled = false
 
+[node name="SectionEmbed" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 38
+text = "── 嵌入模型（知识库）──"
+
+[node name="LabelEmbedKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "API密钥"
+
+[node name="EmbedKeyInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "sk-..."
+selecting_enabled = false
+secret = true
+
+[node name="LabelEmbedUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+layout_mode = 2
+text = "BaseURL"
+
+[node name="EmbedUrlInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "https://api.siliconflow.cn/v1"
+selecting_enabled = false
+
+[node name="LabelEmbedModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+layout_mode = 2
+text = "模型名"
+
+[node name="EmbedModelInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+placeholder_text = "BAAI/bge-m3"
+selecting_enabled = false
+
+[node name="BtnKnowledgeBase" type="Button" parent="MainLayout/TabContainer/API设置/VBox"]
+custom_minimum_size = Vector2(300, 70)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 32
+text = "📚 知识库管理"
+
 [node name="聊天设置" type="VBoxContainer" parent="MainLayout/TabContainer"]
 visible = false
 layout_mode = 2

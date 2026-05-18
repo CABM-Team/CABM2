@@ -1,16 +1,63 @@
-temp/
-CABM/
-*.jks
-*.x86_64
+godot-cpp/
+*.TMP
+# ============================================
+# 操作系统生成文件
+# ============================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================
+# IDE 和编辑器文件
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.metadata/
+.editor_settings
+.editor_config
+
+# ============================================
+# Python 缓存
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
 encrypt_key.py
-BuiltinKeyManager.gd
-BuiltinKeyManager.gd.uid
-# Godot 生成的临时文件
+
+# ============================================
+# 编译产物（通用）
+# ============================================
+*.o
+*.obj
+*.os
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+*.exe
+*.d
+*.mod
+*.mod.c
+*.exp
+*.ilk
+*.pdb
+*.manifest
+*.x86_64
+
+# ============================================
+# Godot 专用文件
+# ============================================
+# 临时文件
 .godot/
 imported/
 .import/
+.metadata/
 
-# 编译输出文件
+# 资源文件
 *.stex
 *.ctex
 *.tex
@@ -19,41 +66,108 @@ imported/
 *.spv
 *.spirv
 
-# 编辑器元数据（可选忽略，看你是否想跨设备同步编辑器设置）
-.metadata/
-.editor_settings
-.editor_config
-
-# 导出模板和发布文件
+# 导出文件
 export_presets.cfg
 exported/
 builds/
 *.apk
 *.idsig
 *.aab
-*.exe
-*.dll
 *.pck
 *.zip
 *.dmg
 *.pkg
 *.app
 
-# 日志文件
+# 日志
 logs/
 *.log
 
-# 操作系统生成文件
-.DS_Store
-Thumbs.db
-desktop.ini
+# JKS 密钥文件
+*.jks
 
-# IDE / 编辑器配置（如果你使用外部编辑器）
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# ============================================
+# godot-cpp 及插件编译产物
+# ============================================
+# 根目录下的 godot-cpp
+godot-cpp/bin/
+godot-cpp/build/
+godot-cpp/gen/
+godot-cpp/.sconsign.dblite
+godot-cpp/CMakeFiles/
+godot-cpp/CMakeCache.txt
+godot-cpp/cmake_install.cmake
+godot-cpp/Makefile
+godot-cpp/compile_commands.json
+godot-cpp/*.cmake
 
-# Godot 项目设置文件（部分需要保留）
-# 保留 project.godot, 忽略自动生成的 .godot 文件夹
+# godot-cpp 源码编译产物
+godot-cpp/src/*.o
+godot-cpp/src/*.obj
+godot-cpp/src/classes/*.o
+godot-cpp/src/classes/*.obj
+godot-cpp/src/core/*.o
+godot-cpp/src/core/*.obj
+godot-cpp/src/variant/*.o
+godot-cpp/src/variant/*.obj
+
+# godot-cpp 测试项目
+godot-cpp/test/project/*.pck
+godot-cpp/test/project/*.export
+godot-cpp/test/project/export/
+godot-cpp/test/project/bin/
+godot-cpp/test/src/*.o
+godot-cpp/test/src/*.obj
+
+# ============================================
+# cosine_calculator 插件
+# ============================================
+# 插件动态库
+addons/cosine_calculator/bin/*.dll
+addons/cosine_calculator/bin/*.so
+addons/cosine_calculator/bin/*.dylib
+addons/cosine_calculator/bin/*.framework
+addons/cosine_calculator/bin/*.a
+addons/cosine_calculator/bin/*.exp
+addons/cosine_calculator/bin/*.lib
+addons/cosine_calculator/bin/*.obj
+
+# 插件构建缓存
+addons/cosine_calculator/.sconsign.dblite
+addons/cosine_calculator/src/*.obj
+addons/cosine_calculator/src/*.os
+
+# cosine_calculator 子模块（在 godot-cpp 内）
+godot-cpp/cosine_calculator/bin/
+godot-cpp/cosine_calculator/*.obj
+godot-cpp/cosine_calculator/*.os
+
+# 示例编译产物
+cosine_calculator/*.o
+cosine_calculator/*.obj
+
+# ============================================
+# SCons 构建缓存（全局）
+# ============================================
+.sconsign.dblite
+.sconscript_signature.dblite
+.scons_env.json
+.scons_environment.json
+
+# ============================================
+# CMake 构建缓存（全局）
+# ============================================
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!cmake/*.cmake
+
+# ============================================
+# 项目特定文件
+# ============================================
+temp/
+CABM/
+BuiltinKeyManager.gd
+BuiltinKeyManager.gd.uid

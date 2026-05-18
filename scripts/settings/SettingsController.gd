@@ -25,6 +25,13 @@ extends Control
 @onready var tts_url_input: LineEdit     = $MainLayout/TabContainer/API设置/VBox/TtsUrlInput
 @onready var tts_model_input: LineEdit   = $MainLayout/TabContainer/API设置/VBox/TtsModelInput
 
+# ── 嵌入模型 ──
+@onready var embed_key_input: LineEdit     = $MainLayout/TabContainer/API设置/VBox/EmbedKeyInput
+@onready var embed_url_input: LineEdit     = $MainLayout/TabContainer/API设置/VBox/EmbedUrlInput
+@onready var embed_model_input: LineEdit   = $MainLayout/TabContainer/API设置/VBox/EmbedModelInput
+
+@onready var btn_knowledge_base: Button = $MainLayout/TabContainer/API设置/VBox/BtnKnowledgeBase
+
 # ── 聊天设置 ──
 @onready var username_input: LineEdit    = $MainLayout/TabContainer/聊天设置/HBoxContainer/UsernameInput
 @onready var max_context_label: Label    = $MainLayout/TabContainer/聊天设置/HBoxContainer2/LabelMaxContext
@@ -56,11 +63,15 @@ func _ready() -> void:
 	skip_button.pressed.connect(_on_skip)
 	max_context_slider.value_changed.connect(_on_max_context_changed)
 	builtin_key_toggle.toggled.connect(_on_builtin_key_toggled)
+	btn_knowledge_base.pressed.connect(_on_knowledge_base)
 
 	_load_values()
 	_saved_snapshot = _take_snapshot()
 	# 注入 confirm_dialog 给数据与缓存 tab
 	data_cache_tab.confirm_dialog = confirm_dialog
+
+func _on_knowledge_base() -> void:
+	get_tree().change_scene_to_file("res://scenes/knowledge_base/knowledge_base.tscn")
 
 func _load_values() -> void:
 	builtin_key_toggle.button_pressed = ConfigManager.get_value("use_builtin_key")
@@ -202,6 +213,9 @@ func _take_snapshot() -> Dictionary:
 		"tts_key":    tts_key_input.text,
 		"tts_url":    tts_url_input.text,
 		"tts_model":  tts_model_input.text,
+		"embed_key":  embed_key_input.text,
+		"embed_url":  embed_url_input.text,
+		"embed_model": embed_model_input.text,
 		"username":   username_input.text,
 		"max_ctx":    int(max_context_slider.value),
 		"auto_tts":   auto_play_tts_button.button_pressed,

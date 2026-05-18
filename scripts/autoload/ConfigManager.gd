@@ -22,6 +22,10 @@ var defaults := {
 	"tts_api_key": "",
 	"tts_api_base_url": "https://api.siliconflow.cn/v1",
 	"tts_model": "FunAudioLLM/CosyVoice2-0.5B",
+	# 嵌入模型（知识库）
+	"embed_api_key": "",
+	"embed_api_base_url": "https://api.siliconflow.cn/v1",
+	"embed_model": "BAAI/bge-m3",
 	# 聊天设置
 	"username": "用户",
 	"max_context_chars": 2000,
@@ -66,9 +70,9 @@ func is_first_run() -> bool:
 func get_effective_value(key: String) -> Variant:
 	if get_value("use_builtin_key"):
 		match key:
-			"chat_api_key", "option_api_key", "tts_api_key":
+			"chat_api_key", "option_api_key", "tts_api_key", "embed_api_key":
 				return BuiltinKeyManager.get_builtin_key()
-			"chat_api_base_url", "option_api_base_url", "tts_api_base_url":
+			"chat_api_base_url", "option_api_base_url", "tts_api_base_url", "embed_api_base_url":
 				return defaults["chat_api_base_url"]
 			"chat_model":
 				return defaults["chat_model"]
@@ -76,6 +80,8 @@ func get_effective_value(key: String) -> Variant:
 				return defaults["option_model"]
 			"tts_model":
 				return defaults["tts_model"]
+			"embed_model":
+				return defaults["embed_model"]
 			"max_context_chars":
 				return mini(get_value("max_context_chars"), 2000)
 	return get_value(key)
