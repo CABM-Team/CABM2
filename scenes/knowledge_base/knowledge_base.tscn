@@ -1,7 +1,8 @@
-[gd_scene load_steps=9 format=3 uid="uid://d4h2t66va8xja"]
+[gd_scene load_steps=10 format=3 uid="uid://d4h2t66va8xja"]
 
 [ext_resource type="Script" uid="uid://cho20iuj7pr12" path="res://scripts/knowledge_base/KnowledgeBaseController.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dejv7on4aogy4" path="res://assets/backgrounds/sr-3.png" id="2_vghtj"]
+[ext_resource type="Theme" uid="uid://nbt4udvni8b5" path="res://assets/theme/red_button.tres" id="3_2nlqh"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4_1slea"]
 [ext_resource type="PackedScene" uid="uid://l0myq0186xht" path="res://scenes/common/confirm_dialog.tscn" id="4_n0isg"]
 
@@ -59,8 +60,8 @@ texture = ExtResource("2_vghtj")
 layout_mode = 0
 offset_left = 20.0
 offset_top = 25.0
-offset_right = 150.0
-offset_bottom = 355.0
+offset_right = 101.0
+offset_bottom = 338.0
 theme_override_font_sizes/font_size = 64
 text = "📚
 知
@@ -93,6 +94,7 @@ vertical_alignment = 1
 [node name="StatusLabel" type="Label" parent="MainLayout"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.8, 0.4, 1)
 theme_override_font_sizes/font_size = 35
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -126,31 +128,48 @@ theme_override_font_sizes/font_size = 28
 horizontal_alignment = 1
 autowrap_mode = 1
 
-[node name="SectionInfo" type="HBoxContainer" parent="MainLayout/TabContainer/知识库管理/VBox"]
+[node name="SectionInfo" type="VBoxContainer" parent="MainLayout/TabContainer/知识库管理/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="KnowledgeToggle" type="CheckBox" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo"]
+[node name="ToggleRow" type="HBoxContainer" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="KnowledgeToggle" type="CheckBox" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo/ToggleRow"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "启用知识库"
 
-[node name="LabelCount" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo"]
+[node name="DisableIndicator" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo/ToggleRow"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 28
+text = "⚠ 知识库已禁用"
+
+[node name="InfoRow" type="HBoxContainer" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="LabelCount" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo/InfoRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 text = "条目数量：0"
 
-[node name="ButtonClear" type="Button" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo"]
+[node name="ButtonClear" type="Button" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo/InfoRow"]
 custom_minimum_size = Vector2(160, 55)
 layout_mode = 2
-theme = ExtResource("4_1slea")
+theme = ExtResource("3_2nlqh")
 theme_override_font_sizes/font_size = 28
 text = "🗑清空"
 
 [node name="SectionImport" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "── 批量导入（TXT文件）──"
+text = "
+── 批量导入（TXT文件）──"
 
 [node name="ImportSection" type="VBoxContainer" parent="MainLayout/TabContainer/知识库管理/VBox"]
 layout_mode = 2
@@ -184,19 +203,21 @@ theme = ExtResource("4_1slea")
 theme_override_font_sizes/font_size = 32
 text = "🔨构建"
 
-[node name="SectionManual" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox"]
+[node name="KnowledgeIntro" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "── 列表预览 ──"
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 26
+text = "
 
-[node name="ScrollList" type="ScrollContainer" parent="MainLayout/TabContainer/知识库管理/VBox"]
-layout_mode = 2
-size_flags_vertical = 3
+知识库基于检索增强生成（RAG）技术，将文本内容转为向量存储。启用后，AI会根据语义从知识库中检索相关内容。
+也就是说，你可以把整个世界观塞进去，不用担心字数限制。
 
-[node name="ItemList" type="VBoxContainer" parent="MainLayout/TabContainer/知识库管理/VBox/ScrollList"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
+技巧与建议：
+• 为性能考虑，总条目建议少于10000条
+• 可以包含角色设定、角色故事、世界观等等
+• 每条知识需要独立、完整
+• 建议使用“你”指代角色"
+autowrap_mode = 1
 
 [node name="手动添加" type="ScrollContainer" parent="MainLayout/TabContainer"]
 visible = false
@@ -222,8 +243,9 @@ text = "知识内容："
 [node name="TextEditInput" type="TextEdit" parent="MainLayout/TabContainer/手动添加/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 36
 placeholder_text = "在此输入知识内容..."
+selecting_enabled = false
 wrap_mode = 1
 
 [node name="AddButtonRow" type="HBoxContainer" parent="MainLayout/TabContainer/手动添加/VBox"]
@@ -249,23 +271,15 @@ metadata/_tab_index = 2
 [node name="VBox" type="VBoxContainer" parent="MainLayout/TabContainer/检索测试"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 20
-
-[node name="SectionHint" type="Label" parent="MainLayout/TabContainer/检索测试/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "输入查询文本，测试知识库检索效果"
-
-[node name="LabelQuery" type="Label" parent="MainLayout/TabContainer/检索测试/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "查询文本："
 
 [node name="QueryInput" type="TextEdit" parent="MainLayout/TabContainer/检索测试/VBox"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
-placeholder_text = "输入要查询的内容..."
+placeholder_text = "输入检索内容..."
+selecting_enabled = false
 wrap_mode = 1
 
 [node name="SearchRow" type="HBoxContainer" parent="MainLayout/TabContainer/检索测试/VBox"]
@@ -277,8 +291,9 @@ theme_override_font_sizes/font_size = 30
 text = "相似度阈值："
 
 [node name="ThresholdSlider" type="HSlider" parent="MainLayout/TabContainer/检索测试/VBox/SearchRow"]
+custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_vertical = 4
 max_value = 1.0
 step = 0.01
 value = 0.5
@@ -292,14 +307,14 @@ text = "0.50"
 [node name="ButtonSearch" type="Button" parent="MainLayout/TabContainer/检索测试/VBox/SearchRow"]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
+size_flags_horizontal = 10
 theme = ExtResource("4_1slea")
-theme_override_font_sizes/font_size = 32
 text = "🔍检索"
 
 [node name="SectionResults" type="Label" parent="MainLayout/TabContainer/检索测试/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "── 检索结果 ──"
+text = "── 检索结果（最多20条） ──"
 
 [node name="ResultsScroll" type="ScrollContainer" parent="MainLayout/TabContainer/检索测试/VBox"]
 layout_mode = 2

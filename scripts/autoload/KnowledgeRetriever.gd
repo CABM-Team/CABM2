@@ -13,7 +13,7 @@ const MAX_KNOWLEDGE_CHARS := 2000
 ## max_results: int 最大返回条数
 ## threshold: float 相似度阈值（0-1）
 ## on_done: Callable(result_text: String) - 检索完成回调
-func retrieve_and_format(query_text: String, on_done: Callable, max_results: int = 8, threshold: float = 0.5) -> void:
+func retrieve_and_format(query_text: String, on_done: Callable, max_results: int = 10, threshold: float = 0.4) -> void:
 	if not EmbedService.is_configured():
 		on_done.call("")
 		return

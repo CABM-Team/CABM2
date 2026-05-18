@@ -12,15 +12,14 @@ extends Control
 @onready var confirm_dialog: Control = $ConfirmDialog
 
 # 知识库管理Tab节点
-@onready var knowledge_toggle: CheckBox = $MainLayout/TabContainer/知识库管理/VBox/SectionInfo/KnowledgeToggle
-@onready var label_count: Label = $MainLayout/TabContainer/知识库管理/VBox/SectionInfo/LabelCount
-@onready var button_clear: Button = $MainLayout/TabContainer/知识库管理/VBox/SectionInfo/ButtonClear
+@onready var knowledge_toggle: CheckBox = $MainLayout/TabContainer/知识库管理/VBox/SectionInfo/ToggleRow/KnowledgeToggle
+@onready var disable_indicator: Label = $MainLayout/TabContainer/知识库管理/VBox/SectionInfo/ToggleRow/DisableIndicator
+@onready var label_count: Label = $MainLayout/TabContainer/知识库管理/VBox/SectionInfo/InfoRow/LabelCount
+@onready var button_clear: Button = $MainLayout/TabContainer/知识库管理/VBox/SectionInfo/InfoRow/ButtonClear
 @onready var plugin_warning: Label = $MainLayout/TabContainer/知识库管理/VBox/PluginWarning
 @onready var label_file_path: Label = $MainLayout/TabContainer/知识库管理/VBox/ImportSection/ImportRow/LabelFilePath
 @onready var button_build: Button = $MainLayout/TabContainer/知识库管理/VBox/ImportSection/ImportRow/ButtonBuild
 @onready var file_dialog_button: Button = $MainLayout/TabContainer/知识库管理/VBox/ImportSection/ImportRow/FileDialogButton
-@onready var item_list: VBoxContainer = $MainLayout/TabContainer/知识库管理/VBox/ScrollList/ItemList
-
 # 手动添加Tab节点
 @onready var textedit_input: TextEdit = $MainLayout/TabContainer/手动添加/VBox/TextEditInput
 @onready var button_add: Button = $MainLayout/TabContainer/手动添加/VBox/AddButtonRow/ButtonAdd
@@ -82,6 +81,7 @@ func _init_ui() -> void:
 	button_build.disabled = true
 	threshold_slider.value = 0.5
 	knowledge_toggle.button_pressed = VectorStore.is_knowledge_enabled()
+	_update_disable_indicator()
 
 func _check_plugin_status() -> void:
 	var stats := VectorStore.get_stats()
@@ -95,25 +95,26 @@ func _check_plugin_status() -> void:
 		plugin_warning.visible = false
 		knowledge_toggle.disabled = false
 
-func _show_status(message: String, duration: float = 3.0) -> void:
+func _update_disable_indicator() -> void:
+	var is_enabled := VectorStore.is_knowledge_enabled()
+	disable_indicator.visible = not is_enabled
+	disable_indicator.text = "⚠ 知识库已禁用" if not is_enabled else ""
+
+func _show_status(message: String, duration: float = 3.0, color: Color = Color(0, 0.8, 0.4)) -> void:
 	status_label.text = message
+	status_label.add_theme_color_override("font_color", color)
 	if duration > 0:
 		await get_tree().create_timer(duration).timeout
-		status_label.text = ""
+		if not _is_building and not _is_searching:
+			status_label.text = ""
+
+func _show_progress(message: String, percent: int, color: Color = Color(0.3, 0.7, 1)) -> void:
+	status_label.text = "%s (%d%%)" % [message, percent]
+	status_label.add_theme_color_override("font_color", color)
 
 func _update_list() -> void:
 	var count := VectorStore.get_count()
 	label_count.text = "条目数量：%d" % count
-	_refresh_item_list()
-
-func _refresh_item_list() -> void:
-	for child in item_list.get_children():
-		child.queue_free()
-
-	var entries := VectorStore.get_all_entries()
-	for entry in entries:
-		var item := _create_list_item(entry)
-		item_list.add_child(item)
 
 func _create_list_item(entry: Dictionary) -> Control:
 	var container := HBoxContainer.new()
@@ -139,10 +140,10 @@ func _create_list_item(entry: Dictionary) -> Control:
 
 func _delete_entry(entry_id: String) -> void:
 	if VectorStore.delete_entry(entry_id):
-		_show_status("✓ 已删除条目")
+		_show_status("✓ 已删除条目", 2.0, Color(0, 0.8, 0.4))
 		_update_list()
 	else:
-		_show_status("✗ 删除失败")
+		_show_status("删除失败", 3.0, Color(1, 0.3, 0.3))
 
 func _on_back() -> void:
 	# 返回到聊天页面
@@ -150,7 +151,8 @@ func _on_back() -> void:
 
 func _on_knowledge_toggled(enabled: bool) -> void:
 	VectorStore.set_knowledge_enabled(enabled)
-	_show_status("知识库已%s" % ("启用" if enabled else "禁用"))
+	_update_disable_indicator()
+	_show_status("知识库已%s" % ("启用" if enabled else "禁用"), 2.0, Color(0.3, 0.7, 1))
 
 func _on_clear_pressed() -> void:
 	# 使用 confirm_dialog 的自定义方法，传入提示文本
@@ -158,23 +160,30 @@ func _on_clear_pressed() -> void:
 
 func _clear_all() -> void:
 	VectorStore.clear_all()
-	_show_status("✓ 已清空知识库")
+	_show_status("✓ 已清空知识库", 3.0, Color(1, 0.7, 0))
 	_update_list()
 
 func _on_file_selected(path: String) -> void:
 	_selected_file_path = path
 	label_file_path.text = path.get_file()
 	button_build.disabled = false
-	_show_status("已选择文件：%s" % path.get_file())
+	_show_status("已选择文件：%s" % path.get_file(), 2.0, Color(0.3, 0.7, 1))
 
 func _on_file_dialog_button_pressed() -> void:
-	file_dialog.popup_centered()
+	AndroidPermissions.request_for_file_pick(func(granted: bool):
+		if not granted:
+			_show_status("需要存储权限才能选择文件", 3.0, Color(1, 0.3, 0.3))
+			return
+		file_dialog.filters = ["*.txt ; 文本文件"]
+		file_dialog.use_native_dialog = true
+		file_dialog.popup_centered(Vector2i(900, 700))
+	)
 
 func _on_build_pressed() -> void:
 	if _is_building:
 		return
 	if _selected_file_path.is_empty():
-		_show_status("✗ 请先选择TXT文件")
+		_show_status("请先选择TXT文件", 3.0, Color(1, 0.3, 0.3))
 		return
 
 	print("[KnowledgeBase] 开始构建知识库，嵌入用时开始计时")
@@ -182,11 +191,11 @@ func _on_build_pressed() -> void:
 	
 	_is_building = true
 	button_build.disabled = true
-	_show_status("正在读取文件...")
+	_show_progress("正在读取文件", 10)
 
 	var file := FileAccess.open(_selected_file_path, FileAccess.READ)
 	if file == null:
-		_show_status("✗ 无法打开文件")
+		_show_status("无法打开文件", 3.0, Color(1, 0.3, 0.3))
 		_is_building = false
 		button_build.disabled = false
 		return
@@ -202,22 +211,24 @@ func _on_build_pressed() -> void:
 			texts.append(trimmed)
 
 	if texts.is_empty():
-		_show_status("✗ 文件内容为空")
+		_show_status("文件内容为空", 3.0, Color(1, 0.3, 0.3))
 		_is_building = false
 		button_build.disabled = false
 		return
 
-	_show_status("正在构建 %d 条目..." % texts.size())
+	_show_progress("正在构建 %d 个知识条目" % texts.size(), 30)
 
 	EmbedService.embed_batch(texts, func(embeddings: Array, error: String):
 		var embed_elapsed := Time.get_ticks_msec() - embed_start_time
 		print("[KnowledgeBase] 嵌入完成，用时 %d ms" % embed_elapsed)
 		
 		if not error.is_empty():
-			_show_status("✗ 嵌入失败: " + error)
+			_show_status("嵌入失败: " + error, 3.0, Color(1, 0.3, 0.3))
 			_is_building = false
 			button_build.disabled = false
 			return
+
+		_show_progress("正在存储条目", 70)
 
 		var entries: Array[Dictionary] = []
 		for i in range(texts.size()):
@@ -229,7 +240,7 @@ func _on_build_pressed() -> void:
 				})
 
 		var added := VectorStore.add_entries(entries)
-		_show_status("✓ 已添加 %d 条目" % added)
+		_show_status("✓ 已添加 %d 条目" % added, 3.0, Color(0, 0.8, 0.4))
 		_update_list()
 
 		_is_building = false
@@ -241,18 +252,20 @@ func _on_build_pressed() -> void:
 func _on_add_pressed() -> void:
 	var text := textedit_input.text.strip_edges()
 	if text.is_empty():
-		_show_status("✗ 请输入知识内容")
+		_show_status("请输入知识内容", 3.0, Color(1, 0.3, 0.3))
 		return
 
-	_show_status("正在添加...")
+	_show_progress("正在添加", 30)
 	EmbedService.embed_text(text, func(embeddings: Array, error: String):
 		if not error.is_empty():
-			_show_status("✗ 嵌入失败: " + error)
+			_show_status("嵌入失败: " + error, 3.0, Color(1, 0.3, 0.3))
 			return
 
 		if embeddings.is_empty() or embeddings[0].is_empty():
-			_show_status("✗ 嵌入结果为空")
+			_show_status("嵌入结果为空", 3.0, Color(1, 0.3, 0.3))
 			return
+
+		_show_progress("正在存储条目", 70)
 
 		var entry := {
 			"id": UUIDUtil.v4(),
@@ -261,11 +274,11 @@ func _on_add_pressed() -> void:
 		}
 
 		if VectorStore.add_entry(entry):
-			_show_status("✓ 已添加条目")
+			_show_status("✓ 已添加条目", 2.0, Color(0, 0.8, 0.4))
 			textedit_input.text = ""
 			_update_list()
 		else:
-			_show_status("✗ 添加失败")
+			_show_status("添加失败", 3.0, Color(1, 0.3, 0.3))
 	)
 
 func _on_search_pressed() -> void:
@@ -274,7 +287,7 @@ func _on_search_pressed() -> void:
 
 	var query := textedit_query.text.strip_edges()
 	if query.is_empty():
-		_show_status("✗ 请输入查询文本")
+		_show_status("请输入查询文本", 3.0, Color(1, 0.3, 0.3))
 		return
 
 	print("[KnowledgeBase] 开始检索测试，嵌入用时开始计时")
@@ -282,29 +295,31 @@ func _on_search_pressed() -> void:
 	
 	_is_searching = true
 	button_search.disabled = true
-	_show_status("正在检索...")
+	_show_progress("正在检索", 20)
 
 	EmbedService.embed_text(query, func(embeddings: Array, error: String):
 		var embed_elapsed := Time.get_ticks_msec() - embed_start_time
 		print("[KnowledgeBase] 查询嵌入完成，用时 %d ms" % embed_elapsed)
 		
 		if not error.is_empty():
-			_show_status("✗ 嵌入失败: " + error)
+			_show_status("嵌入失败: " + error, 3.0, Color(1, 0.3, 0.3))
 			_is_searching = false
 			button_search.disabled = false
 			return
 
 		if embeddings.is_empty() or embeddings[0].is_empty():
-			_show_status("✗ 嵌入结果为空")
+			_show_status("嵌入结果为空", 3.0, Color(1, 0.3, 0.3))
 			_is_searching = false
 			button_search.disabled = false
 			return
 
+		_show_progress("正在检索匹配条目", 60)
+
 		var threshold := threshold_slider.value
-		var results := VectorStore.search(embeddings[0], 10, threshold)
+		var results := VectorStore.search(embeddings[0], 20, threshold)
 
 		_refresh_results(results)
-		_show_status("✓ 找到 %d 条相关结果" % results.size())
+		_show_status("✓ 找到 %d 条相关结果" % results.size(), 3.0, Color(0, 0.8, 0.4))
 
 		_is_searching = false
 		button_search.disabled = false
