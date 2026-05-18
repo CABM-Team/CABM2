@@ -41,12 +41,119 @@ func embed_text(text: String, on_done: Callable) -> void:
 ## texts: Array[String] 要嵌入的文本数组
 ## on_done: Callable(embeddings: Array, error: String)
 ## embeddings数组顺序与texts数组顺序一致
+## 批量将文本转换为嵌入向量（自动分块处理，避免 413 错误）
+## texts: Array[String] 要嵌入的文本数组
+## on_done: Callable(embeddings: Array, error: String)
+## embeddings数组顺序与texts数组顺序一致
 func embed_batch(texts: Array[String], on_done: Callable) -> void:
 	if not is_configured():
 		on_done.call([], "未配置嵌入API密钥")
 		return
+	
+	# 如果没有文本，直接返回空数组
+	if texts.is_empty():
+		on_done.call([], "")
+		return
+	
+	# 分块参数（可根据实际 API 限制调整）
+	const BATCH_SIZE := 16  # 每批最多 16 条，避免 413
+	
+	var total_count := texts.size()
+	var all_embeddings: Array = []
+	all_embeddings.resize(total_count)  # 预分配位置保持顺序
+	
+	# 使用异步递归分块处理
+	_process_batch_chunk(texts, 0, BATCH_SIZE, all_embeddings, on_done)
 
-	_pend_request(texts, on_done)
+## 递归处理批次分块
+func _process_batch_chunk(texts: Array[String], start_idx: int, batch_size: int, all_embeddings: Array, final_callback: Callable) -> void:
+	var end_idx := mini(start_idx + batch_size, texts.size())
+	var chunk := texts.slice(start_idx, end_idx)
+	
+	# 发送当前块的嵌入请求
+	_send_single_batch_request(chunk, 
+		func(embeddings: Array, error: String):
+			if not error.is_empty():
+				final_callback.call([], error)
+				return
+			
+			# 将结果填回正确位置
+			for i in range(embeddings.size()):
+				all_embeddings[start_idx + i] = embeddings[i]
+			
+			# 判断是否还有剩余批次
+			if end_idx >= texts.size():
+				# 全部完成
+				final_callback.call(all_embeddings, "")
+			else:
+				# 继续下一批
+				_process_batch_chunk(texts, end_idx, batch_size, all_embeddings, final_callback)
+	)
+
+## 实际发送单个批次的请求（不经过队列，直接发送）
+func _send_single_batch_request(texts: Array[String], on_done: Callable) -> void:
+	var config := _get_api_config()
+	
+	var http_request := HTTPRequest.new()
+	add_child(http_request)
+	
+	http_request.request_completed.connect(
+		func(result: int, code: int, _headers: PackedStringArray, body_bytes: PackedByteArray):
+			_handle_single_response(result, code, body_bytes, on_done)
+			http_request.queue_free()
+	)
+	
+	var url = config["base_url"].rstrip("/") + "/embeddings"
+	var body := JSON.stringify({
+		"model": config["model"],
+		"input": texts,
+		"encoding_format": "float"
+	})
+	
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer " + config["api_key"]
+	])
+	
+	var err = http_request.request(url, headers, HTTPClient.METHOD_POST, body)
+	if err != OK:
+		on_done.call([], "请求失败: " + str(err))
+		http_request.queue_free()
+
+## 处理单个批次响应
+func _handle_single_response(result: int, code: int, body_bytes: PackedByteArray, on_done: Callable) -> void:
+	if result != HTTPRequest.RESULT_SUCCESS:
+		on_done.call([], "网络请求失败")
+		return
+	
+	if code != 200:
+		var error_text := body_bytes.get_string_from_utf8()
+		on_done.call([], "API错误: " + str(code) + " - " + error_text)
+		return
+	
+	var json := JSON.new()
+	var text := body_bytes.get_string_from_utf8()
+	if json.parse(text) != OK:
+		on_done.call([], "JSON解析失败")
+		return
+	
+	var data = json.get_data()
+	if not data is Dictionary:
+		on_done.call([], "响应格式错误")
+		return
+	
+	var embeddings: Array = []
+	var raw_embeddings: Array = data.get("data", [])
+	# 按 index 排序以确保顺序正确
+	raw_embeddings.sort_custom(func(a, b): return a.get("index", 0) < b.get("index", 0))
+	
+	for item in raw_embeddings:
+		if item is Dictionary:
+			var embedding: Array = Array(item.get("embedding", []))
+			embedding = _normalize_vector(embedding)
+			embeddings.append(embedding)
+	
+	on_done.call(embeddings, "")
 
 ## 将请求加入队列
 func _pend_request(texts: Array[String], on_done: Callable) -> void:

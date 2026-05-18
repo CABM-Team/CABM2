@@ -66,6 +66,7 @@ func _ready() -> void:
 	ui.clear_history_confirm_requested.connect(_show_clear_history_confirm)
 	ui.delete_confirm_requested.connect(_show_delete_confirm)
 	ui.edit_requested.connect(_on_edit_pressed)
+	ui.knowledge_requested.connect(_on_knowledge_pressed)
 	ui.advance_requested.connect(_advance)
 	ui.input_key_enter.connect(_on_send_pressed)
 	ui.sentence_finished.connect(_on_sentence_finished)
@@ -107,6 +108,11 @@ func _load_character(char_data: Dictionary) -> void:
 
 	# 异步确保参考音频已上传（不阻塞界面）
 	var char_id: String = char_data.get("id", char_data.get("name", ""))
+	
+	# 加载该角色的知识库
+	if not char_id.is_empty():
+		VectorStore.load_character_knowledge(char_id)
+	
 	if not char_id.is_empty() and ConfigManager.get_effective_value("enable_tts"):
 		VoiceUploadManager.ensure_voice_uploaded(char_id, func(uri: String, error: String):
 			if not error.is_empty():
@@ -345,6 +351,11 @@ func _send_message(text: String) -> void:
 
 # ── 知识库检索和发送消息 ─────────────────────────────────────
 func _retrieve_knowledge_and_send(user_text: String) -> void:
+	# 检查知识库是否启用
+	if not VectorStore.is_knowledge_enabled():
+		_build_and_send_messages()
+		return
+	
 	var retriever := KnowledgeRetriever.new()
 
 	# 检查知识库是否可用
@@ -352,8 +363,14 @@ func _retrieve_knowledge_and_send(user_text: String) -> void:
 		_build_and_send_messages()
 		return
 
+	print("[ChatController] 开始检索知识库，检索用时开始计时")
+	var retrieval_start_time := Time.get_ticks_msec()
+	
 	# 检索知识库内容
 	retriever.retrieve_and_format(user_text, func(knowledge_text: String):
+		var retrieval_elapsed := Time.get_ticks_msec() - retrieval_start_time
+		print("[ChatController] 知识库检索完成，用时 %d ms" % retrieval_elapsed)
+		
 		if not knowledge_text.is_empty():
 			# 将知识库内容加入system消息
 			_inject_knowledge_to_system(knowledge_text)
@@ -746,6 +763,11 @@ func _on_edit_pressed() -> void:
 	AppState.return_to_char_id = AppState.edit_char_id
 	_disconnect_all()
 	get_tree().change_scene_to_file("res://scenes/character_create/character_create.tscn")
+
+func _on_knowledge_pressed() -> void:
+	ui.hide_more_options()
+	# 进入知识库页面，AppState.current_character已经包含角色信息
+	get_tree().change_scene_to_file("res://scenes/knowledge_base/knowledge_base.tscn")
 
 func _hide_confirm_dialog() -> void:
 	confirm_dialog.hide_dialog()

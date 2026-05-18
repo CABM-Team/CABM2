@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://knowledge_base"]
+[gd_scene load_steps=9 format=3 uid="uid://d4h2t66va8xja"]
 
-[ext_resource type="Script" uid="uid://knowledge_base_controller" path="res://scripts/knowledge_base/KnowledgeBaseController.gd" id="1"]
+[ext_resource type="Script" uid="uid://cho20iuj7pr12" path="res://scripts/knowledge_base/KnowledgeBaseController.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dejv7on4aogy4" path="res://assets/backgrounds/sr-3.png" id="2_vghtj"]
 [ext_resource type="Theme" uid="uid://cnnqvr1kwxiri" path="res://assets/theme/blue_button.tres" id="4_1slea"]
+[ext_resource type="PackedScene" uid="uid://l0myq0186xht" path="res://scenes/common/confirm_dialog.tscn" id="4_n0isg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vu5fi"]
 content_margin_left = 20.0
@@ -82,6 +83,13 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
 
+[node name="HeaderLabel" type="Label" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="StatusLabel" type="Label" parent="MainLayout"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
@@ -110,8 +118,21 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
+[node name="PluginWarning" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+autowrap_mode = 1
+
 [node name="SectionInfo" type="HBoxContainer" parent="MainLayout/TabContainer/知识库管理/VBox"]
 layout_mode = 2
+
+[node name="KnowledgeToggle" type="CheckBox" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "启用知识库"
 
 [node name="LabelCount" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo"]
 layout_mode = 2
@@ -258,7 +279,6 @@ text = "相似度阈值："
 [node name="ThresholdSlider" type="HSlider" parent="MainLayout/TabContainer/检索测试/VBox/SearchRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
 max_value = 1.0
 step = 0.01
 value = 0.5
@@ -308,10 +328,16 @@ text = "↩返回"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="ConfirmDialog" parent="." instance=ExtResource("4_n0isg")]
+visible = false
+layout_mode = 1
+
 [node name="FileDialog" type="FileDialog" parent="."]
+title = "Open a File"
 initial_position = 2
-title = "选择TXT文件"
 size = Vector2i(800, 600)
 ok_button_text = "确认"
 file_mode = 0
+access = 2
 filters = PackedStringArray("*.txt ; 文本文件")
+use_native_dialog = true

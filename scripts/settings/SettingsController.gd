@@ -30,8 +30,6 @@ extends Control
 @onready var embed_url_input: LineEdit     = $MainLayout/TabContainer/API设置/VBox/EmbedUrlInput
 @onready var embed_model_input: LineEdit   = $MainLayout/TabContainer/API设置/VBox/EmbedModelInput
 
-@onready var btn_knowledge_base: Button = $MainLayout/TabContainer/API设置/VBox/BtnKnowledgeBase
-
 # ── 聊天设置 ──
 @onready var username_input: LineEdit    = $MainLayout/TabContainer/聊天设置/HBoxContainer/UsernameInput
 @onready var max_context_label: Label    = $MainLayout/TabContainer/聊天设置/HBoxContainer2/LabelMaxContext
@@ -63,15 +61,11 @@ func _ready() -> void:
 	skip_button.pressed.connect(_on_skip)
 	max_context_slider.value_changed.connect(_on_max_context_changed)
 	builtin_key_toggle.toggled.connect(_on_builtin_key_toggled)
-	btn_knowledge_base.pressed.connect(_on_knowledge_base)
 
 	_load_values()
 	_saved_snapshot = _take_snapshot()
 	# 注入 confirm_dialog 给数据与缓存 tab
 	data_cache_tab.confirm_dialog = confirm_dialog
-
-func _on_knowledge_base() -> void:
-	get_tree().change_scene_to_file("res://scenes/knowledge_base/knowledge_base.tscn")
 
 func _load_values() -> void:
 	builtin_key_toggle.button_pressed = ConfigManager.get_value("use_builtin_key")
@@ -261,10 +255,6 @@ func _on_builtin_key_toggled(enabled: bool) -> void:
 			max_context_slider.value = 2000
 		# max_context_slider.editable = false
 		max_context_notice.visible = true
-		# 自动填充嵌入模型的默认值
-		embed_key_input.text = "sk-builtin-placeholder"
-		embed_url_input.text = ConfigManager.defaults["embed_api_base_url"]
-		embed_model_input.text = ConfigManager.defaults["embed_model"]
 	else:
 		# max_context_slider.editable = true
 		max_context_notice.visible = false

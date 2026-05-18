@@ -1,19 +1,24 @@
 ## KnowledgeBaseController.gd
 ## 知识库页面控制器，负责处理知识库的增删改查和UI交互
+## 支持每个角色独立的知识库
 
 extends Control
 
 # UI节点引用
+@onready var header_label: Label = $MainLayout/HeaderLabel
 @onready var status_label: Label = $MainLayout/StatusLabel
 @onready var tab_container: TabContainer = $MainLayout/TabContainer
 @onready var file_dialog: FileDialog = $FileDialog
-@onready var confirm_dialog: ConfirmationDialog = $ConfirmDialog
+@onready var confirm_dialog: Control = $ConfirmDialog
 
 # 知识库管理Tab节点
+@onready var knowledge_toggle: CheckBox = $MainLayout/TabContainer/知识库管理/VBox/SectionInfo/KnowledgeToggle
 @onready var label_count: Label = $MainLayout/TabContainer/知识库管理/VBox/SectionInfo/LabelCount
 @onready var button_clear: Button = $MainLayout/TabContainer/知识库管理/VBox/SectionInfo/ButtonClear
+@onready var plugin_warning: Label = $MainLayout/TabContainer/知识库管理/VBox/PluginWarning
 @onready var label_file_path: Label = $MainLayout/TabContainer/知识库管理/VBox/ImportSection/ImportRow/LabelFilePath
 @onready var button_build: Button = $MainLayout/TabContainer/知识库管理/VBox/ImportSection/ImportRow/ButtonBuild
+@onready var file_dialog_button: Button = $MainLayout/TabContainer/知识库管理/VBox/ImportSection/ImportRow/FileDialogButton
 @onready var item_list: VBoxContainer = $MainLayout/TabContainer/知识库管理/VBox/ScrollList/ItemList
 
 # 手动添加Tab节点
@@ -33,24 +38,62 @@ extends Control
 var _selected_file_path := ""
 var _is_building := false
 var _is_searching := false
+var _char_id := ""
+var _char_name := ""
 
 func _ready() -> void:
+	# 从AppState获取当前角色信息
+	# 连接确认信号，使用 CONNECT_ONE_SHOT 确保只触发一次
+	confirm_dialog.confirmed.connect(_clear_all, CONNECT_ONE_SHOT)
+	if AppState.is_group_mode():
+		push_warning("[KnowledgeBase] 群聊模式不支持知识库")
+		_on_back()
+		return
+	
+	_char_id = AppState.current_character.get("id", "")
+	_char_name = AppState.current_character.get("name", "未知角色")
+	
+	if _char_id.is_empty():
+		push_warning("[KnowledgeBase] 角色ID为空")
+		_on_back()
+		return
+	
+	# 加载该角色的知识库
+	VectorStore.load_character_knowledge(_char_id)
+	
 	_init_connections()
 	_init_ui()
 	_update_list()
+	_check_plugin_status()
 
 func _init_connections() -> void:
 	button_back.pressed.connect(_on_back)
 	button_clear.pressed.connect(_on_clear_pressed)
 	file_dialog.file_selected.connect(_on_file_selected)
+	file_dialog_button.pressed.connect(_on_file_dialog_button_pressed)
 	button_build.pressed.connect(_on_build_pressed)
 	button_add.pressed.connect(_on_add_pressed)
 	button_search.pressed.connect(_on_search_pressed)
 	threshold_slider.value_changed.connect(_on_threshold_changed)
+	knowledge_toggle.toggled.connect(_on_knowledge_toggled)
 
 func _init_ui() -> void:
+	header_label.text = "知识库 - " + _char_name
 	button_build.disabled = true
 	threshold_slider.value = 0.5
+	knowledge_toggle.button_pressed = VectorStore.is_knowledge_enabled()
+
+func _check_plugin_status() -> void:
+	var stats := VectorStore.get_stats()
+	if not stats.get("is_plugin_loaded", false):
+		plugin_warning.visible = true
+		plugin_warning.text = "⚠ 未检测到余弦相似插件，知识库功能已自动关闭\n请编译并安装cosine_calculator插件后重启"
+		knowledge_toggle.button_pressed = false
+		knowledge_toggle.disabled = true
+		VectorStore.set_knowledge_enabled(false)
+	else:
+		plugin_warning.visible = false
+		knowledge_toggle.disabled = false
 
 func _show_status(message: String, duration: float = 3.0) -> void:
 	status_label.text = message
@@ -102,12 +145,16 @@ func _delete_entry(entry_id: String) -> void:
 		_show_status("✗ 删除失败")
 
 func _on_back() -> void:
-	get_tree().change_scene_to_file("res://scenes/settings/settings.tscn")
+	# 返回到聊天页面
+	get_tree().change_scene_to_file("res://scenes/chat/chat.tscn")
+
+func _on_knowledge_toggled(enabled: bool) -> void:
+	VectorStore.set_knowledge_enabled(enabled)
+	_show_status("知识库已%s" % ("启用" if enabled else "禁用"))
 
 func _on_clear_pressed() -> void:
-	confirm_dialog.dialog_text = "确定要清空所有知识库条目吗？此操作不可撤销。"
-	confirm_dialog.confirmed.connect(_clear_all, CONNECT_ONE_SHOT)
-	confirm_dialog.popup_centered()
+	# 使用 confirm_dialog 的自定义方法，传入提示文本
+	confirm_dialog.show_dialog("确定要清空所有知识库条目吗？此操作不可撤销。")
 
 func _clear_all() -> void:
 	VectorStore.clear_all()
@@ -120,6 +167,9 @@ func _on_file_selected(path: String) -> void:
 	button_build.disabled = false
 	_show_status("已选择文件：%s" % path.get_file())
 
+func _on_file_dialog_button_pressed() -> void:
+	file_dialog.popup_centered()
+
 func _on_build_pressed() -> void:
 	if _is_building:
 		return
@@ -127,6 +177,9 @@ func _on_build_pressed() -> void:
 		_show_status("✗ 请先选择TXT文件")
 		return
 
+	print("[KnowledgeBase] 开始构建知识库，嵌入用时开始计时")
+	var embed_start_time := Time.get_ticks_msec()
+	
 	_is_building = true
 	button_build.disabled = true
 	_show_status("正在读取文件...")
@@ -157,6 +210,9 @@ func _on_build_pressed() -> void:
 	_show_status("正在构建 %d 条目..." % texts.size())
 
 	EmbedService.embed_batch(texts, func(embeddings: Array, error: String):
+		var embed_elapsed := Time.get_ticks_msec() - embed_start_time
+		print("[KnowledgeBase] 嵌入完成，用时 %d ms" % embed_elapsed)
+		
 		if not error.is_empty():
 			_show_status("✗ 嵌入失败: " + error)
 			_is_building = false
@@ -167,7 +223,7 @@ func _on_build_pressed() -> void:
 		for i in range(texts.size()):
 			if i < embeddings.size():
 				entries.append({
-					"id": UUIDUtil.generate_uuid(),
+					"id": UUIDUtil.v4(),
 					"text": texts[i],
 					"embedding": embeddings[i]
 				})
@@ -199,7 +255,7 @@ func _on_add_pressed() -> void:
 			return
 
 		var entry := {
-			"id": UUIDUtil.generate_uuid(),
+			"id": UUIDUtil.v4(),
 			"text": text,
 			"embedding": embeddings[0]
 		}
@@ -221,11 +277,17 @@ func _on_search_pressed() -> void:
 		_show_status("✗ 请输入查询文本")
 		return
 
+	print("[KnowledgeBase] 开始检索测试，嵌入用时开始计时")
+	var embed_start_time := Time.get_ticks_msec()
+	
 	_is_searching = true
 	button_search.disabled = true
 	_show_status("正在检索...")
 
 	EmbedService.embed_text(query, func(embeddings: Array, error: String):
+		var embed_elapsed := Time.get_ticks_msec() - embed_start_time
+		print("[KnowledgeBase] 查询嵌入完成，用时 %d ms" % embed_elapsed)
+		
 		if not error.is_empty():
 			_show_status("✗ 嵌入失败: " + error)
 			_is_searching = false

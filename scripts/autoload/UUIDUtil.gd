@@ -6,7 +6,7 @@ extends Node
 
 ## 生成一个标准 UUID v4 字符串
 ## 格式：xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-static func v4() -> String:
+func v4() -> String:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 

@@ -185,7 +185,8 @@ text = "✒全部填充"
 
 [node name="SectionChat" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
 layout_mode = 2
-text = "── 对话模型 ──"
+text = "
+── 对话模型 ──"
 
 [node name="LabelChatKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
 layout_mode = 2
@@ -220,7 +221,8 @@ selecting_enabled = false
 
 [node name="SectionOption" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
 layout_mode = 2
-text = "── 决策模型 ──"
+text = "
+── 决策模型 ──"
 
 [node name="LabelOptKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
 layout_mode = 2
@@ -255,7 +257,8 @@ selecting_enabled = false
 
 [node name="SectionTts" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
 layout_mode = 2
-text = "── 语音模型 ──"
+text = "
+── 语音模型 ──"
 
 [node name="LabelTtsKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
 layout_mode = 2
@@ -290,8 +293,8 @@ selecting_enabled = false
 
 [node name="SectionEmbed" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 38
-text = "── 嵌入模型（知识库）──"
+text = "
+── 嵌入模型──"
 
 [node name="LabelEmbedKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
 layout_mode = 2
@@ -324,13 +327,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "BAAI/bge-m3"
 selecting_enabled = false
-
-[node name="BtnKnowledgeBase" type="Button" parent="MainLayout/TabContainer/API设置/VBox"]
-custom_minimum_size = Vector2(300, 70)
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_font_sizes/font_size = 32
-text = "📚 知识库管理"
 
 [node name="聊天设置" type="VBoxContainer" parent="MainLayout/TabContainer"]
 visible = false

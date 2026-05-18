@@ -53,7 +53,7 @@ func _format_results(results: Array[Dictionary]) -> String:
 
 	for result in results:
 		var text: String = result.get("text", "")
-		var sim: float = result.get("similarity", 0.0)
+		# var sim: float = result.get("similarity", 0.0)
 
 		if total_chars + text.length() > MAX_KNOWLEDGE_CHARS:
 			break
@@ -61,7 +61,8 @@ func _format_results(results: Array[Dictionary]) -> String:
 		if entry_count > 0:
 			sb += "\n---\n"
 
-		sb += "[相似度 %.2f] %s" % [sim, text]
+		# sb += "[相似度 %.2f] %s" % [sim, text]
+		sb += text
 		total_chars += text.length()
 		entry_count += 1
 

@@ -119,6 +119,7 @@ ok_button_text = "选择"
 file_mode = 0
 access = 2
 filters = PackedStringArray("*.png,*.jpg,*.jpeg,*.webp ; 图片文件")
+use_native_dialog = true
 
 [node name="DetailLayer" type="Control" parent="."]
 visible = false

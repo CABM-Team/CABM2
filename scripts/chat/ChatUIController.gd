@@ -35,7 +35,7 @@ extends Node
 @onready var clear_history_btn: Button     = $"../MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/ClearHistoryButton"
 @onready var delete_btn: Button            = $"../MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/DeleteButton"
 @onready var edit_btn: Button              = $"../MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/EditButton"
-@onready var knowledge_btn: Button         = $"../MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/KnowledgeContainer/KnowledgeButton"
+@onready var knowledge_btn: Button         = $"../MoreOptionsOverlay/MoreOptionsMenu/VBoxContainer/MenuGrid/KnowledgeButton"
 # ── 信号（通知主控制器）────────────────────────────────────────
 signal send_requested
 signal back_requested
@@ -44,6 +44,7 @@ signal more_options_toggle_requested
 signal clear_history_confirm_requested
 signal delete_confirm_requested
 signal edit_requested
+signal knowledge_requested
 signal advance_requested
 signal input_key_enter
 signal tts_requested(text: String)
@@ -116,7 +117,7 @@ func _ready() -> void:
 	clear_history_btn.pressed.connect(func(): clear_history_confirm_requested.emit())
 	delete_btn.pressed.connect(func(): delete_confirm_requested.emit())
 	edit_btn.pressed.connect(func(): edit_requested.emit())
-	delete_btn.pressed.connect(func(): delete_confirm_requested.emit())
+	knowledge_btn.pressed.connect(func(): knowledge_requested.emit())
 	background.gui_input.connect(_on_background_input)
 	background_overlay.gui_input.connect(_on_background_input)
 
@@ -703,11 +704,13 @@ func update_delete_button(is_group: bool, char_id: String) -> void:
 		delete_btn.text = "❌删除群聊"
 		delete_btn.disabled = false
 		edit_btn.disabled = true
+		knowledge_btn.disabled = true  # 群聊模式禁用知识库
 	else:
 		var is_builtin := FileAccess.file_exists("res://characters/%s/%s.json" % [char_id, char_id])
 		delete_btn.text = "❌删除角色"
 		delete_btn.disabled = is_builtin
 		edit_btn.disabled = is_builtin
+		knowledge_btn.disabled = false  # 单角色模式启用知识库
 
 # ── 历史弹窗 ──────────────────────────────────────────────────
 func toggle_history() -> void:
