@@ -109,9 +109,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_vu5fi")
 theme_override_styles/tabbar_background = SubResource("StyleBoxFlat_1slea")
 theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_vghtj")
 theme_override_styles/tab_selected = SubResource("StyleBoxFlat_v1hle")
-current_tab = 0
+current_tab = 2
 
 [node name="知识库管理" type="ScrollContainer" parent="MainLayout/TabContainer"]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -264,7 +265,6 @@ theme_override_font_sizes/font_size = 36
 text = "➕添加"
 
 [node name="检索测试" type="ScrollContainer" parent="MainLayout/TabContainer"]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 2
 
@@ -284,11 +284,12 @@ wrap_mode = 1
 
 [node name="SearchRow" type="HBoxContainer" parent="MainLayout/TabContainer/检索测试/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 20
 
 [node name="LabelThreshold" type="Label" parent="MainLayout/TabContainer/检索测试/VBox/SearchRow"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
-text = "相似度阈值："
+text = "相似度阈值"
 
 [node name="ThresholdSlider" type="HSlider" parent="MainLayout/TabContainer/检索测试/VBox/SearchRow"]
 custom_minimum_size = Vector2(400, 0)
@@ -309,7 +310,14 @@ custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
 size_flags_horizontal = 10
 theme = ExtResource("4_1slea")
-text = "🔍检索"
+text = "🔎语义检索"
+
+[node name="ButtonMatchSearch" type="Button" parent="MainLayout/TabContainer/检索测试/VBox/SearchRow"]
+custom_minimum_size = Vector2(180, 60)
+layout_mode = 2
+size_flags_horizontal = 8
+theme = ExtResource("4_1slea")
+text = "🔤匹配检索"
 
 [node name="SectionResults" type="Label" parent="MainLayout/TabContainer/检索测试/VBox"]
 layout_mode = 2

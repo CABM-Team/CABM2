@@ -29,6 +29,7 @@ extends Control
 @onready var threshold_slider: HSlider = $MainLayout/TabContainer/检索测试/VBox/SearchRow/ThresholdSlider
 @onready var label_threshold: Label = $MainLayout/TabContainer/检索测试/VBox/SearchRow/LabelThresholdValue
 @onready var button_search: Button = $MainLayout/TabContainer/检索测试/VBox/SearchRow/ButtonSearch
+@onready var button_match_search: Button = $MainLayout/TabContainer/检索测试/VBox/SearchRow/ButtonMatchSearch
 @onready var results_list: VBoxContainer = $MainLayout/TabContainer/检索测试/VBox/ResultsScroll/ResultsList
 
 # 底部栏
@@ -39,6 +40,8 @@ var _is_building := false
 var _is_searching := false
 var _char_id := ""
 var _char_name := ""
+var _current_query := ""
+var red_button_theme = preload("res://assets/theme/red_button.tres")
 
 func _ready() -> void:
 	# 从AppState获取当前角色信息
@@ -59,7 +62,6 @@ func _ready() -> void:
 	
 	# 加载该角色的知识库
 	VectorStore.load_character_knowledge(_char_id)
-	
 	_init_connections()
 	_init_ui()
 	_update_list()
@@ -73,6 +75,7 @@ func _init_connections() -> void:
 	button_build.pressed.connect(_on_build_pressed)
 	button_add.pressed.connect(_on_add_pressed)
 	button_search.pressed.connect(_on_search_pressed)
+	button_match_search.pressed.connect(_on_match_search_pressed)
 	threshold_slider.value_changed.connect(_on_threshold_changed)
 	knowledge_toggle.toggled.connect(_on_knowledge_toggled)
 
@@ -111,28 +114,6 @@ func _show_status(message: String, duration: float = 3.0, color: Color = Color(0
 func _update_list() -> void:
 	var count := VectorStore.get_count()
 	label_count.text = "条目数量：%d" % count
-
-func _create_list_item(entry: Dictionary) -> Control:
-	var container := HBoxContainer.new()
-	container.custom_minimum_size = Vector2(0, 50)
-
-	var label := Label.new()
-	label.text = entry.get("text", "").substr(0, 50)
-	if entry.get("text", "").length() > 50:
-		label.text += "..."
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_font_size_override("font_size", 24)
-	label.tooltip_text = entry.get("text", "")
-
-	var delete_btn := Button.new()
-	delete_btn.text = "🗑"
-	delete_btn.custom_minimum_size = Vector2(50, 40)
-	delete_btn.pressed.connect(func(): _delete_entry(entry.get("id", "")))
-
-	container.add_child(label)
-	container.add_child(delete_btn)
-
-	return container
 
 func _delete_entry(entry_id: String) -> void:
 	if VectorStore.delete_entry(entry_id):
@@ -293,6 +274,7 @@ func _on_search_pressed() -> void:
 	
 	_is_searching = true
 	button_search.disabled = true
+	_current_query = ""
 	_show_status("正在检索...", 0, Color(0.3, 0.7, 1))
 
 	EmbedService.embed_text(query, func(embeddings: Array, error: String):
@@ -321,6 +303,50 @@ func _on_search_pressed() -> void:
 		button_search.disabled = false
 	)
 
+func _on_match_search_pressed() -> void:
+	if _is_searching:
+		return
+
+	var query := textedit_query.text.strip_edges()
+	if query.is_empty():
+		_show_status("请输入查询文本", 3.0, Color(1, 0.3, 0.3))
+		return
+
+	_is_searching = true
+	button_match_search.disabled = true
+	_current_query = query
+	_show_status("正在匹配检索...", 0, Color(0.3, 0.7, 1))
+
+	var all_entries := VectorStore.get_all_entries()
+	var matched_results: Array[Dictionary] = []
+
+	for entry in all_entries:
+		var text: String = entry.get("text", "")
+		if text.to_lower().contains(query.to_lower()):
+			matched_results.append(entry)
+
+	_refresh_results_with_highlight(matched_results, query)
+	_show_status("✓ 匹配到 %d 条结果" % matched_results.size(), 3.0, Color(0, 0.8, 0.4))
+
+	_is_searching = false
+	button_match_search.disabled = false
+
+func _refresh_results_with_highlight(results: Array[Dictionary], query: String) -> void:
+	for child in results_list.get_children():
+		child.queue_free()
+
+	if results.is_empty():
+		var empty_label := Label.new()
+		empty_label.text = "未找到匹配的条目"
+		empty_label.add_theme_font_size_override("font_size", 28)
+		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		results_list.add_child(empty_label)
+		return
+
+	for result in results:
+		var item := _create_result_item_with_highlight(result, query)
+		results_list.add_child(item)
+
 func _refresh_results(results: Array[Dictionary]) -> void:
 	for child in results_list.get_children():
 		child.queue_free()
@@ -347,7 +373,10 @@ func _create_result_item(result: Dictionary) -> Control:
 	margin.add_theme_constant_override("margin_top", 5)
 	margin.add_theme_constant_override("margin_bottom", 5)
 
+	var hbox := HBoxContainer.new()
+
 	var vbox := VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var header := HBoxContainer.new()
 	var similarity := Label.new()
@@ -365,10 +394,87 @@ func _create_result_item(result: Dictionary) -> Control:
 	vbox.add_child(header)
 	vbox.add_child(text)
 
-	margin.add_child(vbox)
+	var delete_btn := Button.new()
+	delete_btn.text = "🗑删除"
+	delete_btn.theme = red_button_theme
+	delete_btn.custom_minimum_size = Vector2(60, 50)
+	delete_btn.pressed.connect(func():
+		var entry_id: String = result.get("id", "")
+		if VectorStore.delete_entry(entry_id):
+			_show_status("✓ 已删除条目", 2.0, Color(0, 0.8, 0.4))
+			_update_list()
+			container.queue_free()
+		else:
+			_show_status("删除失败", 3.0, Color(1, 0.3, 0.3))
+	)
+
+	hbox.add_child(vbox)
+	hbox.add_child(delete_btn)
+
+	margin.add_child(hbox)
 	container.add_child(margin)
 
 	return container
+
+func _create_result_item_with_highlight(result: Dictionary, query: String) -> Control:
+	var container := PanelContainer.new()
+	container.custom_minimum_size = Vector2(0, 80)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 5)
+	margin.add_theme_constant_override("margin_bottom", 5)
+
+	var hbox := HBoxContainer.new()
+
+	var vbox := VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var text_label := RichTextLabel.new()
+	text_label.bbcode_enabled = true
+	text_label.fit_content = true
+	text_label.scroll_active = false
+	text_label.add_theme_font_size_override("normal_font_size", 22)
+
+	var full_text: String = result.get("text", "")
+	var highlighted_text := _highlight_keyword(full_text, query)
+	text_label.text = highlighted_text
+
+	vbox.add_child(text_label)
+
+	var delete_btn := Button.new()
+	delete_btn.text = "🗑删除"
+	delete_btn.theme = red_button_theme
+	delete_btn.custom_minimum_size = Vector2(60, 50)
+	delete_btn.pressed.connect(func():
+		var entry_id: String = result.get("id", "")
+		if VectorStore.delete_entry(entry_id):
+			_show_status("✓ 已删除条目", 2.0, Color(0, 0.8, 0.4))
+			_update_list()
+			container.queue_free()
+		else:
+			_show_status("删除失败", 3.0, Color(1, 0.3, 0.3))
+	)
+
+	hbox.add_child(vbox)
+	hbox.add_child(delete_btn)
+
+	margin.add_child(hbox)
+	container.add_child(margin)
+
+	return container
+
+func _highlight_keyword(text: String, keyword: String) -> String:
+	if keyword.is_empty():
+		return text
+
+	var regex := RegEx.new()
+	var escaped := keyword
+	for special_char in [".", "*", "+", "?", "(", ")", "[", "]", "{", "}", "^", "$", "|", "\\"]:
+		escaped = escaped.replace(special_char, "\\" + special_char)
+	regex.compile("(?i)(" + escaped + ")")
+	return regex.sub(text, "[color=yellow]$1[/color]", true)
 
 func _on_threshold_changed(value: float) -> void:
 	label_threshold.text = "%.2f" % value
