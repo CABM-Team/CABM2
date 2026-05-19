@@ -710,7 +710,7 @@ func update_delete_button(is_group: bool, char_id: String) -> void:
 		delete_btn.text = "❌删除角色"
 		delete_btn.disabled = is_builtin
 		edit_btn.disabled = is_builtin
-		knowledge_btn.disabled = false  # 单角色模式启用知识库
+		knowledge_btn.disabled = is_builtin # 单角色模式启用知识库
 
 # ── 历史弹窗 ──────────────────────────────────────────────────
 func toggle_history() -> void:

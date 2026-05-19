@@ -38,21 +38,21 @@ func _init_cosine_calculator() -> void:
 		push_warning("[VectorStore] CosineCalculator类不存在，请确保插件已正确编译安装")
 
 ## 获取角色知识库文件路径
+## 优先级：user:// > res://
+## user:// 路径可读写，res:// 路径只读（内置角色）
 func _get_knowledge_path(char_id: String) -> String:
 	if char_id.is_empty():
 		return ""
-	# 优先user://，其次res://
-	for base in ["user://characters/", "res://characters/"]:
-		var path: String = base + char_id + "/knowledge.json"
-		if base.begins_with("user://"):
-			# user:// 路径总是可写的
-			return path
-		elif FileAccess.file_exists(path):
-			# res:// 路径只读，需要复制到user://
-			var user_path: String = "user://characters/" + char_id + "/knowledge.json"
-			return user_path
-	# 默认返回user://路径
-	return "user://characters/" + char_id + "/knowledge.json"
+	
+	var user_path: String = "user://characters/" + char_id + "/knowledge.json"
+	if FileAccess.file_exists(user_path):
+		return user_path
+	
+	var res_path: String = "res://characters/" + char_id + "/knowledge.json"
+	if FileAccess.file_exists(res_path):
+		return res_path
+	
+	return user_path
 
 ## 加载指定角色的知识库
 func load_character_knowledge(char_id: String) -> void:
@@ -70,7 +70,6 @@ func load_character_knowledge(char_id: String) -> void:
 	if not FileAccess.file_exists(path):
 		print("[VectorStore] 知识库文件不存在：%s" % path)
 		return
-	
 	var data_file := FileAccess.open(path, FileAccess.READ)
 	if data_file == null:
 		push_warning("[VectorStore] 无法打开知识库文件: " + str(FileAccess.get_open_error()))

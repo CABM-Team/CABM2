@@ -219,7 +219,7 @@ func _on_build_pressed() -> void:
 					})
 
 			var added := VectorStore.add_entries(entries)
-			_show_status("✓ 已添加 %d 条目" % added, 3.0, Color(0, 0.8, 0.4))
+			_show_status("✓ 已添加 %d 个条目" % added, 3.0, Color(0, 0.8, 0.4))
 			_update_list()
 
 			_is_building = false

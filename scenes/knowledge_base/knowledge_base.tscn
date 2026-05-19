@@ -109,10 +109,9 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_vu5fi")
 theme_override_styles/tabbar_background = SubResource("StyleBoxFlat_1slea")
 theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_vghtj")
 theme_override_styles/tab_selected = SubResource("StyleBoxFlat_v1hle")
-current_tab = 2
+current_tab = 0
 
 [node name="知识库管理" type="ScrollContainer" parent="MainLayout/TabContainer"]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -209,8 +208,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 26
 text = "
-知识库基于检索增强生成（RAG）技术，将文本内容转为向量存储。启用后，AI会根据语义从知识库中检索相关内容。
-也就是说，你可以把整个世界观塞进去，不用担心字数限制。
+知识库基于检索增强生成（RAG）技术，将文本内容转为向量存储。启用后，AI会根据语义从知识库中检索相关内容。也就是说，你可以把整个世界观塞进去，不用担心字数限制。群聊模式暂时无法使用知识库
 
 技巧与建议：
 • 为性能考虑，总条目建议少于10000条
@@ -265,6 +263,7 @@ theme_override_font_sizes/font_size = 36
 text = "➕添加"
 
 [node name="检索测试" type="ScrollContainer" parent="MainLayout/TabContainer"]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 2
 
