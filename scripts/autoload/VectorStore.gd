@@ -243,6 +243,7 @@ func search(query_embedding: Array, top_k: int = 5, threshold: float = 0.0) -> A
 				results.append(result_entry)
 	else:
 		# 回退到纯GDScript实现
+		print("[VectorStore] 警告：回退到纯GDScript")
 		for i in range(_entries.size()):
 			var embedding: Array = _entries[i].get("embedding", [])
 			var sim: float = _calculate_cosine_similarity(query_embedding, embedding)

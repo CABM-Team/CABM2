@@ -40,54 +40,47 @@ func embed_text(text: String, on_done: Callable) -> void:
 ## 批量将文本转换为嵌入向量
 ## texts: Array[String] 要嵌入的文本数组
 ## on_done: Callable(embeddings: Array, error: String)
+## on_progress: Callable(current: int, total: int) 可选，进度回调
 ## embeddings数组顺序与texts数组顺序一致
-## 批量将文本转换为嵌入向量（自动分块处理，避免 413 错误）
-## texts: Array[String] 要嵌入的文本数组
-## on_done: Callable(embeddings: Array, error: String)
-## embeddings数组顺序与texts数组顺序一致
-func embed_batch(texts: Array[String], on_done: Callable) -> void:
+func embed_batch(texts: Array[String], on_done: Callable, on_progress: Callable = func(_c, _t): pass) -> void:
 	if not is_configured():
 		on_done.call([], "未配置嵌入API密钥")
 		return
 	
-	# 如果没有文本，直接返回空数组
 	if texts.is_empty():
 		on_done.call([], "")
 		return
 	
-	# 分块参数（可根据实际 API 限制调整）
-	const BATCH_SIZE := 16  # 每批最多 16 条，避免 413
+	const BATCH_SIZE := 16
 	
 	var total_count := texts.size()
+	var total_batches := ceili(float(total_count) / float(BATCH_SIZE))
 	var all_embeddings: Array = []
-	all_embeddings.resize(total_count)  # 预分配位置保持顺序
+	all_embeddings.resize(total_count)
 	
-	# 使用异步递归分块处理
-	_process_batch_chunk(texts, 0, BATCH_SIZE, all_embeddings, on_done)
+	_process_batch_chunk(texts, 0, BATCH_SIZE, all_embeddings, total_batches, on_progress, on_done)
 
 ## 递归处理批次分块
-func _process_batch_chunk(texts: Array[String], start_idx: int, batch_size: int, all_embeddings: Array, final_callback: Callable) -> void:
+func _process_batch_chunk(texts: Array[String], start_idx: int, batch_size: int, all_embeddings: Array, total_batches: int, on_progress: Callable, final_callback: Callable) -> void:
 	var end_idx := mini(start_idx + batch_size, texts.size())
 	var chunk := texts.slice(start_idx, end_idx)
+	var current_batch := start_idx / batch_size + 1
 	
-	# 发送当前块的嵌入请求
+	on_progress.call(current_batch, total_batches)
+	
 	_send_single_batch_request(chunk, 
 		func(embeddings: Array, error: String):
 			if not error.is_empty():
 				final_callback.call([], error)
 				return
 			
-			# 将结果填回正确位置
 			for i in range(embeddings.size()):
 				all_embeddings[start_idx + i] = embeddings[i]
 			
-			# 判断是否还有剩余批次
 			if end_idx >= texts.size():
-				# 全部完成
 				final_callback.call(all_embeddings, "")
 			else:
-				# 继续下一批
-				_process_batch_chunk(texts, end_idx, batch_size, all_embeddings, final_callback)
+				_process_batch_chunk(texts, end_idx, batch_size, all_embeddings, total_batches, on_progress, final_callback)
 	)
 
 ## 实际发送单个批次的请求（不经过队列，直接发送）

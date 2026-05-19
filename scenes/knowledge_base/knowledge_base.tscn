@@ -139,7 +139,7 @@ theme_override_constants/separation = 15
 [node name="KnowledgeToggle" type="CheckBox" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo/ToggleRow"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "启用知识库"
+text = " 启用知识库"
 
 [node name="DisableIndicator" type="Label" parent="MainLayout/TabContainer/知识库管理/VBox/SectionInfo/ToggleRow"]
 custom_minimum_size = Vector2(300, 0)
@@ -208,7 +208,6 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 26
 text = "
-
 知识库基于检索增强生成（RAG）技术，将文本内容转为向量存储。启用后，AI会根据语义从知识库中检索相关内容。
 也就是说，你可以把整个世界观塞进去，不用担心字数限制。
 
@@ -216,7 +215,8 @@ text = "
 • 为性能考虑，总条目建议少于10000条
 • 可以包含角色设定、角色故事、世界观等等
 • 每条知识需要独立、完整
-• 建议使用“你”指代角色"
+• 建议使用“你”指代角色
+• 每个条目最后不要添加句号"
 autowrap_mode = 1
 
 [node name="手动添加" type="ScrollContainer" parent="MainLayout/TabContainer"]

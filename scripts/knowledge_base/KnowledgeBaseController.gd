@@ -108,10 +108,6 @@ func _show_status(message: String, duration: float = 3.0, color: Color = Color(0
 		if not _is_building and not _is_searching:
 			status_label.text = ""
 
-func _show_progress(message: String, percent: int, color: Color = Color(0.3, 0.7, 1)) -> void:
-	status_label.text = "%s (%d%%)" % [message, percent]
-	status_label.add_theme_color_override("font_color", color)
-
 func _update_list() -> void:
 	var count := VectorStore.get_count()
 	label_count.text = "条目数量：%d" % count
@@ -191,7 +187,7 @@ func _on_build_pressed() -> void:
 	
 	_is_building = true
 	button_build.disabled = true
-	_show_progress("正在读取文件", 10)
+	_show_status("正在读取文件...", 0, Color(0.3, 0.7, 1))
 
 	var file := FileAccess.open(_selected_file_path, FileAccess.READ)
 	if file == null:
@@ -216,37 +212,41 @@ func _on_build_pressed() -> void:
 		button_build.disabled = false
 		return
 
-	_show_progress("正在构建 %d 个知识条目" % texts.size(), 30)
+	var total_batches := ceili(float(texts.size()) / 16.0)
+	_show_status("正在构建 %d 条目 (共 %d 批)..." % [texts.size(), total_batches], 0, Color(0.3, 0.7, 1))
 
-	EmbedService.embed_batch(texts, func(embeddings: Array, error: String):
-		var embed_elapsed := Time.get_ticks_msec() - embed_start_time
-		print("[KnowledgeBase] 嵌入完成，用时 %d ms" % embed_elapsed)
-		
-		if not error.is_empty():
-			_show_status("嵌入失败: " + error, 3.0, Color(1, 0.3, 0.3))
+	EmbedService.embed_batch(texts, 
+		func(embeddings: Array, error: String):
+			var embed_elapsed := Time.get_ticks_msec() - embed_start_time
+			print("[KnowledgeBase] 嵌入完成，用时 %d ms" % embed_elapsed)
+			
+			if not error.is_empty():
+				_show_status("嵌入失败: " + error, 3.0, Color(1, 0.3, 0.3))
+				_is_building = false
+				button_build.disabled = false
+				return
+
+			_show_status("正在存储条目...", 0, Color(0.3, 0.7, 1))
+
+			var entries: Array[Dictionary] = []
+			for i in range(texts.size()):
+				if i < embeddings.size():
+					entries.append({
+						"id": UUIDUtil.v4(),
+						"text": texts[i],
+						"embedding": embeddings[i]
+					})
+
+			var added := VectorStore.add_entries(entries)
+			_show_status("✓ 已添加 %d 条目" % added, 3.0, Color(0, 0.8, 0.4))
+			_update_list()
+
 			_is_building = false
 			button_build.disabled = false
-			return
-
-		_show_progress("正在存储条目", 70)
-
-		var entries: Array[Dictionary] = []
-		for i in range(texts.size()):
-			if i < embeddings.size():
-				entries.append({
-					"id": UUIDUtil.v4(),
-					"text": texts[i],
-					"embedding": embeddings[i]
-				})
-
-		var added := VectorStore.add_entries(entries)
-		_show_status("✓ 已添加 %d 条目" % added, 3.0, Color(0, 0.8, 0.4))
-		_update_list()
-
-		_is_building = false
-		button_build.disabled = false
-		_selected_file_path = ""
-		label_file_path.text = "未选择文件"
+			_selected_file_path = ""
+			label_file_path.text = "未选择文件",
+		func(current: int, total: int):
+			_show_status("正在嵌入... (进度：%d/%d)" % [current, total], 0, Color(0.3, 0.7, 1))
 	)
 
 func _on_add_pressed() -> void:
@@ -255,7 +255,7 @@ func _on_add_pressed() -> void:
 		_show_status("请输入知识内容", 3.0, Color(1, 0.3, 0.3))
 		return
 
-	_show_progress("正在添加", 30)
+	_show_status("正在添加...", 0, Color(0.3, 0.7, 1))
 	EmbedService.embed_text(text, func(embeddings: Array, error: String):
 		if not error.is_empty():
 			_show_status("嵌入失败: " + error, 3.0, Color(1, 0.3, 0.3))
@@ -264,8 +264,6 @@ func _on_add_pressed() -> void:
 		if embeddings.is_empty() or embeddings[0].is_empty():
 			_show_status("嵌入结果为空", 3.0, Color(1, 0.3, 0.3))
 			return
-
-		_show_progress("正在存储条目", 70)
 
 		var entry := {
 			"id": UUIDUtil.v4(),
@@ -295,7 +293,7 @@ func _on_search_pressed() -> void:
 	
 	_is_searching = true
 	button_search.disabled = true
-	_show_progress("正在检索", 20)
+	_show_status("正在检索...", 0, Color(0.3, 0.7, 1))
 
 	EmbedService.embed_text(query, func(embeddings: Array, error: String):
 		var embed_elapsed := Time.get_ticks_msec() - embed_start_time
@@ -312,8 +310,6 @@ func _on_search_pressed() -> void:
 			_is_searching = false
 			button_search.disabled = false
 			return
-
-		_show_progress("正在检索匹配条目", 60)
 
 		var threshold := threshold_slider.value
 		var results := VectorStore.search(embeddings[0], 20, threshold)
