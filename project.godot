@@ -8,12 +8,16 @@
 
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
 
 config/name="CABM2"
 config/description="Code Afflatus & Beyond Matter - Godot Remake"
 run/main_scene="res://scenes/main.tscn"
-config/features=PackedStringArray("4.5", "Forward Plus")
+config/features=PackedStringArray("4.6", "Forward Plus")
 boot_splash/bg_color=Color(0.2231029, 0.2231029, 0.22310287, 1)
 boot_splash/image="uid://cjhp6ndbf8d2y"
 config/icon="res://assets/icon.png"

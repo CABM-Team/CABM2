@@ -139,7 +139,7 @@ text = "技术栈"
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_font_sizes/font_size = 26
-text = "• 引擎：Godot 4.5
+text = "• 引擎：Godot 4.6.3
 • 语言：GDScript、C++
 • AI：OpenAI 兼容 API"
 autowrap_mode = 3
