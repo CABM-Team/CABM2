@@ -125,7 +125,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 placeholder_text = "角色的唯一标识，仅字母（区分大小写）、数字、下划线"
-selecting_enabled = false
+
 
 [node name="IdError" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
 layout_mode = 2
@@ -149,7 +149,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 placeholder_text = "角色的名字"
-selecting_enabled = false
+
 
 [node name="RowNameEn" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
 layout_mode = 2
@@ -168,7 +168,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 placeholder_text = "可选，没什么用"
-selecting_enabled = false
+
 
 [node name="RowAvatar" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
 layout_mode = 2
@@ -240,7 +240,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
 placeholder_text = "角色的简介，此内容不会发送给AI"
-selecting_enabled = false
+
 wrap_mode = 1
 
 [node name="RowPrompt" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
@@ -263,7 +263,7 @@ theme_override_font_sizes/font_size = 22
 placeholder_text = "系统提示词，描述角色性格、说话风格等
 推荐以“你是”开头
 如果是知名角色，可以直接写“你是《xxxx》中的xxx”"
-selecting_enabled = false
+
 wrap_mode = 1
 
 [node name="RowWelcome" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
@@ -283,7 +283,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 placeholder_text = "首次对话时显示的欢迎语"
-selecting_enabled = false
+
 
 [node name="Label3" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
 layout_mode = 2
@@ -444,7 +444,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
 placeholder_text = "填写音频里说的话"
-selecting_enabled = false
+
 
 [node name="BottomBar" type="HBoxContainer" parent="Scroll/VBox"]
 layout_mode = 2

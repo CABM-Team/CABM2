@@ -184,7 +184,6 @@ func _make_mood_row(idx: int) -> HBoxContainer:
 
 	var name_edit := LineEdit.new()
 	name_edit.text = _mood_rows[idx]["name"]
-	name_edit.selecting_enabled = false
 	name_edit.custom_minimum_size = Vector2(220, 40)
 	name_edit.add_theme_font_size_override("font_size", 32)
 	name_edit.text_changed.connect(func(t): _mood_rows[idx]["name"] = t; _save_draft_json())

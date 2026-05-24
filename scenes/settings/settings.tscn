@@ -130,10 +130,9 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_vu5fi")
 theme_override_styles/tabbar_background = SubResource("StyleBoxFlat_1slea")
 theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_vghtj")
 theme_override_styles/tab_selected = SubResource("StyleBoxFlat_v1hle")
-current_tab = 1
+current_tab = 0
 
 [node name="API设置" type="ScrollContainer" parent="MainLayout/TabContainer" unique_id=2043137030]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
@@ -176,7 +175,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
-selecting_enabled = false
 secret = true
 
 [node name="FillAllButton" type="Button" parent="MainLayout/TabContainer/API设置/VBox/FirstRunSection/MasterKeyRow" unique_id=1994180390]
@@ -197,7 +195,7 @@ text = "API密钥"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
-selecting_enabled = false
+
 secret = true
 
 [node name="LabelChatUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=199071923]
@@ -208,7 +206,7 @@ text = "BaseURL"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
-selecting_enabled = false
+
 
 [node name="LabelChatModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=827765660]
 layout_mode = 2
@@ -218,7 +216,7 @@ text = "模型名"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "deepseek-ai/DeepSeek-V3.2"
-selecting_enabled = false
+
 
 [node name="SectionOption" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=741433166]
 layout_mode = 2
@@ -233,7 +231,7 @@ text = "API密钥"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
-selecting_enabled = false
+
 secret = true
 
 [node name="LabelOptUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1620871267]
@@ -244,7 +242,7 @@ text = "BaseURL"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
-selecting_enabled = false
+
 
 [node name="LabelOptModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1195992576]
 layout_mode = 2
@@ -254,7 +252,7 @@ text = "模型名"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "Qwen/Qwen3-8B"
-selecting_enabled = false
+
 
 [node name="SectionTts" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=358270178]
 layout_mode = 2
@@ -269,7 +267,7 @@ text = "API密钥"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
-selecting_enabled = false
+
 secret = true
 
 [node name="LabelTtsUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1764913943]
@@ -280,7 +278,7 @@ text = "BaseURL"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
-selecting_enabled = false
+
 
 [node name="LabelTtsModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=595741136]
 layout_mode = 2
@@ -290,7 +288,7 @@ text = "模型名"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "FunAudioLLM/CosyVoice2-0.5B"
-selecting_enabled = false
+
 
 [node name="SectionEmbed" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=95683420]
 layout_mode = 2
@@ -306,7 +304,7 @@ text = "API密钥"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
-selecting_enabled = false
+
 secret = true
 
 [node name="LabelEmbedUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=2133290308]
@@ -317,7 +315,7 @@ text = "BaseURL"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
-selecting_enabled = false
+
 
 [node name="LabelEmbedModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1030298312]
 layout_mode = 2
@@ -327,9 +325,10 @@ text = "模型名"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "BAAI/bge-m3"
-selecting_enabled = false
+
 
 [node name="请求体" type="ScrollContainer" parent="MainLayout/TabContainer" unique_id=139972568]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 
@@ -454,7 +453,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 35
 placeholder_text = "输入你的名字"
-selecting_enabled = false
+
 
 [node name="SectionContext" type="Label" parent="MainLayout/TabContainer/聊天设置" unique_id=1669342830]
 layout_mode = 2

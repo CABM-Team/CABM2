@@ -244,7 +244,7 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 36
 placeholder_text = "在此输入知识内容..."
-selecting_enabled = false
+
 wrap_mode = 1
 
 [node name="AddButtonRow" type="HBoxContainer" parent="MainLayout/TabContainer/手动添加/VBox" unique_id=1934651091]
@@ -278,7 +278,7 @@ custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
 placeholder_text = "输入检索内容..."
-selecting_enabled = false
+
 wrap_mode = 1
 
 [node name="SearchRow" type="HBoxContainer" parent="MainLayout/TabContainer/检索测试/VBox" unique_id=1043699840]
