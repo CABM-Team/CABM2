@@ -76,15 +76,10 @@ func chat_completion(messages: Array[Dictionary]) -> void:
 		_port = int(parts[1])
 
 	# 构建请求体
-	var body_dict := {
-		"model": model,
-		"messages": messages,
-		"max_tokens": 4096,
-		"temperature": 0.9,
-		"enable_thinking": false,
-		"stream": true,
-		"response_format": {"type": "json_object"},
-	}
+	var body_dict := {"model": model, "messages": messages}
+	var extra: Dictionary = ConfigManager.get_effective_value("chat_body_extra")
+	for key in extra:
+		body_dict[key] = extra[key]
 	var body := JSON.stringify(body_dict)
 	print(body)
 	var headers := PackedStringArray([

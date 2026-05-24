@@ -30,6 +30,17 @@ extends Control
 @onready var embed_url_input: LineEdit     = $MainLayout/TabContainer/API设置/VBox/EmbedUrlInput
 @onready var embed_model_input: LineEdit   = $MainLayout/TabContainer/API设置/VBox/EmbedModelInput
 
+# ── 请求体 ──
+@onready var restore_body_button: Button = $MainLayout/TabContainer/请求体/VBox/HBoxContainer/RestoreButton
+@onready var chat_body_edit: TextEdit    = $MainLayout/TabContainer/请求体/VBox/ChatBodyEdit
+@onready var option_body_edit: TextEdit  = $MainLayout/TabContainer/请求体/VBox/OptionBodyEdit
+@onready var tts_body_edit: TextEdit     = $MainLayout/TabContainer/请求体/VBox/TtsBodyEdit
+@onready var embed_body_edit: TextEdit   = $MainLayout/TabContainer/请求体/VBox/EmbedBodyEdit
+@onready var chat_body_error: Label      = $MainLayout/TabContainer/请求体/VBox/ChatBodyError
+@onready var option_body_error: Label    = $MainLayout/TabContainer/请求体/VBox/OptionBodyError
+@onready var tts_body_error: Label       = $MainLayout/TabContainer/请求体/VBox/TtsBodyError
+@onready var embed_body_error: Label     = $MainLayout/TabContainer/请求体/VBox/EmbedBodyError
+
 # ── 聊天设置 ──
 @onready var username_input: LineEdit    = $MainLayout/TabContainer/聊天设置/HBoxContainer/UsernameInput
 @onready var max_context_label: Label    = $MainLayout/TabContainer/聊天设置/HBoxContainer2/LabelMaxContext
@@ -61,9 +72,16 @@ func _ready() -> void:
 	skip_button.pressed.connect(_on_skip)
 	max_context_slider.value_changed.connect(_on_max_context_changed)
 	builtin_key_toggle.toggled.connect(_on_builtin_key_toggled)
+	restore_body_button.pressed.connect(_on_restore_body_defaults)
 
 	_load_values()
 	_saved_snapshot = _take_snapshot()
+	_validate_all_bodies()
+
+	chat_body_edit.text_changed.connect(func(): _validate_body(chat_body_edit, chat_body_error))
+	option_body_edit.text_changed.connect(func(): _validate_body(option_body_edit, option_body_error))
+	tts_body_edit.text_changed.connect(func(): _validate_body(tts_body_edit, tts_body_error))
+	embed_body_edit.text_changed.connect(func(): _validate_body(embed_body_edit, embed_body_error))
 	# 注入 confirm_dialog 给数据与缓存 tab
 	data_cache_tab.confirm_dialog = confirm_dialog
 
@@ -96,6 +114,11 @@ func _load_values() -> void:
 	auto_play_tts_button.button_pressed = ConfigManager.get_value("auto_play_tts")
 	option_gen_button.button_pressed    = ConfigManager.get_value("enable_option_generation")
 	_on_builtin_key_toggled(builtin_key_toggle.button_pressed)
+
+	chat_body_edit.text   = _body_dict_to_json(ConfigManager.get_value("chat_body_extra"))
+	option_body_edit.text = _body_dict_to_json(ConfigManager.get_value("option_body_extra"))
+	tts_body_edit.text    = _body_dict_to_json(ConfigManager.get_value("tts_body_extra"))
+	embed_body_edit.text  = _body_dict_to_json(ConfigManager.get_value("embed_body_extra"))
 
 func _on_max_context_changed(value: float) -> void:
 	if builtin_key_toggle.button_pressed and value > 2000:
@@ -180,6 +203,11 @@ func _on_save() -> void:
 	ConfigManager.set_value("auto_play_tts",             auto_play_tts_button.button_pressed)
 	ConfigManager.set_value("enable_option_generation", option_gen_button.button_pressed)
 
+	_save_body_edit("chat_body_extra", chat_body_edit)
+	_save_body_edit("option_body_extra", option_body_edit)
+	_save_body_edit("tts_body_extra", tts_body_edit)
+	_save_body_edit("embed_body_extra", embed_body_edit)
+
 	if _is_first_run:
 		get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 	else:
@@ -223,6 +251,10 @@ func _take_snapshot() -> Dictionary:
 		"max_ctx":    int(max_context_slider.value),
 		"auto_tts":   auto_play_tts_button.button_pressed,
 		"option_gen": option_gen_button.button_pressed,
+		"chat_body":  chat_body_edit.text,
+		"option_body": option_body_edit.text,
+		"tts_body":   tts_body_edit.text,
+		"embed_body": embed_body_edit.text,
 	}
 
 func _has_unsaved_changes() -> bool:
@@ -258,3 +290,43 @@ func _on_builtin_key_toggled(enabled: bool) -> void:
 	else:
 		# max_context_slider.editable = true
 		max_context_notice.visible = false
+
+# ── 请求体辅助函数 ────────────────────────────────────────────
+static func _body_dict_to_json(dict: Dictionary) -> String:
+	return JSON.stringify(dict, "\t")
+
+func _save_body_edit(config_key: String, edit: TextEdit) -> void:
+	var text := edit.text.strip_edges()
+	if text.is_empty():
+		ConfigManager.set_value(config_key, ConfigManager.defaults.get(config_key, {}))
+		return
+	var json := JSON.new()
+	if json.parse(text) == OK and json.get_data() is Dictionary:
+		ConfigManager.set_value(config_key, ConfigManager.normalize_number_types(json.get_data()))
+
+func _on_restore_body_defaults() -> void:
+	confirm_dialog.show_dialog("确定要恢复所有请求体为默认配置吗？")
+	if not confirm_dialog.confirmed.is_connected(_restore_body_defaults_confirmed):
+		confirm_dialog.confirmed.connect(_restore_body_defaults_confirmed, CONNECT_ONE_SHOT)
+
+func _restore_body_defaults_confirmed() -> void:
+	chat_body_edit.text   = _body_dict_to_json(ConfigManager.defaults["chat_body_extra"])
+	option_body_edit.text = _body_dict_to_json(ConfigManager.defaults["option_body_extra"])
+	tts_body_edit.text    = _body_dict_to_json(ConfigManager.defaults["tts_body_extra"])
+	embed_body_edit.text  = _body_dict_to_json(ConfigManager.defaults["embed_body_extra"])
+	_validate_all_bodies()
+
+func _validate_body(edit: TextEdit, error_label: Label) -> void:
+	var text := edit.text.strip_edges()
+	if text.is_empty():
+		error_label.visible = false
+		return
+	var json := JSON.new()
+	var valid := json.parse(text) == OK and json.get_data() is Dictionary
+	error_label.visible = not valid
+
+func _validate_all_bodies() -> void:
+	_validate_body(chat_body_edit, chat_body_error)
+	_validate_body(option_body_edit, option_body_error)
+	_validate_body(tts_body_edit, tts_body_error)
+	_validate_body(embed_body_edit, embed_body_error)

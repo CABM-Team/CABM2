@@ -97,11 +97,11 @@ func _send_single_batch_request(texts: Array[String], on_done: Callable) -> void
 	)
 	
 	var url = config["base_url"].rstrip("/") + "/embeddings"
-	var body := JSON.stringify({
-		"model": config["model"],
-		"input": texts,
-		"encoding_format": "float"
-	})
+	var body_dict := {"model": config["model"], "input": texts}
+	var extra: Dictionary = ConfigManager.get_effective_value("embed_body_extra")
+	for key in extra:
+		body_dict[key] = extra[key]
+	var body := JSON.stringify(body_dict)
 	
 	var headers := PackedStringArray([
 		"Content-Type: application/json",
@@ -179,11 +179,11 @@ func _send_embedding_request(texts: Array[String], on_done: Callable) -> void:
 	)
 
 	var url = config["base_url"].rstrip("/") + "/embeddings"
-	var body := JSON.stringify({
-		"model": config["model"],
-		"input": texts,
-		"encoding_format": "float"
-	})
+	var body_dict := {"model": config["model"], "input": texts}
+	var extra: Dictionary = ConfigManager.get_effective_value("embed_body_extra")
+	for key in extra:
+		body_dict[key] = extra[key]
+	var body := JSON.stringify(body_dict)
 
 	var headers := PackedStringArray([
 		"Content-Type: application/json",

@@ -77,13 +77,11 @@ func _synthesize(character_id: String, text: String, cache_path: String) -> void
 	# 应用文本注入规则（不影响原始 text 用于缓存）
 	var injected_text := _apply_text_injection(text)
 
-	var body := JSON.stringify({
-		"model": model,
-		"input": injected_text,  # 使用注入后的文本
-		"voice": voice_uri,
-		"response_format": "mp3",
-		"stream": true,
-	})
+	var body_dict := {"model": model, "input": injected_text, "voice": voice_uri}
+	var extra: Dictionary = ConfigManager.get_effective_value("tts_body_extra")
+	for key in extra:
+		body_dict[key] = extra[key]
+	var body := JSON.stringify(body_dict)
 
 	var http := HTTPRequest.new()
 	add_child(http)

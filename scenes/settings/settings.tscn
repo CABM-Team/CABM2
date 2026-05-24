@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://settings"]
+[gd_scene format=3 uid="uid://settings"]
 
 [ext_resource type="Script" uid="uid://bgh3iibcfa8h0" path="res://scripts/settings/SettingsController.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dejv7on4aogy4" path="res://assets/backgrounds/sr-3.png" id="2_vghtj"]
@@ -42,7 +42,7 @@ border_width_right = 3
 border_blend = true
 shadow_size = 3
 
-[node name="Settings" type="Control"]
+[node name="Settings" type="Control" unique_id=1831380998]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -51,13 +51,13 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=1468399974]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 texture = ExtResource("2_vghtj")
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=614775617]
 layout_mode = 0
 offset_left = 38.0
 offset_top = 31.0
@@ -69,7 +69,7 @@ text = "⚙
 置"
 horizontal_alignment = 1
 
-[node name="MainLayout" type="VBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=84339781]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -84,19 +84,19 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
 
-[node name="BottomBar" type="HBoxContainer" parent="MainLayout"]
+[node name="BottomBar" type="HBoxContainer" parent="MainLayout" unique_id=1830974129]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 24
 
-[node name="StatusLabel" type="Label" parent="MainLayout/BottomBar"]
+[node name="StatusLabel" type="Label" parent="MainLayout/BottomBar" unique_id=416035630]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 45
 vertical_alignment = 1
 
-[node name="SkipButton" type="Button" parent="MainLayout/BottomBar"]
+[node name="SkipButton" type="Button" parent="MainLayout/BottomBar" unique_id=1690944179]
 visible = false
 custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
@@ -104,7 +104,7 @@ theme = ExtResource("4_1slea")
 theme_override_font_sizes/font_size = 45
 text = "➡跳过"
 
-[node name="SaveButton" type="Button" parent="MainLayout/BottomBar"]
+[node name="SaveButton" type="Button" parent="MainLayout/BottomBar" unique_id=2014510586]
 custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
 theme = ExtResource("3_tt6xx")
@@ -112,7 +112,7 @@ theme_override_colors/font_color = Color(6.3124566, 6.3124566, 6.312456, 1)
 theme_override_font_sizes/font_size = 45
 text = "💾保存"
 
-[node name="BackButton" type="Button" parent="MainLayout/BottomBar"]
+[node name="BackButton" type="Button" parent="MainLayout/BottomBar" unique_id=2097098162]
 custom_minimum_size = Vector2(200, 70)
 layout_mode = 2
 theme = ExtResource("4_1slea")
@@ -120,7 +120,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 45
 text = "↩返回"
 
-[node name="TabContainer" type="TabContainer" parent="MainLayout"]
+[node name="TabContainer" type="TabContainer" parent="MainLayout" unique_id=1092417921]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_colors/font_selected_color = Color(1, 1, 1, 1)
@@ -130,47 +130,48 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_vu5fi")
 theme_override_styles/tabbar_background = SubResource("StyleBoxFlat_1slea")
 theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_vghtj")
 theme_override_styles/tab_selected = SubResource("StyleBoxFlat_v1hle")
-current_tab = 0
+current_tab = 1
 
-[node name="API设置" type="ScrollContainer" parent="MainLayout/TabContainer"]
+[node name="API设置" type="ScrollContainer" parent="MainLayout/TabContainer" unique_id=2043137030]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 0
 
-[node name="VBox" type="VBoxContainer" parent="MainLayout/TabContainer/API设置"]
+[node name="VBox" type="VBoxContainer" parent="MainLayout/TabContainer/API设置" unique_id=1864440494]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="BuiltinKeyRow" type="HBoxContainer" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="BuiltinKeyRow" type="HBoxContainer" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1152406555]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="LabelBuiltinKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox/BuiltinKeyRow"]
+[node name="LabelBuiltinKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox/BuiltinKeyRow" unique_id=155963348]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "✨使用内置密钥（但功能受限）"
 
-[node name="BuiltinKeyToggle" type="CheckButton" parent="MainLayout/TabContainer/API设置/VBox/BuiltinKeyRow"]
+[node name="BuiltinKeyToggle" type="CheckButton" parent="MainLayout/TabContainer/API设置/VBox/BuiltinKeyRow" unique_id=608199571]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 
-[node name="FirstRunSection" type="VBoxContainer" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="FirstRunSection" type="VBoxContainer" parent="MainLayout/TabContainer/API设置/VBox" unique_id=460245967]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SectionFirstRun" type="Label" parent="MainLayout/TabContainer/API设置/VBox/FirstRunSection"]
+[node name="SectionFirstRun" type="Label" parent="MainLayout/TabContainer/API设置/VBox/FirstRunSection" unique_id=402980563]
 layout_mode = 2
 text = "── 快速填充密钥 ──"
 
-[node name="LabelMasterKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox/FirstRunSection"]
+[node name="LabelMasterKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox/FirstRunSection" unique_id=66375443]
 layout_mode = 2
 text = "密钥（填入后点击右侧按钮可一键填充所有 API Key）"
 
-[node name="MasterKeyRow" type="HBoxContainer" parent="MainLayout/TabContainer/API设置/VBox/FirstRunSection"]
+[node name="MasterKeyRow" type="HBoxContainer" parent="MainLayout/TabContainer/API设置/VBox/FirstRunSection" unique_id=1905157499]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="MasterKeyInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox/FirstRunSection/MasterKeyRow"]
+[node name="MasterKeyInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox/FirstRunSection/MasterKeyRow" unique_id=925558531]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 28
@@ -178,192 +179,293 @@ placeholder_text = "sk-..."
 selecting_enabled = false
 secret = true
 
-[node name="FillAllButton" type="Button" parent="MainLayout/TabContainer/API设置/VBox/FirstRunSection/MasterKeyRow"]
+[node name="FillAllButton" type="Button" parent="MainLayout/TabContainer/API设置/VBox/FirstRunSection/MasterKeyRow" unique_id=1994180390]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "✒全部填充"
 
-[node name="SectionChat" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="SectionChat" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1436301081]
 layout_mode = 2
 text = "
 ── 对话模型 ──"
 
-[node name="LabelChatKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelChatKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1897515151]
 layout_mode = 2
 text = "API密钥"
 
-[node name="ChatKeyInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="ChatKeyInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=20385542]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
 selecting_enabled = false
 secret = true
 
-[node name="LabelChatUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelChatUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=199071923]
 layout_mode = 2
 text = "BaseURL"
 
-[node name="ChatUrlInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="ChatUrlInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1084933161]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
 selecting_enabled = false
 
-[node name="LabelChatModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelChatModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=827765660]
 layout_mode = 2
 text = "模型名"
 
-[node name="ChatModelInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="ChatModelInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1648268149]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "deepseek-ai/DeepSeek-V3.2"
 selecting_enabled = false
 
-[node name="SectionOption" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="SectionOption" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=741433166]
 layout_mode = 2
 text = "
 ── 决策模型 ──"
 
-[node name="LabelOptKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelOptKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1487780527]
 layout_mode = 2
 text = "API密钥"
 
-[node name="OptKeyInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="OptKeyInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=127023283]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
 selecting_enabled = false
 secret = true
 
-[node name="LabelOptUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelOptUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1620871267]
 layout_mode = 2
 text = "BaseURL"
 
-[node name="OptUrlInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="OptUrlInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=311266924]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
 selecting_enabled = false
 
-[node name="LabelOptModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelOptModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1195992576]
 layout_mode = 2
 text = "模型名"
 
-[node name="OptModelInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="OptModelInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=479292742]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "Qwen/Qwen3-8B"
 selecting_enabled = false
 
-[node name="SectionTts" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="SectionTts" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=358270178]
 layout_mode = 2
 text = "
 ── 语音模型 ──"
 
-[node name="LabelTtsKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelTtsKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1376472545]
 layout_mode = 2
 text = "API密钥"
 
-[node name="TtsKeyInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="TtsKeyInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=231455676]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
 selecting_enabled = false
 secret = true
 
-[node name="LabelTtsUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelTtsUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1764913943]
 layout_mode = 2
 text = "BaseURL"
 
-[node name="TtsUrlInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="TtsUrlInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1488464794]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
 selecting_enabled = false
 
-[node name="LabelTtsModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelTtsModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=595741136]
 layout_mode = 2
 text = "模型名"
 
-[node name="TtsModelInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="TtsModelInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=320390542]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "FunAudioLLM/CosyVoice2-0.5B"
 selecting_enabled = false
 
-[node name="SectionEmbed" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="SectionEmbed" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=95683420]
 layout_mode = 2
 text = "
 ── 嵌入模型──"
 
-[node name="LabelEmbedKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelEmbedKey" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=361509511]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "API密钥"
 
-[node name="EmbedKeyInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="EmbedKeyInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1756541752]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
 selecting_enabled = false
 secret = true
 
-[node name="LabelEmbedUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelEmbedUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=2133290308]
 layout_mode = 2
 text = "BaseURL"
 
-[node name="EmbedUrlInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="EmbedUrlInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=784788488]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
 selecting_enabled = false
 
-[node name="LabelEmbedModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="LabelEmbedModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1030298312]
 layout_mode = 2
 text = "模型名"
 
-[node name="EmbedModelInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox"]
+[node name="EmbedModelInput" type="LineEdit" parent="MainLayout/TabContainer/API设置/VBox" unique_id=808391816]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "BAAI/bge-m3"
 selecting_enabled = false
 
-[node name="聊天设置" type="VBoxContainer" parent="MainLayout/TabContainer"]
+[node name="请求体" type="ScrollContainer" parent="MainLayout/TabContainer" unique_id=139972568]
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/TabContainer/请求体" unique_id=1477544170]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout/TabContainer/请求体/VBox" unique_id=2091416618]
+layout_mode = 2
+
+[node name="HintLabel" type="Label" parent="MainLayout/TabContainer/请求体/VBox/HBoxContainer" unique_id=1898672177]
+layout_mode = 2
+text = "⚠ 除非你知道自己在做什么，否则请不要修改这里的配置"
+
+[node name="RestoreButton" type="Button" parent="MainLayout/TabContainer/请求体/VBox/HBoxContainer" unique_id=114984382]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "🔄 恢复默认"
+
+[node name="LabelChatBody" type="Label" parent="MainLayout/TabContainer/请求体/VBox" unique_id=935432076]
+layout_mode = 2
+text = "
+── 对话模型请求体 ──"
+
+[node name="ChatBodyError" type="Label" parent="MainLayout/TabContainer/请求体/VBox" unique_id=1413955962]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 24
+text = "⚠ JSON格式不正确"
+
+[node name="ChatBodyEdit" type="TextEdit" parent="MainLayout/TabContainer/请求体/VBox" unique_id=764523388]
+custom_minimum_size = Vector2(0, 260)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 22
+placeholder_text = "自定义对话模型额外请求参数（JSON）"
+wrap_mode = 1
+
+[node name="LabelOptionBody" type="Label" parent="MainLayout/TabContainer/请求体/VBox" unique_id=1264630640]
+layout_mode = 2
+text = "
+── 决策模型请求体 ──"
+
+[node name="OptionBodyError" type="Label" parent="MainLayout/TabContainer/请求体/VBox" unique_id=507181692]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 24
+text = "⚠ JSON格式不正确"
+
+[node name="OptionBodyEdit" type="TextEdit" parent="MainLayout/TabContainer/请求体/VBox" unique_id=478737769]
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 22
+placeholder_text = "自定义决策模型额外请求参数（JSON）"
+wrap_mode = 1
+
+[node name="LabelTtsBody" type="Label" parent="MainLayout/TabContainer/请求体/VBox" unique_id=1666229517]
+layout_mode = 2
+text = "
+── TTS 模型请求体 ──"
+
+[node name="TtsBodyError" type="Label" parent="MainLayout/TabContainer/请求体/VBox" unique_id=590159523]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 24
+text = "⚠ JSON格式不正确"
+
+[node name="TtsBodyEdit" type="TextEdit" parent="MainLayout/TabContainer/请求体/VBox" unique_id=569083976]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 22
+placeholder_text = "自定义 TTS 模型额外请求参数（JSON）"
+wrap_mode = 1
+
+[node name="LabelEmbedBody" type="Label" parent="MainLayout/TabContainer/请求体/VBox" unique_id=68107633]
+layout_mode = 2
+text = "
+── 嵌入模型请求体 ──"
+
+[node name="EmbedBodyError" type="Label" parent="MainLayout/TabContainer/请求体/VBox" unique_id=1665806466]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 24
+text = "⚠ JSON格式不正确"
+
+[node name="EmbedBodyEdit" type="TextEdit" parent="MainLayout/TabContainer/请求体/VBox" unique_id=543253681]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 22
+placeholder_text = "自定义嵌入模型额外请求参数（JSON）"
+wrap_mode = 1
+
+[node name="聊天设置" type="VBoxContainer" parent="MainLayout/TabContainer" unique_id=1673970204]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 20
-metadata/_tab_index = 1
+metadata/_tab_index = 2
 
-[node name="SectionUser" type="Label" parent="MainLayout/TabContainer/聊天设置"]
+[node name="SectionUser" type="Label" parent="MainLayout/TabContainer/聊天设置" unique_id=1445501234]
 layout_mode = 2
 theme_override_font_sizes/font_size = 38
 text = "── 用户设置 ──"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置" unique_id=988043819]
 layout_mode = 2
 
-[node name="LabelUsername" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer"]
+[node name="LabelUsername" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer" unique_id=419883956]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "用户名："
 
-[node name="UsernameInput" type="LineEdit" parent="MainLayout/TabContainer/聊天设置/HBoxContainer"]
+[node name="UsernameInput" type="LineEdit" parent="MainLayout/TabContainer/聊天设置/HBoxContainer" unique_id=788223356]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 35
 placeholder_text = "输入你的名字"
 selecting_enabled = false
 
-[node name="SectionContext" type="Label" parent="MainLayout/TabContainer/聊天设置"]
+[node name="SectionContext" type="Label" parent="MainLayout/TabContainer/聊天设置" unique_id=1669342830]
 layout_mode = 2
 theme_override_font_sizes/font_size = 38
 text = "
 ── 上下文设置 ──"
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置" unique_id=1795118227]
 layout_mode = 2
 
-[node name="LabelMaxContext" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2"]
+[node name="LabelMaxContext" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2" unique_id=1550372307]
 custom_minimum_size = Vector2(470, 0)
 layout_mode = 2
 tooltip_text = "通常来说，这个数值越大，记忆力越强，同时单次对话消耗的余额越多
@@ -372,7 +474,7 @@ mouse_filter = 1
 theme_override_font_sizes/font_size = 35
 text = "📝上下文最大字符数：2000"
 
-[node name="Notice" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2/LabelMaxContext"]
+[node name="Notice" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2/LabelMaxContext" unique_id=1250222931]
 visible = false
 layout_mode = 0
 offset_left = 50.0
@@ -384,13 +486,13 @@ theme_override_colors/font_color = Color(0.99999994, 0.124691345, 0.08532091, 1)
 theme_override_font_sizes/font_size = 24
 text = "使用内置密钥时，最大值为2,000"
 
-[node name="Label2" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2"]
+[node name="Label2" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2" unique_id=1491927004]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.023529412, 0.8627451, 0, 1)
 theme_override_font_sizes/font_size = 35
 text = "短 "
 
-[node name="MaxContextSlider" type="HSlider" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2"]
+[node name="MaxContextSlider" type="HSlider" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2" unique_id=80303438]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -403,49 +505,49 @@ tick_count = 29
 ticks_on_borders = true
 ticks_position = 2
 
-[node name="Label3" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2"]
+[node name="Label3" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxContainer2" unique_id=1143829748]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0, 0, 1)
 theme_override_font_sizes/font_size = 35
 text = " 长"
 
-[node name="SectionTTS" type="Label" parent="MainLayout/TabContainer/聊天设置"]
+[node name="SectionTTS" type="Label" parent="MainLayout/TabContainer/聊天设置" unique_id=1709548861]
 layout_mode = 2
 theme_override_font_sizes/font_size = 38
 text = "
 ── 对话设置 ──"
 
-[node name="HBoxAutoPlayTTS" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置"]
+[node name="HBoxAutoPlayTTS" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置" unique_id=487002606]
 layout_mode = 2
 
-[node name="LabelAutoPlayTTS" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxAutoPlayTTS"]
+[node name="LabelAutoPlayTTS" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxAutoPlayTTS" unique_id=667909443]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "自动播放语音"
 
-[node name="AutoPlayTTSButton" type="CheckButton" parent="MainLayout/TabContainer/聊天设置/HBoxAutoPlayTTS"]
+[node name="AutoPlayTTSButton" type="CheckButton" parent="MainLayout/TabContainer/聊天设置/HBoxAutoPlayTTS" unique_id=1632890460]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 
-[node name="HBoxOptionGen" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置"]
+[node name="HBoxOptionGen" type="HBoxContainer" parent="MainLayout/TabContainer/聊天设置" unique_id=595400913]
 layout_mode = 2
 
-[node name="LabelOptionGen" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxOptionGen"]
+[node name="LabelOptionGen" type="Label" parent="MainLayout/TabContainer/聊天设置/HBoxOptionGen" unique_id=1262765686]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "生成回复选项"
 
-[node name="OptionGenButton" type="CheckButton" parent="MainLayout/TabContainer/聊天设置/HBoxOptionGen"]
+[node name="OptionGenButton" type="CheckButton" parent="MainLayout/TabContainer/聊天设置/HBoxOptionGen" unique_id=1444721636]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 
-[node name="数据与缓存" type="Control" parent="MainLayout/TabContainer"]
+[node name="数据与缓存" type="Control" parent="MainLayout/TabContainer" unique_id=1708226766]
 visible = false
 layout_mode = 2
 script = ExtResource("11_datacache")
-metadata/_tab_index = 2
+metadata/_tab_index = 3
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/TabContainer/数据与缓存"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/TabContainer/数据与缓存" unique_id=1998868916]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -453,121 +555,121 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer"]
+[node name="VBox" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer" unique_id=1739030173]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="SectionSpeech" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox"]
+[node name="SectionSpeech" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox" unique_id=303960117]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="LabelSpeech" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech"]
+[node name="LabelSpeech" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech" unique_id=1011642089]
 layout_mode = 2
 theme_override_font_sizes/font_size = 38
 text = "── 语音缓存 ──"
 
-[node name="LabelSpeechDesc" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech"]
+[node name="LabelSpeechDesc" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech" unique_id=265410259]
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
 text = "删除后，如果需要播放将重新合成"
 
-[node name="BtnRow" type="HBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech"]
+[node name="BtnRow" type="HBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech" unique_id=2047142237]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="BtnDelAll" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech/BtnRow"]
+[node name="BtnDelAll" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech/BtnRow" unique_id=1782601280]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 text = "🗑 删除全部（计算中…）"
 
-[node name="BtnDel7d" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech/BtnRow"]
+[node name="BtnDel7d" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech/BtnRow" unique_id=142216415]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 text = "🗑 删除7天前（计算中…）"
 
-[node name="BtnDel1m" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech/BtnRow"]
+[node name="BtnDel1m" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionSpeech/BtnRow" unique_id=1676605455]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 32
 text = "🗑 删除一个月前（计算中…）"
 
-[node name="SectionVoiceUri" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox"]
+[node name="SectionVoiceUri" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox" unique_id=1702824843]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="LabelVoiceUri" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionVoiceUri"]
+[node name="LabelVoiceUri" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionVoiceUri" unique_id=1332316070]
 layout_mode = 2
 theme_override_font_sizes/font_size = 38
 text = "
 ── 音色URI ──"
 
-[node name="LabelVoiceUriDesc" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionVoiceUri"]
+[node name="LabelVoiceUriDesc" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionVoiceUri" unique_id=202220698]
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
 text = "清除后下次使用时将重新上传参考音频"
 
-[node name="BtnClearUri" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionVoiceUri"]
+[node name="BtnClearUri" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionVoiceUri" unique_id=1719201598]
 custom_minimum_size = Vector2(380, 60)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 35
 text = "🗑 清除音色URI缓存"
 
-[node name="SectionLog" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox"]
+[node name="SectionLog" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox" unique_id=743222494]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="LabelLog" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionLog"]
+[node name="LabelLog" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionLog" unique_id=466745621]
 layout_mode = 2
 theme_override_font_sizes/font_size = 38
 text = "
 ── 日志 ──"
 
-[node name="LabelChar" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionLog"]
+[node name="LabelChar" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionLog" unique_id=792003559]
 layout_mode = 2
 text = "反馈错误时，请将日志提供给开发者"
 
-[node name="BtnExportLog" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionLog"]
+[node name="BtnExportLog" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionLog" unique_id=446749105]
 custom_minimum_size = Vector2(380, 60)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 35
 text = "📤 导出日志 ZIP"
 
-[node name="SectionChar" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox"]
+[node name="SectionChar" type="VBoxContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox" unique_id=1023018199]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="LabelChar" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar"]
+[node name="LabelChar" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar" unique_id=1278376787]
 layout_mode = 2
 theme_override_font_sizes/font_size = 38
 text = "
 ── 导出角色 ──"
 
-[node name="LabelCharDesc" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar"]
+[node name="LabelCharDesc" type="Label" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar" unique_id=1164755581]
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
 text = "选择要导出的角色（可多选）："
 
-[node name="CharList" type="GridContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar"]
+[node name="CharList" type="GridContainer" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar" unique_id=781218513]
 layout_mode = 2
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 12
 columns = 5
 
-[node name="BtnExportChar" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar"]
+[node name="BtnExportChar" type="Button" parent="MainLayout/TabContainer/数据与缓存/ScrollContainer/VBox/SectionChar" unique_id=729769903]
 custom_minimum_size = Vector2(380, 60)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 35
 text = "📤 导出所选角色 ZIP"
 
-[node name="ConfirmDialog" parent="." instance=ExtResource("10_confirm")]
+[node name="ConfirmDialog" parent="." unique_id=1493927505 instance=ExtResource("10_confirm")]
 visible = false
 layout_mode = 1

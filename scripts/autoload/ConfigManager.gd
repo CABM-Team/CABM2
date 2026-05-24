@@ -35,7 +35,28 @@ var defaults := {
 	"max_history_length": 200,
 	"enable_tts": true,
 	# 内置密钥
-	"use_builtin_key": false
+	"use_builtin_key": false,
+	# 自定义请求体（额外参数，不含 model/messages 等必填字段）
+	"chat_body_extra": {
+		"max_tokens": 4096,
+		"temperature": 0.9,
+		"enable_thinking": false,
+		"stream": true,
+		"response_format": {"type": "json_object"},
+	},
+	"option_body_extra": {
+		"max_tokens": 64,
+		"temperature": 0.3,
+		"enable_thinking": false,
+		"stream": false,
+	},
+	"tts_body_extra": {
+		"response_format": "mp3",
+		"stream": true,
+	},
+	"embed_body_extra": {
+		"encoding_format": "float",
+	},
 }
 
 func _ready() -> void:
@@ -85,3 +106,20 @@ func get_effective_value(key: String) -> Variant:
 			"max_context_chars":
 				return mini(get_value("max_context_chars"), 2000)
 	return get_value(key)
+
+## 递归将字典中的整数浮点数（如 4096.0）转为真正的整数（4096）
+static func normalize_number_types(data: Variant) -> Variant:
+	if data is Dictionary:
+		var result := {}
+		for key in data:
+			result[key] = normalize_number_types(data[key])
+		return result
+	elif data is Array:
+		var result := []
+		for item in data:
+			result.append(normalize_number_types(item))
+		return result
+	elif data is float:
+		if data == floor(data) and abs(data) < 9007199254740992.0:
+			return int(data)
+	return data

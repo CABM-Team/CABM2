@@ -37,14 +37,11 @@ func ask(system_prompt: String, user_prompt: String, on_done: Callable) -> void:
 		{"role": "system", "content": system_prompt},
 		{"role": "user", "content": user_prompt},
 	]
-	var body := JSON.stringify({
-		"model": model,
-		"messages": messages,
-		"max_tokens": 64,
-		"temperature": 0.3,
-		"enable_thinking": false,
-		"stream": false,
-	})
+	var body_dict := {"model": model, "messages": messages}
+	var extra: Dictionary = ConfigManager.get_effective_value("option_body_extra")
+	for key in extra:
+		body_dict[key] = extra[key]
+	var body := JSON.stringify(body_dict)
 	var headers := PackedStringArray([
 		"Content-Type: application/json",
 		"Authorization: Bearer " + api_key,
