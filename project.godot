@@ -25,6 +25,7 @@ config/icon="res://assets/icon.png"
 [autoload]
 
 AppState="*res://scripts/autoload/AppState.gd"
+HeartBeat="*uid://bd06tuj68fyae"
 ConfigManager="*res://scripts/autoload/ConfigManager.gd"
 ApiClient="*res://scripts/autoload/ApiClient.gd"
 EasyAI="*res://scripts/autoload/EasyAI.gd"
