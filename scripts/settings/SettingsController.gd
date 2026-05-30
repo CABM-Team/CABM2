@@ -175,9 +175,9 @@ func _on_save() -> void:
 	# 启用内置密钥时，对空的 key 字段填充占位符，避免被判定为未配置
 	if use_builtin:
 		if chat_key_input.text.strip_edges().is_empty(): chat_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcabm"
-		if opt_key_input.text.strip_edges().is_empty(): opt_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcab"
-		if tts_key_input.text.strip_edges().is_empty(): tts_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcab"
-		if embed_key_input.text.strip_edges().is_empty(): embed_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcab"
+		if opt_key_input.text.strip_edges().is_empty(): opt_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcabm"
+		if tts_key_input.text.strip_edges().is_empty(): tts_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcabm"
+		if embed_key_input.text.strip_edges().is_empty(): embed_key_input.text = "sk-ahayoucanseeitbutthisisaplaceholderapikeyforcabm"
 	
 	var chat_key := chat_key_input.text.strip_edges()
 	if not use_builtin and chat_key.is_empty():

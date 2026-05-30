@@ -65,8 +65,11 @@ static func _build_system_content(
 	if context_info.has("group_des") and not context_info.group_des.is_empty():
 		sections.append("## 对话背景\n" + context_info.group_des)
 	
+	if context_info.has("user_name") and not context_info.user_name.is_empty():
+		sections.append("## 对话对象\n" + context_info.user_name + "正在与你聊天。")
+
 	if context_info.has("other_names") and not context_info.other_names.is_empty():
-		sections.append("## 对话对象\n你正在和" + "、".join(context_info.other_names) + "等人一起对话。")
+		sections.append("## 对话对象\n你正在和" + "、".join(context_info.other_names) + "一起对话。")
 	
 	# 4. 输出要求
 	var moods: Array = character_data.get("moods", [])
@@ -88,7 +91,10 @@ static func build_messages(
 	character_data: Dictionary,
 	knowledge_context: String = ""
 ) -> Array[Dictionary]:
-	var system_content = _build_system_content(character_data, knowledge_context)
+	var context_info: Dictionary = {
+		"user_name": ConfigManager.get_effective_value("username")
+	}
+	var system_content = _build_system_content(character_data, knowledge_context, context_info)
 	
 	var result: Array[Dictionary] = [{"role": "system", "content": system_content}]
 	for msg in messages:
