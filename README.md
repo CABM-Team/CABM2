@@ -35,6 +35,13 @@
 - SCons（用于编译C++插件）
 - 支持 OpenAI API 的后端服务
 
+### 克隆项目
+
+由于项目历史包含一些已删除的大文件，推荐使用浅克隆：
+```bash
+git clone --depth 1 https://github.com/awaCollei/CABM2.git
+```
+
 ### 编译 C++ 插件
 
 ```bash
