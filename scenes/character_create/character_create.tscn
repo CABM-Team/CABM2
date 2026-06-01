@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cx88ewjbai0ab"]
+[gd_scene format=3 uid="uid://cx88ewjbai0ab"]
 
 [ext_resource type="Script" uid="uid://dbhuc1y2wkdr" path="res://scripts/character_create/CharacterCreateController.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://bqlpftyurtofq" path="res://assets/backgrounds/sr-2.png" id="2_ixq1y"]
@@ -33,7 +33,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="CharacterCreate" type="Control"]
+[node name="CharacterCreate" type="Control" unique_id=1154523304]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -42,7 +42,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=47336037]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -50,14 +50,14 @@ texture = ExtResource("2_ixq1y")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="BackgroundOverlay" type="ColorRect" parent="."]
+[node name="BackgroundOverlay" type="ColorRect" parent="." unique_id=1324129422]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0, 0, 0, 0.35)
 
-[node name="BackButton" type="Button" parent="."]
+[node name="BackButton" type="Button" parent="." unique_id=1954021556]
 custom_minimum_size = Vector2(160, 54)
 layout_mode = 0
 offset_left = 20.0
@@ -68,7 +68,7 @@ theme = ExtResource("4")
 theme_override_font_sizes/font_size = 26
 text = "← 返回"
 
-[node name="TitleLabel" type="Label" parent="."]
+[node name="TitleLabel" type="Label" parent="." unique_id=1522832432]
 layout_mode = 0
 offset_top = 20.0
 offset_right = 1920.0
@@ -78,7 +78,7 @@ theme_override_font_sizes/font_size = 48
 text = "创建角色"
 horizontal_alignment = 1
 
-[node name="Scroll" type="ScrollContainer" parent="."]
+[node name="Scroll" type="ScrollContainer" parent="." unique_id=1146063962]
 layout_mode = 0
 anchor_left = 0.05
 anchor_top = 0.02
@@ -89,144 +89,141 @@ offset_bottom = -8.400024
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="Scroll"]
+[node name="VBox" type="VBoxContainer" parent="Scroll" unique_id=1609961285]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="FormPanel" type="PanelContainer" parent="Scroll/VBox"]
+[node name="FormPanel" type="PanelContainer" parent="Scroll/VBox" unique_id=2082705857]
 layout_mode = 2
 mouse_filter = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="FormRows" type="VBoxContainer" parent="Scroll/VBox/FormPanel"]
+[node name="FormRows" type="VBoxContainer" parent="Scroll/VBox/FormPanel" unique_id=1405346532]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Label" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="Label" type="Label" parent="Scroll/VBox/FormPanel/FormRows" unique_id=1219897220]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "——基础信息——"
 
-[node name="RowId" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="RowId" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=1066476403]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="IdLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowId"]
+[node name="IdLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowId" unique_id=1491037518]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "* 角色 ID"
 vertical_alignment = 1
 
-[node name="IdInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowId"]
+[node name="IdInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowId" unique_id=1167300561]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 placeholder_text = "角色的唯一标识，仅字母（区分大小写）、数字、下划线"
 
-
-[node name="IdError" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="IdError" type="Label" parent="Scroll/VBox/FormPanel/FormRows" unique_id=411199958]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
 theme_override_font_sizes/font_size = 20
 
-[node name="RowName" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="RowName" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=1431275144]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="NameLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowName"]
+[node name="NameLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowName" unique_id=1403249174]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "* 角色名"
 vertical_alignment = 1
 
-[node name="NameInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowName"]
+[node name="NameInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowName" unique_id=438543562]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 placeholder_text = "角色的名字"
 
-
-[node name="RowNameEn" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="RowNameEn" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=369879045]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="NameEnLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowNameEn"]
+[node name="NameEnLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowNameEn" unique_id=491688533]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "角色英文名"
 vertical_alignment = 1
 
-[node name="NameEnInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowNameEn"]
+[node name="NameEnInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowNameEn" unique_id=2048225932]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 placeholder_text = "可选，没什么用"
 
-
-[node name="RowAvatar" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="RowAvatar" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=193615536]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="AvatarLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar"]
+[node name="AvatarLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar" unique_id=445332451]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "* 头像"
 vertical_alignment = 1
 
-[node name="AvatarRow" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar"]
+[node name="AvatarRow" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar" unique_id=1519365935]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
-[node name="AvatarPreview" type="TextureRect" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar/AvatarRow"]
+[node name="AvatarPreview" type="TextureRect" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar/AvatarRow" unique_id=1558027535]
 custom_minimum_size = Vector2(150, 150)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="AvatarButton" type="Button" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar/AvatarRow"]
+[node name="AvatarButton" type="Button" parent="Scroll/VBox/FormPanel/FormRows/RowAvatar/AvatarRow" unique_id=287674851]
 custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
 theme = ExtResource("4")
 theme_override_font_sizes/font_size = 22
 text = "上传头像"
 
-[node name="RowColor" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="RowColor" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=1745380178]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="ColorLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowColor"]
+[node name="ColorLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowColor" unique_id=1579820950]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "* 颜色"
 vertical_alignment = 1
 
-[node name="ColorPickerButton" type="ColorPickerButton" parent="Scroll/VBox/FormPanel/FormRows/RowColor"]
+[node name="ColorPickerButton" type="ColorPickerButton" parent="Scroll/VBox/FormPanel/FormRows/RowColor" unique_id=959963243]
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 color = Color(1, 1, 1, 1)
 
-[node name="Label2" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="Label2" type="Label" parent="Scroll/VBox/FormPanel/FormRows" unique_id=2088965523]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "
 ——人物设定——"
 
-[node name="RowDesc" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="RowDesc" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=1630031133]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="DescLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowDesc"]
+[node name="DescLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowDesc" unique_id=1550350495]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 size_flags_vertical = 0
@@ -234,20 +231,19 @@ theme_override_font_sizes/font_size = 26
 text = "* 角色描述"
 vertical_alignment = 1
 
-[node name="DescInput" type="TextEdit" parent="Scroll/VBox/FormPanel/FormRows/RowDesc"]
+[node name="DescInput" type="TextEdit" parent="Scroll/VBox/FormPanel/FormRows/RowDesc" unique_id=1266385058]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
 placeholder_text = "角色的简介，此内容不会发送给AI"
-
 wrap_mode = 1
 
-[node name="RowPrompt" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="RowPrompt" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=1074673845]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="PromptLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowPrompt"]
+[node name="PromptLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowPrompt" unique_id=557957599]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 size_flags_vertical = 0
@@ -255,7 +251,7 @@ theme_override_font_sizes/font_size = 26
 text = "* 基础提示词"
 vertical_alignment = 1
 
-[node name="PromptInput" type="TextEdit" parent="Scroll/VBox/FormPanel/FormRows/RowPrompt"]
+[node name="PromptInput" type="TextEdit" parent="Scroll/VBox/FormPanel/FormRows/RowPrompt" unique_id=1651421305]
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -263,120 +259,118 @@ theme_override_font_sizes/font_size = 22
 placeholder_text = "系统提示词，描述角色性格、说话风格等
 推荐以“你是”开头
 如果是知名角色，可以直接写“你是《xxxx》中的xxx”"
-
 wrap_mode = 1
 
-[node name="RowWelcome" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="RowWelcome" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=753183769]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="WelcomeLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowWelcome"]
+[node name="WelcomeLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowWelcome" unique_id=20554613]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "* 欢迎词"
 vertical_alignment = 1
 
-[node name="WelcomeInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowWelcome"]
+[node name="WelcomeInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowWelcome" unique_id=1499448040]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
 placeholder_text = "首次对话时显示的欢迎语"
 
-
-[node name="Label3" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="Label3" type="Label" parent="Scroll/VBox/FormPanel/FormRows" unique_id=1041338581]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "
 ——表情立绘——"
 
-[node name="MoodSectionLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="MoodSectionLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows" unique_id=728444901]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 28
 text = "立绘表情列表"
 
-[node name="MoodTable" type="VBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="MoodTable" type="VBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=706834935]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="AddMoodButton" type="Button" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="AddMoodButton" type="Button" parent="Scroll/VBox/FormPanel/FormRows" unique_id=448525229]
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 theme = ExtResource("3")
 theme_override_font_sizes/font_size = 24
 text = "+ 添加表情立绘"
 
-[node name="CalibScalePreviewRow" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="CalibScalePreviewRow" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=557499502]
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="CalibScaleControls" type="VBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow"]
+[node name="CalibScaleControls" type="VBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow" unique_id=56894689]
 layout_mode = 2
 size_flags_vertical = 0
 theme_override_constants/separation = 16
 
-[node name="RowCalib" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls"]
+[node name="RowCalib" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls" unique_id=1334451222]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="CalibLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowCalib"]
+[node name="CalibLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowCalib" unique_id=759508029]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "* 位置校准"
 vertical_alignment = 1
 
-[node name="CalibInput" type="SpinBox" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowCalib"]
+[node name="CalibInput" type="SpinBox" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowCalib" unique_id=1297056846]
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 min_value = -1000.0
 max_value = 1000.0
 
-[node name="RowScale" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls"]
+[node name="RowScale" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls" unique_id=1749349028]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="ScaleLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowScale"]
+[node name="ScaleLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowScale" unique_id=561322714]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "* 缩放"
 vertical_alignment = 1
 
-[node name="ScaleInput" type="SpinBox" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowScale"]
+[node name="ScaleInput" type="SpinBox" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/CalibScaleControls/RowScale" unique_id=323237720]
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 min_value = 10.0
 max_value = 500.0
 value = 100.0
 
-[node name="SpritePreviewContainer" type="SubViewportContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow"]
+[node name="SpritePreviewContainer" type="SubViewportContainer" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow" unique_id=398681232]
 custom_minimum_size = Vector2(352, 198)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 stretch = true
 
-[node name="SpritePreviewViewport" type="SubViewport" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer"]
+[node name="SpritePreviewViewport" type="SubViewport" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer" unique_id=958195348]
 handle_input_locally = false
 size = Vector2i(352, 198)
 render_target_update_mode = 4
 
-[node name="PreviewBg" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
+[node name="PreviewBg" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport" unique_id=1813732024]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0.22, 0.22, 0.22, 1)
 
-[node name="PreviewSprite" type="Sprite2D" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
+[node name="PreviewSprite" type="Sprite2D" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport" unique_id=549273615]
 texture_filter = 1
 position = Vector2(176, 198)
 offset = Vector2(0, -96)
 
-[node name="PreviewDialogBar" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
+[node name="PreviewDialogBar" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport" unique_id=340813830]
 offset_left = 29.0
 offset_top = 139.0
 offset_right = 323.0
@@ -384,7 +378,7 @@ offset_bottom = 185.0
 mouse_filter = 2
 color = Color(0.08, 0.08, 0.16, 0.82)
 
-[node name="PreviewInputBar" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport"]
+[node name="PreviewInputBar" type="ColorRect" parent="Scroll/VBox/FormPanel/FormRows/CalibScalePreviewRow/SpritePreviewContainer/SpritePreviewViewport" unique_id=30277140]
 offset_left = 255.0
 offset_top = 19.0
 offset_right = 347.0
@@ -392,91 +386,120 @@ offset_bottom = 56.0
 mouse_filter = 2
 color = Color(0.08, 0.08, 0.16, 0.75)
 
-[node name="Label4" type="Label" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="Label4" type="Label" parent="Scroll/VBox/FormPanel/FormRows" unique_id=731367750]
 layout_mode = 2
 theme_override_font_sizes/font_size = 35
 text = "
 ——语音——"
 
-[node name="RowRefAudio" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="RowLanguage" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=1377696692]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="RefAudioLabel2" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio"]
+[node name="LanguageLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowLanguage" unique_id=1060197202]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "语言"
+vertical_alignment = 1
+
+[node name="LanguageOptionButton" type="OptionButton" parent="Scroll/VBox/FormPanel/FormRows/RowLanguage" unique_id=144450020]
+custom_minimum_size = Vector2(200, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+selected = 0
+item_count = 6
+popup/item_0/text = "汉语"
+popup/item_0/id = 0
+popup/item_1/text = "英语"
+popup/item_1/id = 1
+popup/item_2/text = "日语"
+popup/item_2/id = 2
+popup/item_3/text = "韩语"
+popup/item_3/id = 4
+popup/item_4/text = "粤语"
+popup/item_4/id = 5
+popup/item_5/text = "文言文"
+popup/item_5/id = 6
+
+[node name="RowRefAudio" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=42252923]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="RefAudioLabel2" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio" unique_id=833000666]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "参考音频"
 vertical_alignment = 1
 
-[node name="RefAudioRow" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio"]
+[node name="RefAudioRow" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio" unique_id=705146430]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
-[node name="RefAudioButton" type="Button" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio/RefAudioRow"]
+[node name="RefAudioButton" type="Button" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio/RefAudioRow" unique_id=2104732384]
 custom_minimum_size = Vector2(160, 44)
 layout_mode = 2
 theme = ExtResource("4")
 theme_override_font_sizes/font_size = 22
 text = "上传音频"
 
-[node name="RefAudioLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio/RefAudioRow"]
+[node name="RefAudioLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowRefAudio/RefAudioRow" unique_id=80913357]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 22
 text = "未选择"
 
-[node name="RowRefText" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows"]
+[node name="RowRefText" type="HBoxContainer" parent="Scroll/VBox/FormPanel/FormRows" unique_id=433541062]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="RefTextLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowRefText"]
+[node name="RefTextLabel" type="Label" parent="Scroll/VBox/FormPanel/FormRows/RowRefText" unique_id=1399446720]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "参考音频文本"
 vertical_alignment = 1
 
-[node name="RefTextInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowRefText"]
+[node name="RefTextInput" type="LineEdit" parent="Scroll/VBox/FormPanel/FormRows/RowRefText" unique_id=1169979239]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
 placeholder_text = "填写音频里说的话"
 
-
-[node name="BottomBar" type="HBoxContainer" parent="Scroll/VBox"]
+[node name="BottomBar" type="HBoxContainer" parent="Scroll/VBox" unique_id=2074452624]
 layout_mode = 2
 theme_override_constants/separation = 120
 alignment = 1
 
-[node name="ResetButton" type="Button" parent="Scroll/VBox/BottomBar"]
+[node name="ResetButton" type="Button" parent="Scroll/VBox/BottomBar" unique_id=1248140494]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 theme = ExtResource("5_ixq1y")
 theme_override_font_sizes/font_size = 40
 text = "重置"
 
-[node name="CreateButton" type="Button" parent="Scroll/VBox/BottomBar"]
+[node name="CreateButton" type="Button" parent="Scroll/VBox/BottomBar" unique_id=30898956]
 custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 theme = ExtResource("3")
 theme_override_font_sizes/font_size = 40
 text = "创建"
 
-[node name="Label" type="Label" parent="Scroll/VBox"]
+[node name="Label" type="Label" parent="Scroll/VBox" unique_id=1366152991]
 layout_mode = 2
 horizontal_alignment = 1
 
-[node name="FileDialog" type="FileDialog" parent="."]
+[node name="FileDialog" type="FileDialog" parent="." unique_id=1401294843]
 title = "Open a File"
 size = Vector2i(900, 700)
 ok_button_text = "选择"
 file_mode = 0
 access = 2
 
-[node name="ConfirmDialog" type="Control" parent="."]
+[node name="ConfirmDialog" type="Control" parent="." unique_id=1757016990]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -485,7 +508,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ToastLabel" type="Label" parent="."]
+[node name="ToastLabel" type="Label" parent="." unique_id=1793746423]
 visible = false
 layout_mode = 1
 anchors_preset = -1

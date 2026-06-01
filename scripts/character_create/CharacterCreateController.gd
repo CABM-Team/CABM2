@@ -51,6 +51,7 @@ var _crop_target_row := -1    # -1 = 头像，>=0 = 立绘行索引
 @onready var ref_audio_btn: Button           = $Scroll/VBox/FormPanel/FormRows/RowRefAudio/RefAudioRow/RefAudioButton
 @onready var ref_audio_label: Label          = $Scroll/VBox/FormPanel/FormRows/RowRefAudio/RefAudioRow/RefAudioLabel
 @onready var ref_text_input: LineEdit        = $Scroll/VBox/FormPanel/FormRows/RowRefText/RefTextInput
+@onready var language_option: OptionButton    = $Scroll/VBox/FormPanel/FormRows/RowLanguage/LanguageOptionButton
 @onready var reset_btn: Button               = $Scroll/VBox/BottomBar/ResetButton
 @onready var back_btn: Button                = $BackButton
 @onready var create_btn: Button              = $Scroll/VBox/BottomBar/CreateButton
@@ -144,6 +145,7 @@ func _connect_signals() -> void:
 	add_mood_btn.pressed.connect(_on_add_mood_pressed)
 	ref_audio_btn.pressed.connect(_on_ref_audio_btn_pressed)
 	ref_text_input.text_changed.connect(_on_ref_text_changed)
+	language_option.item_selected.connect(_on_language_changed)
 	reset_btn.pressed.connect(_on_reset_btn_pressed)
 	back_btn.pressed.connect(_on_back_pressed)
 	create_btn.pressed.connect(_on_create_btn_pressed)
@@ -354,6 +356,11 @@ func _on_ref_text_changed(text: String) -> void:
 		f.close()
 	# 参考文本变更，清除该角色的 voice URI 缓存
 	_invalidate_voice_cache()
+	_save_draft_json()
+
+# ── 语言选择 ──────────────────────────────────────────────────
+func _on_language_changed(_index: int) -> void:
+	_save_draft_json()
 
 # ── 清除 voice URI 缓存 ───────────────────────────────────────
 func _invalidate_voice_cache() -> void:
@@ -406,6 +413,7 @@ func _save_draft_json() -> void:
 		"calib": int(calib_input.value),
 		"scale_rate": int(scale_input.value),
 		"moods": mood_names,
+		"language": language_option.get_item_text(language_option.selected),
 	}
 	var f := FileAccess.open(_work_dir + "draft.json", FileAccess.WRITE)
 	if f:
@@ -469,6 +477,13 @@ func _load_draft() -> void:
 		if rf:
 			ref_text_input.text = rf.get_as_text()
 			rf.close()
+
+	# 恢复语言设置
+	var lang_text: String = data.get("language", "汉语")
+	for i in language_option.item_count:
+		if language_option.get_item_text(i) == lang_text:
+			language_option.selected = i
+			break
 
 	# 恢复立绘行
 	var moods_raw = data.get("moods", [])
@@ -591,6 +606,7 @@ func _do_create() -> void:
 		"calib": int(calib_input.value),
 		"scale_rate": int(scale_input.value),
 		"moods": mood_names,
+		"language": language_option.get_item_text(language_option.selected),
 	}
 	var jf := FileAccess.open(_work_dir + char_id + ".json", FileAccess.WRITE)
 	if jf:
@@ -630,7 +646,7 @@ func _do_create() -> void:
 		DirAccess.make_dir_recursive_absolute(DRAFT_DIR)
 		_show_toast("角色创建成功！")
 
-	await get_tree().create_timer(1.2).timeout
+	# await get_tree().create_timer(1.2).timeout
 	get_tree().change_scene_to_file("res://scenes/character_select/character_select.tscn")
 
 # ── 工具函数 ──────────────────────────────────────────────────

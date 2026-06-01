@@ -7,6 +7,7 @@
 extends Node
 
 const CACHE_DIR := "user://speech_cache"
+const CHARACTER_BASE_DIR := "user://characters/"
 
 # 文本注入规则：格式为 { "原文本": "替换文本" }
 var text_injection_rules: Dictionary = {
@@ -34,7 +35,18 @@ func request(character_id: String, text: String) -> void:
 		tts_done.emit(cache_path)
 		return
 	print("[TTS合成] ", text)
-	_synthesize(character_id, text, cache_path)
+	
+	# 检查角色语言设置，如果非汉语则翻译
+	var char_lang = AppState.current_character.get("language", "汉语")
+	if char_lang != "汉语":
+		var translated_text: String = await Translator.translate(text, char_lang)
+		if not translated_text.is_empty():
+			print("[TTS翻译] %s -> %s" % [text, translated_text])
+			_synthesize(character_id, text, translated_text, cache_path)
+		else:
+			_synthesize(character_id, text, text, cache_path)
+	else:
+		_synthesize(character_id, text, text, cache_path)
 
 ## 同步检查缓存是否存在
 func has_cache(character_id: String, text: String) -> bool:
@@ -55,7 +67,7 @@ func _apply_text_injection(original_text: String) -> String:
 	return processed_text
 
 # ── 合成请求 ──────────────────────────────────────────────────
-func _synthesize(character_id: String, text: String, cache_path: String) -> void:
+func _synthesize(character_id: String, text: String, translated_text: String, cache_path: String) -> void:
 	var tts_url_base: String = ConfigManager.get_effective_value("tts_api_base_url")
 	if tts_url_base.is_empty():
 		return  # 未配置 URL，静默跳过
@@ -74,8 +86,8 @@ func _synthesize(character_id: String, text: String, cache_path: String) -> void
 	if voice_uri.is_empty():
 		return
 
-	# 应用文本注入规则（不影响原始 text 用于缓存）
-	var injected_text := _apply_text_injection(text)
+	# 应用文本注入规则（使用翻译后的文本）
+	var injected_text := _apply_text_injection(translated_text)
 
 	var body_dict := {"model": model, "input": injected_text, "voice": voice_uri}
 	var extra: Dictionary = ConfigManager.get_effective_value("tts_body_extra")

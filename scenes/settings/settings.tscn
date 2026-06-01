@@ -195,7 +195,6 @@ text = "API密钥"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
-
 secret = true
 
 [node name="LabelChatUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=199071923]
@@ -207,7 +206,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
 
-
 [node name="LabelChatModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=827765660]
 layout_mode = 2
 text = "模型名"
@@ -216,7 +214,6 @@ text = "模型名"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "deepseek-ai/DeepSeek-V3.2"
-
 
 [node name="SectionOption" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=741433166]
 layout_mode = 2
@@ -231,7 +228,6 @@ text = "API密钥"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
-
 secret = true
 
 [node name="LabelOptUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1620871267]
@@ -243,7 +239,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
 
-
 [node name="LabelOptModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1195992576]
 layout_mode = 2
 text = "模型名"
@@ -252,7 +247,6 @@ text = "模型名"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "Qwen/Qwen3-8B"
-
 
 [node name="SectionTts" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=358270178]
 layout_mode = 2
@@ -267,7 +261,6 @@ text = "API密钥"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
-
 secret = true
 
 [node name="LabelTtsUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1764913943]
@@ -279,7 +272,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
 
-
 [node name="LabelTtsModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=595741136]
 layout_mode = 2
 text = "模型名"
@@ -288,7 +280,6 @@ text = "模型名"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "FunAudioLLM/CosyVoice2-0.5B"
-
 
 [node name="SectionEmbed" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=95683420]
 layout_mode = 2
@@ -304,7 +295,6 @@ text = "API密钥"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "sk-..."
-
 secret = true
 
 [node name="LabelEmbedUrl" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=2133290308]
@@ -316,7 +306,6 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "https://api.siliconflow.cn/v1"
 
-
 [node name="LabelEmbedModel" type="Label" parent="MainLayout/TabContainer/API设置/VBox" unique_id=1030298312]
 layout_mode = 2
 text = "模型名"
@@ -325,7 +314,6 @@ text = "模型名"
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 placeholder_text = "BAAI/bge-m3"
-
 
 [node name="请求体" type="ScrollContainer" parent="MainLayout/TabContainer" unique_id=139972568]
 visible = false
@@ -453,7 +441,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 35
 placeholder_text = "输入你的名字"
-
 
 [node name="SectionContext" type="Label" parent="MainLayout/TabContainer/聊天设置" unique_id=1669342830]
 layout_mode = 2

@@ -41,6 +41,7 @@ BuiltinKeyManager="*res://scripts/autoload/BuiltinKeyManager.gd"
 TouchMouseBridge="*res://scripts/autoload/TouchMouseBridge.gd"
 VectorStore="*res://scripts/autoload/VectorStore.gd"
 EmbedService="*res://scripts/autoload/EmbedService.gd"
+Translator="*uid://bi1nxpj1jp7qh"
 
 [debug]
 
