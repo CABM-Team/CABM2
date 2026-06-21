@@ -48,7 +48,8 @@ static func _trim_to_limit(messages: Array[Dictionary]) -> Array[Dictionary]:
 static func _build_system_content(
 	character_data: Dictionary,
 	knowledge_context: String = "",
-	context_info: Dictionary = {}
+	context_info: Dictionary = {},
+	environment_prompt: String = ""
 ) -> String:
 	var sections: Array[String] = []
 	
@@ -61,7 +62,11 @@ static func _build_system_content(
 	if not knowledge_context.is_empty():
 		sections.append("## 相关知识\n" + knowledge_context)
 	
-	# 3. 对话背景/上下文（群聊专用）
+	# 3. 当前环境（如果有）
+	if not environment_prompt.is_empty():
+		sections.append("## 当前场景\n" + environment_prompt)
+	
+	# 4. 对话背景/上下文（群聊专用）
 	if context_info.has("group_des") and not context_info.group_des.is_empty():
 		sections.append("## 对话背景\n" + context_info.group_des)
 	
@@ -71,7 +76,7 @@ static func _build_system_content(
 	if context_info.has("other_names") and not context_info.other_names.is_empty():
 		sections.append("## 对话对象\n你正在和" + "、".join(context_info.other_names) + "一起对话。")
 	
-	# 4. 输出要求
+	# 5. 输出要求
 	var moods: Array = character_data.get("moods", [])
 	var mood_list := ""
 	for i in moods.size():
@@ -89,12 +94,13 @@ static func _build_system_content(
 static func build_messages(
 	messages: Array[Dictionary],
 	character_data: Dictionary,
-	knowledge_context: String = ""
+	knowledge_context: String = "",
+	environment_prompt: String = ""
 ) -> Array[Dictionary]:
 	var context_info: Dictionary = {
 		"user_name": ConfigManager.get_effective_value("username")
 	}
-	var system_content = _build_system_content(character_data, knowledge_context, context_info)
+	var system_content = _build_system_content(character_data, knowledge_context, context_info, environment_prompt)
 	
 	var result: Array[Dictionary] = [{"role": "system", "content": system_content}]
 	for msg in messages:
@@ -109,12 +115,14 @@ static func build_messages(
 ## history: 群聊历史 [{role, content}]，role 可以是 "user" / <character_id>
 ## group_data: 群聊配置（可选），用于注入群聊描述
 ## knowledge_context: 知识库检索结果（可选）
+## environment_prompt: 当前环境提示词（可选）
 static func build_group_messages(
 	speaking_char: Dictionary,
 	all_chars: Array[Dictionary],
 	history: Array[Dictionary],
 	group_data: Dictionary = {},
-	knowledge_context: String = ""
+	knowledge_context: String = "",
+	environment_prompt: String = ""
 ) -> Array[Dictionary]:
 	var speaking_id: String = speaking_char.get("id", "")
 	
@@ -131,7 +139,7 @@ static func build_group_messages(
 		"group_des": group_data.get("des", "")
 	}
 	
-	var system_content = _build_system_content(speaking_char, knowledge_context, context_info)
+	var system_content = _build_system_content(speaking_char, knowledge_context, context_info, environment_prompt)
 	
 	var result: Array[Dictionary] = [{"role": "system", "content": system_content}]
 	

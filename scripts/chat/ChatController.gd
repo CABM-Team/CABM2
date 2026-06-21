@@ -266,6 +266,11 @@ func _get_background_path(background_id: String) -> String:
 		return ""
 	return String((_background_entries[background_id] as Dictionary).get("path", ""))
 
+func _get_current_background_prompt() -> String:
+	if not _background_entries.has(_current_background_id):
+		return ""
+	return String((_background_entries[_current_background_id] as Dictionary).get("prompt", ""))
+
 func _reload_background_entries() -> void:
 	_background_entries.clear()
 	var builtin := _load_background_root(BACKGROUND_CONFIG_RES)
@@ -276,7 +281,9 @@ func _reload_background_entries() -> void:
 		var item: Dictionary = builtin[filename]
 		_background_entries[key] = {
 			"name": String(item.get("name", key.get_basename())),
-			"path": BACKGROUND_RES_DIR + key
+			"path": BACKGROUND_RES_DIR + key,
+			"prompt": String(item.get("prompt", "")),
+			"desc": String(item.get("desc", ""))
 		}
 
 	for filename in user.keys():
@@ -287,12 +294,16 @@ func _reload_background_entries() -> void:
 		var old: Dictionary = _background_entries.get(key, {})
 		old["name"] = String(item.get("name", old.get("name", key.get_basename())))
 		old["path"] = final_path
+		old["prompt"] = String(item.get("prompt", ""))
+		old["desc"] = String(item.get("desc", ""))
 		_background_entries[key] = old
 
 	if not _background_entries.has(BACKGROUND_DEFAULT_ID):
 		_background_entries[BACKGROUND_DEFAULT_ID] = {
 			"name": "默认背景",
-			"path": BACKGROUND_RES_DIR + BACKGROUND_DEFAULT_ID
+			"path": BACKGROUND_RES_DIR + BACKGROUND_DEFAULT_ID,
+			"prompt": "",
+			"desc": ""
 		}
 
 func _load_background_root(config_path: String) -> Dictionary:
@@ -372,10 +383,12 @@ func _retrieve_knowledge_and_send(user_text: String) -> void:
 	)
 
 func _build_and_send_messages() -> void:
+	var environment_prompt := _get_current_background_prompt()
 	var messages := PromptBuilder.build_messages(
 		AppState.get_messages_for_api(),
 		AppState.current_character,
-		AppState.knowledge_context
+		AppState.knowledge_context,
+		environment_prompt
 	)
 	ApiClient.chat_completion(messages)
 
@@ -521,12 +534,14 @@ func _request_group_char(char_data: Dictionary) -> void:
 	audio_player.stop()
 	ui.start_thinking_dots()
 
+	var environment_prompt := _get_current_background_prompt()
 	var messages := PromptBuilder.build_group_messages(
 		char_data,
 		AppState.group_characters,
 		AppState.chat_history,
 		AppState.current_group,
-		AppState.knowledge_context
+		AppState.knowledge_context,
+		environment_prompt
 	)
 	ApiClient.chat_completion(messages)
 
